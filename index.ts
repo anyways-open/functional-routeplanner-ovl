@@ -13,8 +13,8 @@ const mapState: {
     center: LngLatLike
     zoom: number
 } = {
-    center: [4.4019, 51.2260],
-    zoom: 11.02
+    center: [3.74475, 51.04774],
+    zoom: 10.51
 }
 if (typeof urlState.map !== "undefined") {
     const parts = urlState.map.split("/");
@@ -27,7 +27,7 @@ if (typeof urlState.map !== "undefined") {
 
 const map = new Map({
     container: 'map',
-    style: 'https://api.maptiler.com/maps/basic/style.json?key=2Piy1GKXoXq0rHzzBVDA',
+    style: 'https://api.maptiler.com/maps/basic/style.json?key=aQMwCJkEBVoDQRMup6IF',
     center: mapState.center,
     zoom: mapState.zoom,
     preserveDrawingBuffer: true,
@@ -59,18 +59,6 @@ const layerControl = new LayerControl([{
 {
     name: "Cycle Highways",
     layers: [ "cycle-highways" ]
-},
-{
-    name: "Functional Network Antwerp",
-    layers: [ "cycle-network-antwerp" ]
-},
-{
-    name: "Network Genk",
-    layers: [ "cycle-network-genk" ]
-},
-{
-    name: "Network Brussels Region",
-    layers: [ "cycle-network-brussels" ]
 }]);
 map.addControl(layerControl, 'top-left');
 
@@ -206,114 +194,7 @@ map.on("load", e => {
             ]
         ]
     }, lowestLabel);
-
-    map.addLayer({
-        "id": "cycle-network-antwerp",
-        "type": "line",
-        "source": "cyclenetworks-tiles",
-        "source-layer": "cyclenetwork",
-        "layout": {
-            "line-join": "round",
-            "line-cap": "round"
-        },
-        "paint": {
-            "line-color": "#00cc00",
-            "line-width": [
-                'interpolate', ['linear'], ['zoom'],
-                10, 3,
-                12, 6,
-                16, 25
-            ],
-            "line-opacity": [
-                'interpolate', ['linear'], ['zoom'],
-                12, 1,
-                13, 0.4
-            ],
-        },
-        "filter": [
-            "all",
-            [
-                 "==",
-                 "operator",
-                 "Stad Antwerpen"
-            ]
-        ]
-    }, lowestLabel);
-
-    map.addLayer({
-        "id": "cycle-network-genk",
-        "type": "line",
-        "source": "cyclenetworks-tiles",
-        "source-layer": "cyclenetwork",
-        "layout": {
-            "line-join": "round",
-            "line-cap": "round"
-        },
-        "paint": {
-            "line-color": ['get', 'colour'],
-            "line-width": [
-                'interpolate', ['linear'], ['zoom'],
-                10, 2,
-                13, 4,
-                16, 10
-            ],
-            "line-opacity":[
-                'interpolate', ['linear'], ['zoom'],
-                12, 1,
-                13, 0.4
-            ]
-        },
-        "filter": [
-            "all",
-            [
-                "==",
-                "$type",
-                "LineString"
-            ],
-            [
-                "all",
-                [
-                    "==",
-                    "operator",
-                    "Stad Genk"
-                ]
-            ]
-        ]
-    }, lowestLabel);
-
-    map.addLayer({
-        "id": "cycle-network-brussels",
-        "type": "line",
-        "source": "cyclenetworks-tiles",
-        "source-layer": "cyclenetwork",
-        "layout": {
-            "line-join": "round",
-            "line-cap": "round"
-        },
-        "paint": {
-            "line-color": ['get', 'colour'],
-            "line-width": [
-                'interpolate', ['linear'], ['zoom'],
-                10, 2,
-                13, 4,
-                16, 10
-            ],
-            "line-opacity":[
-                'interpolate', ['linear'], ['zoom'],
-                12, 1,
-                13, 0.4
-            ]
-        },
-        "filter": [
-            "all",
-            [
-                "==",
-                "operator",
-                "Brussels Mobility"
-            ]
-        ]
-    }, lowestLabel);
-
+    
     map.addLayer({
         "id": "cyclenodes-circles",
         "type": "circle",
