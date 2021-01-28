@@ -6,16 +6,16 @@ import { RoutingComponentEvent } from "./RoutingComponentEvent";
 
 export class RoutingComponent implements IControl {
     readonly api: RoutingApi;
-    element: HTMLElement;
-    map: Map;
-    profiles: { id: string, description: string }[];
-
-    locations: Marker[] = [];
-    routes: any[] = [];
-
+    readonly routes: any[] = [];
+    readonly locations: { marker: Marker, id: number }[] = [];
+    readonly events: EventsHub<RoutingComponentEvent> = new EventsHub();
+    readonly profiles: { id: string, description: string }[] = [];
     profile: string;
 
-    events: EventsHub<RoutingComponentEvent> = new EventsHub();
+    element: HTMLElement;
+    map: Map;
+
+    markerId = 0;
 
     constructor(api: RoutingApi) {
         this.api = api;
@@ -47,7 +47,7 @@ export class RoutingComponent implements IControl {
             select.value = this.profile;
         }
 
-        for (let i = 0; i < this.routes.length; i++) { 
+        for (let i = 0; i < this.routes.length; i++) {
             this.routes[i] = null;
         }
         this._calculateRoute();
@@ -61,22 +61,19 @@ export class RoutingComponent implements IControl {
      */
     addLocation(l: mapboxgl.LngLatLike): void {
         // add markers for each location.
-        let marker: Marker = null;
+        let markerDetails: { marker: Marker, id: number } = null;
         const index = this.locations.length;
         if (index === 0) {
-            marker = this._createMarker(l, "marker-origin", 0);
+            markerDetails = this._createMarker(l, "marker-origin", 0);
         } else {
-            marker = this._createMarker(l, "marker-destination", index);
+            markerDetails = this._createMarker(l, "marker-destination", index);
         }
-        this.locations.push(marker);
+        this.locations.push(markerDetails);
 
         // report on new location.
         this.events.trigger("location", {
             component: this,
-            marker: {
-                marker: marker,
-                index: index
-            }
+            marker: markerDetails
         });
 
         // calculate if locations.
@@ -93,10 +90,46 @@ export class RoutingComponent implements IControl {
     getLocations(): { lng: number, lat: number }[] {
         const locations: { lng: number, lat: number }[] = [];
         this.locations.forEach(l => {
-            locations.push(l.getLngLat());
+            locations.push(l.marker.getLngLat());
         });
 
         return locations;
+    }
+
+    removeLocation(id: number): boolean {
+        // get marker index.
+        const index = this.locations.findIndex(l => {
+            return l.id == id;
+        });
+        if (index < 0) {
+            return false;
+        }
+
+        // remove marker from map.
+        this.locations[index].marker.remove();
+
+        // remove locations.
+        console.log(this.locations);
+        this.locations.splice(index, 1);
+        console.log(this.locations);
+
+        // remove route with this location as target.
+        if (index > 0 && index - 1 < this.routes.length) {
+            this.routes[index - 1] = null;
+        }
+        // remove route with this location as origin.
+        if (index < this.routes.length) {
+            this.routes[index] = null;
+        }
+        if (index < this.routes.length) {
+            this.routes.splice(index);
+        }
+
+        // update map.
+        this._updateRoutesLayer();
+
+        // recalculate routes.
+        this._calculateRoute();
     }
 
     getDefaultPosition?: () => string;
@@ -107,7 +140,7 @@ export class RoutingComponent implements IControl {
 
         const locations: { lng: number, lat: number }[] = [];
         this.locations.forEach(l => {
-            locations.push(l.getLngLat());
+            locations.push(l.marker.getLngLat());
         });
 
         for (let i = 0; i < locations.length - 1; i++) {
@@ -118,12 +151,12 @@ export class RoutingComponent implements IControl {
             if (this.routes[i]) continue;
 
             this.api.getRoute({
-                locations: [ locations[i], locations[i + 1]],
+                locations: [locations[i], locations[i + 1]],
                 profile: this.profile
             }, e => {
                 this.routes[i] = e;
                 this._updateRoutesLayer();
-    
+
                 this.events.trigger("calculated", {
                     component: this,
                     route: {
@@ -138,12 +171,12 @@ export class RoutingComponent implements IControl {
     _updateRoutesLayer(): void {
         const routesFeatures = {
             type: "FeatureCollection",
-            features: [ ]
+            features: []
         };
 
         let totalDistance = 0;
         this.routes.forEach(r => {
-            if (r && r.features) {    
+            if (r && r.features) {
                 let routeDistance = 0;
                 r.features.forEach((f: { properties: { distance: string; }; }) => {
                     if (f && f.properties) {
@@ -154,7 +187,7 @@ export class RoutingComponent implements IControl {
                 });
                 totalDistance += routeDistance;
 
-                routesFeatures.features = 
+                routesFeatures.features =
                     routesFeatures.features.concat(r.features);
             }
         });
@@ -234,7 +267,7 @@ export class RoutingComponent implements IControl {
         }, lowestLabel);
     }
 
-    private _createMarker(l: mapboxgl.LngLatLike, className: string, index: number) : Marker {
+    private _createMarker(l: mapboxgl.LngLatLike, className: string): { marker: Marker, id: number } {
         const element = document.createElement("div");
         element.className = className ?? "";
         element.innerHTML = ComponentHtml["marker"];
@@ -244,15 +277,17 @@ export class RoutingComponent implements IControl {
             offset: [0, -20]
         }).setLngLat(l)
             .addTo(this.map);
+        const markerId = this.markerId++;
 
+        // hook drag event.
         marker.on("dragend", () => {
-            this.events.trigger("location", {
-                component: this,
-                marker: {
-                    marker: marker,
-                    index: index
-                }
+            // get marker index.
+            const index = this.locations.findIndex(l => {
+                return l.id == markerId;
             });
+            if (index < 0) {
+                throw new Error(`Marker with id ${markerId} not found.`)
+            }
 
             // recalculate route with this location as target.
             if (index > 0 && index - 1 < this.routes.length) {
@@ -262,10 +297,30 @@ export class RoutingComponent implements IControl {
             if (index < this.routes.length) {
                 this.routes[index] = null;
             }
+
+            // trigger event.
+            this.events.trigger("location", {
+                component: this,
+                marker: {
+                    marker: marker,
+                    id: markerId
+                }
+            });
+
+            // recalculate routes.
             this._calculateRoute();
         });
 
-        return marker;
+        // add click event.
+        element.addEventListener("click", (e) => {
+            this.removeLocation(markerId);
+            e.stopPropagation();
+        }, true);
+
+        return {
+            marker: marker,
+            id: markerId
+        };
     }
 
     private _mapClick(e: MapMouseEvent) {
@@ -319,7 +374,7 @@ export class RoutingComponent implements IControl {
                 profile: this.profile
             });
 
-            for (let i = 0; i < this.routes.length; i++) { 
+            for (let i = 0; i < this.routes.length; i++) {
                 this.routes[i] = null;
             }
             this._calculateRoute();
