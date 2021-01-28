@@ -1,9 +1,10 @@
-import { Marker } from "mapbox-gl";
+import { MarkerEventData } from "./MarkerEventData";
+import { RouteEventData } from "./RouteEventData";
 import { RoutingComponent } from "./RoutingComponent";
 
 export interface RoutingComponentEvent {
     component?: RoutingComponent
-    marker?: Marker
-    route?: any,
+    marker?: MarkerEventData
+    route?: RouteEventData,
     profile?: string
 }

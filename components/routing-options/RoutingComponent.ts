@@ -1,10 +1,8 @@
-import mapboxgl, { IControl, Map, MapMouseEvent, Marker } from 'mapbox-gl';
-import { RoutingApi } from '../../apis/routing-api/RoutingApi';
-import ComponentHtml from '*.html';
-import * as turf from '@turf/turf';
-import { Profile } from '../../apis/routing-api/Profile';
-import { EventsHub } from '../../libs/events/EventsHub';
-import { RoutingComponentEvent } from './RoutingComponentEvent';
+import mapboxgl, { IControl, Map, MapMouseEvent, Marker } from "mapbox-gl";
+import { RoutingApi, Profile } from "@anyways-open/routing-api";
+import ComponentHtml from "*.html";
+import { EventsHub } from "../../libs/events/EventsHub";
+import { RoutingComponentEvent } from "./RoutingComponentEvent";
 
 export class RoutingComponent implements IControl {
     readonly api: RoutingApi;
@@ -12,8 +10,8 @@ export class RoutingComponent implements IControl {
     map: Map;
     profiles: { id: string, description: string }[];
 
-    origin: Marker;
-    destination: Marker;
+    locations: Marker[] = [];
+    routes: any[] = [];
 
     profile: string;
 
@@ -23,7 +21,7 @@ export class RoutingComponent implements IControl {
         this.api = api;
     }
 
-    on(name: string | string[], callback: (args: RoutingComponentEvent) => void) {
+    on(name: string | string[], callback: (args: RoutingComponentEvent) => void): void {
         this.events.on(name, callback);
     }
 
@@ -35,145 +33,132 @@ export class RoutingComponent implements IControl {
         this.element.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
 
         // hook up events.
-        var me = this;
-        this.map.on("load", function (e) { me._mapLoad(e); });
-        this.map.on("click", function (e) { me._mapClick(e); });
+        this.map.on("load", () => this._mapLoad());
+        this.map.on("click", (e) => this._mapClick(e));
 
         return this.element;
     }
 
-    setProfile(profile: string) {
+    setProfile(profile: string): void {
         this.profile = profile;
 
-        var select = document.getElementById("profiles");
+        const select = document.getElementById("profiles");
         if (select) {
             select.value = this.profile;
         }
+
+        for (let i = 0; i < this.routes.length; i++) { 
+            this.routes[i] = null;
+        }
+        this._calculateRoute();
     }
 
-    setOrigin(l: mapboxgl.LngLatLike) {
-        var me = this;
-
-        if (this.origin) {
-            this.origin.setLngLat(l);
+    /**
+     * Adds a new location.
+     * 
+     * First location is taken as origin, next as extra sequential destinations.
+     * @param l The location.
+     */
+    addLocation(l: mapboxgl.LngLatLike): void {
+        // add markers for each location.
+        if (this.locations.length === 0) {
+            this.locations.push(this._createMarker(l, "marker-origin", 0));
         } else {
-            const element = document.createElement("div");
-            element.className = "marker-origin";
-            element.innerHTML = ComponentHtml["marker"];
-
-            var marker = new Marker(element, {
-                draggable: true,
-                offset: [0, -20]
-            }).setLngLat(l)
-                .addTo(this.map);
-
-            this.events.trigger("origin", {
-                component: this,
-                marker: marker
-            });
-
-            marker.on("dragend", () => {
-                this.events.trigger("origin", {
-                    component: this,
-                    marker: marker
-                });
-
-                me._calculateRoute();
-            });
-
-            this.origin = marker;
+            this.locations.push(this._createMarker(l, "marker-destination", this.locations.length));
         }
 
-        if (this.destination) {
+        // calculate if locations.
+        if (this.locations.length > 1) {
             this._calculateRoute();
         }
     }
 
-    setDestination(l: mapboxgl.LngLatLike) {
-        var me = this;
-
-        if (this.destination) {
-            this.destination.setLngLat(l);
-        } else {
-            const element = document.createElement("div");
-            element.className = "marker-destination";
-            element.innerHTML = ComponentHtml["marker"];
-
-            var marker = new Marker(element, {
-                draggable: true,
-                offset: [0, -20]
-            }).setLngLat(l)
-                .addTo(this.map);
-
-            this.events.trigger("destination", {
-                component: this,
-                marker: marker
-            });
-
-            marker.on("dragend", () => {
-                this.events.trigger("destination", {
-                    component: this,
-                    marker: marker
-                });
-
-                me._calculateRoute();
-            });
-
-            this.destination = marker;
-        }
-
-        this._calculateRoute();
-    }
-
-    onRemove(map: mapboxgl.Map) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
+    onRemove(map: mapboxgl.Map): void {
 
     }
 
     getDefaultPosition?: () => string;
 
-    _calculateRoute() {
-        if (this.origin && this.destination) { } else { return; }
+    _calculateRoute(): void {
+        if (this.locations.length <= 1) return;
         if (!this.profile) return;
 
-        var locations: { lng: number, lat: number }[] = [];
-        locations.push(this.origin.getLngLat());
-        locations.push(this.destination.getLngLat());
-
-        this.api.getRoute({
-            locations: locations,
-            profile: this.profile
-        }, e => {
-            this.map.getSource("route").setData(e);
-
-            var distance = document.getElementById("distance");
-            e.features.forEach(f => {
-                if (f && f.properties) {
-                    if (f.properties.distance) {
-                        distance.innerHTML = "" + f.properties.distance + "m";
-                    }
-                }
-            });
-
-            this.events.trigger("calculated", {
-                component: this,
-                route: e
-            });
+        const locations: { lng: number, lat: number }[] = [];
+        this.locations.forEach(l => {
+            locations.push(l.getLngLat());
         });
+
+        for (let i = 0; i < locations.length - 1; i++) {
+            // make sure the array has minimum dimensions.
+            while (this.routes.length <= i) {
+                this.routes.push(null);
+            }
+            if (this.routes[i]) continue;
+
+            this.api.getRoute({
+                locations: [ locations[i], locations[i + 1]],
+                profile: this.profile
+            }, e => {
+                this.routes[i] = e;
+                this._updateRoutesLayer();
+    
+                this.events.trigger("calculated", {
+                    component: this,
+                    route: {
+                        route: e,
+                        index: i
+                    }
+                });
+            });
+        }
     }
 
-    _mapLoad(e: any) {
+    _updateRoutesLayer(): void {
+        const routesFeatures = {
+            type: "FeatureCollection",
+            features: [ ]
+        };
+
+        let totalDistance = 0;
+        this.routes.forEach(r => {
+            if (r && r.features) {    
+                let routeDistance = 0;
+                r.features.forEach((f: { properties: { distance: string; }; }) => {
+                    if (f && f.properties) {
+                        if (f.properties.distance) {
+                            routeDistance = parseFloat(f.properties.distance);
+                        }
+                    }
+                });
+                totalDistance += routeDistance;
+
+                routesFeatures.features = 
+                    routesFeatures.features.concat(r.features);
+            }
+        });
+
+        const distance = document.getElementById("distance");
+        if (distance) {
+            distance.innerHTML = "" + totalDistance.toFixed(0) + "m";
+        }
+
+        this.map.getSource("route").setData(routesFeatures);
+    }
+
+    _mapLoad(): void {
         // trigger load profiles
         this.api.getProfiles(profiles => {
             this._createUI(profiles);
         });
 
         // get lowest label and road.
-        var style = this.map.getStyle();
-        var lowestRoad = undefined;
-        var lowestLabel = undefined;
-        var lowestSymbol = undefined;
-        for (var l = 0; l < style.layers.length; l++) {
-            var layer = style.layers[l];
+        const style = this.map.getStyle();
+        let lowestRoad = undefined;
+        let lowestLabel = undefined;
+        let lowestSymbol = undefined;
+        for (let l = 0; l < style.layers.length; l++) {
+            const layer = style.layers[l];
 
             if (layer && layer["source-layer"] === "transportation") {
                 if (!lowestRoad) {
@@ -198,29 +183,29 @@ export class RoutingComponent implements IControl {
         this.map.addSource("route", {
             type: "geojson",
             data: {
-                type: 'FeatureCollection',
+                type: "FeatureCollection",
                 features: [
                 ]
             }
         });
         this.map.addLayer({
-            'id': 'route',
-            'type': 'line',
-            'source': 'route',
-            'layout': {
-                'line-join': 'round',
-                'line-cap': 'round'
+            "id": "route",
+            "type": "line",
+            "source": "route",
+            "layout": {
+                "line-join": "round",
+                "line-cap": "round"
             },
-            'paint': {
-                'line-color': '#000',
+            "paint": {
+                "line-color": "#000",
                 "line-width": [
-                    'interpolate', ['linear'], ['zoom'],
+                    "interpolate", ["linear"], ["zoom"],
                     10, 8,
                     14, 16,
                     16, 30
                 ],
-                'line-opacity': [
-                    'interpolate', ['linear'], ['zoom'],
+                "line-opacity": [
+                    "interpolate", ["linear"], ["zoom"],
                     12, 1,
                     13, 0.4
                 ]
@@ -228,35 +213,68 @@ export class RoutingComponent implements IControl {
         }, lowestLabel);
     }
 
-    _mapClick(e: MapMouseEvent) {
-        var me = this;
+    private _createMarker(l: mapboxgl.LngLatLike, className: string, index: number) : Marker {
+        const element = document.createElement("div");
+        element.className = className ?? "";
+        element.innerHTML = ComponentHtml["marker"];
 
-        if (this.origin) {
-            this.setDestination(e.lngLat);
+        const marker = new Marker(element, {
+            draggable: true,
+            offset: [0, -20]
+        }).setLngLat(l)
+            .addTo(this.map);
 
+        this.events.trigger("location", {
+            component: this,
+            marker: {
+                marker: marker,
+                index: index
+            }
+        });
+
+        marker.on("dragend", () => {
+            this.events.trigger("location", {
+                component: this,
+                marker: {
+                    marker: marker,
+                    index: index
+                }
+            });
+
+            // recalculate route with this location as target.
+            if (index > 0 && index - 1 < this.routes.length) {
+                this.routes[index - 1] = null;
+            }
+            // recalculate route with this location as origin.
+            if (index < this.routes.length) {
+                this.routes[index] = null;
+            }
             this._calculateRoute();
-        } else {
-            this.setOrigin(e.lngLat);
-        }
+        });
+
+        return marker;
     }
 
-    _createUI(profiles: Profile[]) {
-        var me = this;
+    private _mapClick(e: MapMouseEvent) {
+        this.addLocation(e.lngLat);
+    }
 
-        var componentHtml = ComponentHtml["index"];
+    private _createUI(profiles: Profile[]) {
+
+        const componentHtml = ComponentHtml["index"];
         this.element.innerHTML = componentHtml;
 
         // add profiles as options.
-        var select = document.getElementById("profiles");
-        for (var p in profiles) {
-            var profile = profiles[p];
-            var option = document.createElement("option");
+        let select = document.getElementById("profiles");
+        for (const p in profiles) {
+            const profile = profiles[p];
+            const option = document.createElement("option");
 
-            var profileName = profile.type;
+            let profileName = profile.type;
             if (profile.name) {
-                profileName = profile.type + '.' + profile.name;
+                profileName = profile.type + "." + profile.name;
             }
-            
+
             option.value = profileName
             option.innerHTML = profileName;
             select.appendChild(option);
@@ -268,7 +286,7 @@ export class RoutingComponent implements IControl {
         } else {
             this.profile = profiles[0].type;
             if (profiles[0].name) {
-                this.profile = profiles[0].type + '.' + profiles[0].name;
+                this.profile = profiles[0].type + "." + profiles[0].name;
             }
 
             this.events.trigger("profile", {
@@ -281,14 +299,17 @@ export class RoutingComponent implements IControl {
         select.addEventListener("change", () => {
             select = document.getElementById("profiles");
 
-            me.profile = select.value;
+            this.profile = select.value;
 
             this.events.trigger("profile", {
-                component: me,
-                profile: me.profile
+                component: this,
+                profile: this.profile
             });
 
-            me._calculateRoute();
+            for (let i = 0; i < this.routes.length; i++) { 
+                this.routes[i] = null;
+            }
+            this._calculateRoute();
         });
     }
 }

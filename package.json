@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel index.html",
-    "build": "parcel build --public-url ./ index.html"
+    "build": "parcel build --public-url ./ index.html",
+    "lint": "eslint \"**/*.ts\""
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,10 @@
   },
   "homepage": "https://github.com/anyways-open/routing-api-test-frontend#readme",
   "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.14.1",
+    "@typescript-eslint/parser": "^4.14.1",
+    "eslint": "^7.18.0",
+    "@anyways-open/routing-api": "0.0.4",
     "@mapbox/mapbox-gl-geocoder": "^2.0.1",
     "@turf/turf": "^5.1.6",
     "@types/mapbox-gl": "^1.7.0",

@@ -1,10 +1,10 @@
-import { Map, LngLatLike } from 'mapbox-gl';
-import { RoutingApi } from './apis/routing-api/RoutingApi';
-import { LayerControl } from './components/layer-control/LayerControl';
-import { OsmAttributionControl } from './components/osm-attribution-control/OsmAttributionControl';
-import { RoutingComponent } from './components/routing-options/RoutingComponent';
+import { Map, LngLatLike } from "mapbox-gl";
+import { RoutingApi } from "@anyways-open/routing-api";
+import { LayerControl } from "./components/layer-control/LayerControl";
+import { OsmAttributionControl } from "./components/osm-attribution-control/OsmAttributionControl";
+import { RoutingComponent } from "./components/routing-options/RoutingComponent";
 import "./components/routing-options/RoutingComponent.css";
-import { UrlHash } from './components/url-hash/UrlHash';
+import { UrlHash } from "./components/url-hash/UrlHash";
 
 const urlState = UrlHash.read();
 
@@ -26,8 +26,8 @@ if (typeof urlState.map !== "undefined") {
 }
 
 const map = new Map({
-    container: 'map',
-    style: 'https://api.maptiler.com/maps/basic/style.json?key=aQMwCJkEBVoDQRMup6IF',
+    container: "map",
+    style: "https://api.maptiler.com/maps/basic/style.json?key=aQMwCJkEBVoDQRMup6IF",
     center: mapState.center,
     zoom: mapState.zoom,
     preserveDrawingBuffer: true,
@@ -35,10 +35,10 @@ const map = new Map({
 });
 
 let routingEndpoint = "https://routing.anyways.eu/api/";
-if(urlState.host === "staging"){
+if (urlState.host === "staging") {
 	console.log("Using staging server");
 	routingEndpoint = "https://staging.anyways.eu/routing-api/";
-}else if(urlState.host === "debug"){
+} else if (urlState.host === "debug") {
 	console.log("Using localhost server - you might want to disable CORS-rules");
 	routingEndpoint = "http://localhost:5000/"
 }
@@ -60,24 +60,29 @@ const layerControl = new LayerControl([{
     name: "Cycle Highways",
     layers: [ "cycle-highways" ]
 }]);
-map.addControl(layerControl, 'top-left');
+map.addControl(layerControl, "top-left");
 
-map.on("load", e => {
+map.on("load", () => {
     if (typeof urlState.p !== "undefined") {
         rc.setProfile(urlState.p);
     }
-    if (typeof urlState.o !== "undefined") {
-        const parts = urlState.o.split(",");
-
-        if (parts.length === 2) {
-            rc.setOrigin([parseFloat(parts[0]), parseFloat(parts[1])]);
+    if (typeof urlState.l !== "undefined") {
+        if (!Array.isArray(urlState.l)) {
+            const parts = urlState.l.split(",");                
+            rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
+        }
+        else {
+            urlState.l.forEach((l: string) => {
+                const parts = l.split(",");                
+                rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
+            });
         }
     }
     if (typeof urlState.d !== "undefined") {
         const parts = urlState.d.split(",");
 
         if (parts.length === 2) {
-            rc.setDestination([parseFloat(parts[0]), parseFloat(parts[1])]);
+            rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
         }
     }
 
@@ -91,17 +96,17 @@ map.on("load", e => {
         updateMapUrlState();
     }
 
-    map.on("moveend", e => {
+    map.on("moveend", () => {
         updateMapUrlState();
     });
 
     // get lowest label and road.
-    var style = map.getStyle();
-    var lowestRoad = undefined;
-    var lowestLabel = undefined;
-    var lowestSymbol = undefined;
-    for (var l = 0; l < style.layers.length; l++) {
-        var layer = style.layers[l];
+    const style = map.getStyle();
+    let lowestRoad = undefined;
+    let lowestLabel = undefined;
+    let lowestSymbol = undefined;
+    for (let l = 0; l < style.layers.length; l++) {
+        const layer = style.layers[l];
 
         if (layer && layer["source-layer"] === "transportation") {
             if (!lowestRoad) {
@@ -122,12 +127,12 @@ map.on("load", e => {
         }
     }
 
-    map.addSource('cyclenetworks-tiles', {
-        type: 'vector',
-        url: 'https://api.anyways.eu/tiles/cyclenetworks/mvt.json'
+    map.addSource("cyclenetworks-tiles", {
+        type: "vector",
+        url: "https://api.anyways.eu/tiles/cyclenetworks/mvt.json"
     });
 
-    var nodesColor = "#9999ff";
+    const nodesColor = "#9999ff";
 
     map.addLayer({
         "id": "cycle-node-network",
@@ -141,13 +146,13 @@ map.on("load", e => {
         "paint": {
             "line-color": nodesColor,
             "line-width": [
-                'interpolate', ['linear'], ['zoom'],
+                "interpolate", ["linear"], ["zoom"],
                 10, 2,
                 13, 4,
                 16, 10
             ],
             "line-opacity":[
-                'interpolate', ['linear'], ['zoom'],
+                "interpolate", ["linear"], ["zoom"],
                 12, 1,
                 13, 0.4
             ]
@@ -174,13 +179,13 @@ map.on("load", e => {
         "paint": {
             "line-color": "#ff0000",
             "line-width": [
-                'interpolate', ['linear'], ['zoom'],
+                "interpolate", ["linear"], ["zoom"],
                 10, 3,
                 12, 6,
                 16, 25
             ],
             "line-opacity": [
-                'interpolate', ['linear'], ['zoom'],
+                "interpolate", ["linear"], ["zoom"],
                 12, 1,
                 13, 0.4
             ],
@@ -248,19 +253,16 @@ map.on("load", e => {
     });
 });
 
-rc.on('origin', c => {
-    urlState.o = `${c.marker.getLngLat().lng.toFixed(5)},${c.marker.getLngLat().lat.toFixed(5)}`;
-
+rc.on("location", l => {
+    if (typeof urlState.l === "undefined") {
+        urlState.l = [];
+    }
+    
+    urlState.l.push(`${l.marker.marker.getLngLat().lng.toFixed(5)},${l.marker.marker.getLngLat().lat.toFixed(5)}`);
     UrlHash.write(urlState);
 });
 
-rc.on('destination', c => {
-    urlState.d = `${c.marker.getLngLat().lng.toFixed(5)},${c.marker.getLngLat().lat.toFixed(5)}`;
-
-    UrlHash.write(urlState);
-});
-
-rc.on('profile', c => {
+rc.on("profile", c => {
     urlState.p = c.profile;
 
     UrlHash.write(urlState);
