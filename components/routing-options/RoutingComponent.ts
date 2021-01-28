@@ -64,9 +64,9 @@ export class RoutingComponent implements IControl {
         let markerDetails: { marker: Marker, id: number } = null;
         const index = this.locations.length;
         if (index === 0) {
-            markerDetails = this._createMarker(l, "marker-origin", 0);
+            markerDetails = this._createMarker(l, "marker-origin");
         } else {
-            markerDetails = this._createMarker(l, "marker-destination", index);
+            markerDetails = this._createMarker(l, "marker-destination");
         }
         this.locations.push(markerDetails);
 
