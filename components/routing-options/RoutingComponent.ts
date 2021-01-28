@@ -109,9 +109,7 @@ export class RoutingComponent implements IControl {
         this.locations[index].marker.remove();
 
         // remove locations.
-        console.log(this.locations);
         this.locations.splice(index, 1);
-        console.log(this.locations);
 
         // remove route with this location as target.
         if (index > 0 && index - 1 < this.routes.length) {
