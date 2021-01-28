@@ -4,7 +4,7 @@ import { LayerControl } from "./components/layer-control/LayerControl";
 import { OsmAttributionControl } from "./components/osm-attribution-control/OsmAttributionControl";
 import { RoutingComponent } from "./components/routing-options/RoutingComponent";
 import "./components/routing-options/RoutingComponent.css";
-import { UrlHash } from "./components/url-hash/UrlHash";
+import { UrlHash } from "@anyways-open/url-hash";
 
 const urlState = UrlHash.read();
 
@@ -253,12 +253,14 @@ map.on("load", () => {
     });
 });
 
-rc.on("location", l => {
-    if (typeof urlState.l === "undefined") {
-        urlState.l = [];
-    }
+rc.on("location", () => {
+    const locations: string[] = [];
     
-    urlState.l.push(`${l.marker.marker.getLngLat().lng.toFixed(5)},${l.marker.marker.getLngLat().lat.toFixed(5)}`);
+    rc.getLocations().forEach(l => {
+        locations.push(`${l.lng.toFixed(5)},${l.lat.toFixed(5)}`);
+    });
+    
+    urlState.l = locations;
     UrlHash.write(urlState);
 });
 

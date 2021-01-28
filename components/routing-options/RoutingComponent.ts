@@ -61,11 +61,23 @@ export class RoutingComponent implements IControl {
      */
     addLocation(l: mapboxgl.LngLatLike): void {
         // add markers for each location.
-        if (this.locations.length === 0) {
-            this.locations.push(this._createMarker(l, "marker-origin", 0));
+        let marker: Marker = null;
+        const index = this.locations.length;
+        if (index === 0) {
+            marker = this._createMarker(l, "marker-origin", 0);
         } else {
-            this.locations.push(this._createMarker(l, "marker-destination", this.locations.length));
+            marker = this._createMarker(l, "marker-destination", index);
         }
+        this.locations.push(marker);
+
+        // report on new location.
+        this.events.trigger("location", {
+            component: this,
+            marker: {
+                marker: marker,
+                index: index
+            }
+        });
 
         // calculate if locations.
         if (this.locations.length > 1) {
@@ -76,6 +88,15 @@ export class RoutingComponent implements IControl {
     // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
     onRemove(map: mapboxgl.Map): void {
 
+    }
+
+    getLocations(): { lng: number, lat: number }[] {
+        const locations: { lng: number, lat: number }[] = [];
+        this.locations.forEach(l => {
+            locations.push(l.getLngLat());
+        });
+
+        return locations;
     }
 
     getDefaultPosition?: () => string;
@@ -223,14 +244,6 @@ export class RoutingComponent implements IControl {
             offset: [0, -20]
         }).setLngLat(l)
             .addTo(this.map);
-
-        this.events.trigger("location", {
-            component: this,
-            marker: {
-                marker: marker,
-                index: index
-            }
-        });
 
         marker.on("dragend", () => {
             this.events.trigger("location", {
