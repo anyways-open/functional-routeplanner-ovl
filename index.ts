@@ -263,6 +263,16 @@ rc.on("location", () => {
     urlState.l = locations;
     UrlHash.write(urlState);
 });
+rc.on("location-removed", () => {
+    const locations: string[] = [];
+    
+    rc.getLocations().forEach(l => {
+        locations.push(`${l.lng.toFixed(5)},${l.lat.toFixed(5)}`);
+    });
+    
+    urlState.l = locations;
+    UrlHash.write(urlState);
+});
 
 rc.on("profile", c => {
     urlState.p = c.profile;

@@ -142,6 +142,8 @@ export class RoutingComponent implements IControl {
             return false;
         }
 
+        const removed = this.locations[index];
+
         // remove marker from map.
         this.locations[index].marker.remove();
 
@@ -165,6 +167,12 @@ export class RoutingComponent implements IControl {
 
         // recalculate routes.
         this._calculateRoute();
+
+        // report on removed location.
+        this.events.trigger("location-removed", {
+            component: this,
+            marker: removed
+        });
     }
 
     getDefaultPosition?: () => string;
