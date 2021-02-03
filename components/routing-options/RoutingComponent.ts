@@ -89,8 +89,10 @@ export class RoutingComponent implements IControl {
      * @param profile The profile id.
      */
     setProfile(id: string): void {
+        console.log(id);
         // get profile.
         this.profile = this._getProfileFor(id);
+        console.log(this.profile);
 
         // reset routes and recalculate.
         for (let i = 0; i < this.routes.length; i++) {
@@ -110,6 +112,13 @@ export class RoutingComponent implements IControl {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Returns true if the profiles are loaded.
+     */
+    profilesLoaded() : boolean {
+        return typeof(this.profiles) != "undefined";
     }
 
     /**
@@ -318,11 +327,11 @@ export class RoutingComponent implements IControl {
         this.api.getProfiles(profiles => {
             this.profiles = profiles;
 
-            if (this.options.defaultUI) this._createDefaultUI(profiles);
-
             this.events.trigger("profiles-loaded", {
                 profiles: profiles
             });
+
+            if (this.options.defaultUI) this._createDefaultUI();
         });
 
         // get lowest label and road.
@@ -587,15 +596,15 @@ export class RoutingComponent implements IControl {
         return;
     }
 
-    private _createDefaultUI(profiles: Profile[]) {
+    private _createDefaultUI() {
 
         const componentHtml = ComponentHtml["index"];
         this.element.innerHTML = componentHtml;
 
         // add profiles as options.
         let select = document.getElementById("profiles") as HTMLSelectElement;
-        for (const p in profiles) {
-            const profile = profiles[p];
+        for (const p in this.profiles) {
+            const profile = this.profiles[p];
             const option = document.createElement("option");
 
             let profileName = profile.type;
@@ -612,7 +621,7 @@ export class RoutingComponent implements IControl {
         if (this.profile) {
             select.value = this.profile.id;
         } else {
-            this.profile = profiles[0];
+            this.profile = this.profiles[0];
 
             this.events.trigger("profile", {
                 component: this,
@@ -627,13 +636,17 @@ export class RoutingComponent implements IControl {
             // set profile.
             this.profile = this._getProfileFor(select.value);
 
+            // reset routes and recalculate.
+            for (let i = 0; i < this.routes.length; i++) {
+                this.routes[i] = null;
+            }
+            this._calculateRoute();
+
             // trigger event.
             this.events.trigger("profile", {
                 component: this,
                 profiles: [this.profile]
             });
-
-            this._calculateRoute();
         });
     }
 }

@@ -232,6 +232,8 @@ map.on("load", () => {
 });
 
 rc.on("location", () => {
+    if (!rc.profilesLoaded()) return;
+
     const locations: string[] = [];
     
     rc.getLocations().forEach(l => {
@@ -243,6 +245,8 @@ rc.on("location", () => {
 });
 
 rc.on("location-removed", () => {
+    if (!rc.profilesLoaded()) return;
+    
     const locations: string[] = [];
     
     rc.getLocations().forEach(l => {
@@ -255,7 +259,11 @@ rc.on("location-removed", () => {
 
 rc.on("profiles-loaded", () => {
     if (typeof urlState.p !== "undefined") {
-        if (rc.hasProfile(urlState.p)) rc.setProfile(urlState.p);
+        if (rc.hasProfile(urlState.p)) { 
+            rc.setProfile(urlState.p); 
+        } else {
+            console.log(`Profile not found, taking default: ${urlState.p}`);
+        }
     }
     if (typeof urlState.l !== "undefined") {
         if (!Array.isArray(urlState.l)) {
@@ -272,6 +280,8 @@ rc.on("profiles-loaded", () => {
 });
 
 rc.on("profile", (c: EventBase) => {
+    if (!rc.profilesLoaded()) return;
+    
     const e = c as ProfilesEvent;
 
     urlState.p = e.profiles[0].id;
