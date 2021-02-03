@@ -1,33 +1,56 @@
 import mapboxgl, { GeoJSONSource, IControl, Map, MapMouseEvent, Marker } from "mapbox-gl";
 import { RoutingApi, Profile } from "@anyways-open/routing-api";
 import ComponentHtml from "*.html";
-import { EventsHub } from "../../libs/events/EventsHub";
-import { RoutingComponentEvent } from "./RoutingComponentEvent";
+import { EventsHub } from "./EventsHub";
 import * as turf from "@turf/turf";
 import { NearestPointOnLine } from "@turf/nearest-point-on-line";
+import { LocationEvent } from "./events/LocationEvent";
+import { ProfilesEvent } from "./events/ProfilesEvent";
+import { RouteEvent } from "./events/RouteEvent";
+
+export type EventBase = LocationEvent | ProfilesEvent | RouteEvent
 
 export class RoutingComponent implements IControl {
     readonly api: RoutingApi;
-    readonly routes: any[] = [];
+    readonly options: {
+        defaultUI: boolean
+    };
+    readonly routes: unknown[] = [];
     readonly locations: { marker: Marker, id: number }[] = [];
-    readonly events: EventsHub<RoutingComponentEvent> = new EventsHub();
-    readonly profiles: { id: string, description: string }[] = [];
-    profile: string;
+    readonly events: EventsHub<EventBase> = new EventsHub();
 
-    element: HTMLElement;
-    map: Map;
-    snapPoint?: NearestPointOnLine;
+    private profiles: Profile[] = [];
+    private profile?: Profile;
+    private element?: HTMLElement;
+    private map: Map;
+    private snapPoint?: NearestPointOnLine;
+    private markerId = 0;
 
-    markerId = 0;
-
-    constructor(api: RoutingApi) {
+    constructor(api: RoutingApi, options?: {
+        defaultUI?: boolean
+    }) {
         this.api = api;
+        this.options = {
+            defaultUI: options?.defaultUI ?? true
+        };
     }
 
-    on(name: string | string[], callback: (args: RoutingComponentEvent) => void): void {
+    /**
+     * Registers an event handler for the given event.
+     * 
+     * @param name The name.
+     * @param callback The callback.
+     */
+    on(name: "location" | "location-removed" | "profiles-loaded" | "profile" | "route",
+        callback: (args: EventBase) => void): void {
         this.events.on(name, callback);
     }
 
+    /**
+     * IControl implementation: Called when the control is added to the map.
+     * 
+     * @param map The map.
+     */
     onAdd(map: mapboxgl.Map): HTMLElement {
         this.map = map;
 
@@ -39,24 +62,54 @@ export class RoutingComponent implements IControl {
         this.map.on("load", () => this._mapLoad());
         this.map.on("click", (e) => this._mapClick(e));
         this.map.on("mousemove", (e) => this._mapMouseMove(e));
-        this.map.on("mousedown", (e) => this._mapMouseDown(e));
+        this.map.on("mousedown", () => this._mapMouseDown());
         this.map.on("mouseup", (e) => this._mapMouseUp(e));
 
         return this.element;
     }
 
-    setProfile(profile: string): void {
-        this.profile = profile;
+    /**
+     * IControl implementation: Called when the control is removed from the map.
+     * 
+     * @param map The map.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
+    onRemove(map: mapboxgl.Map): void {
 
-        const select = document.getElementById("profiles");
-        if (select) {
-            select.value = this.profile;
-        }
+    }
 
+    /**: { properties: { distance: string; }; }
+     * IControl implementation: Gets the default position.
+     */
+    getDefaultPosition?: () => string;
+
+    /**
+     * Sets the profile.
+     * 
+     * @param profile The profile id.
+     */
+    setProfile(id: string): void {
+        // get profile.
+        this.profile = this._getProfileFor(id);
+
+        // reset routes and recalculate.
         for (let i = 0; i < this.routes.length; i++) {
             this.routes[i] = null;
         }
         this._calculateRoute();
+    }
+
+    /**
+     * Returns true if the profile is supported.
+     * 
+     * @param id The profile id.
+     */
+    hasProfile(id: string): boolean {
+        const profile = this.profiles.find(x => x.id == id);
+        if (typeof (profile) === "undefined") {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -79,7 +132,8 @@ export class RoutingComponent implements IControl {
         // report on new location.
         this.events.trigger("location", {
             component: this,
-            marker: markerDetails
+            location: markerDetails.marker.getLngLat(),
+            id: markerDetails.id
         });
 
         // calculate if locations.
@@ -110,7 +164,8 @@ export class RoutingComponent implements IControl {
         // report on new location.
         this.events.trigger("location", {
             component: this,
-            marker: markerDetails
+            location: markerDetails.marker.getLngLat(),
+            id: markerDetails.id
         });
 
         // calculate if locations.
@@ -119,20 +174,24 @@ export class RoutingComponent implements IControl {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
-    onRemove(map: mapboxgl.Map): void {
-
-    }
-
-    getLocations(): { lng: number, lat: number }[] {
-        const locations: { lng: number, lat: number }[] = [];
+    /**
+     * Gets all locations.
+     */
+    getLocations(): { lng: number, lat: number, id: number }[] {
+        const locations: { lng: number, lat: number, id: number }[] = [];
         this.locations.forEach(l => {
-            locations.push(l.marker.getLngLat());
+            const lngLat = l.marker.getLngLat();
+            locations.push({ lng: lngLat.lng, lat: lngLat.lat, id: l.id });
         });
 
         return locations;
     }
 
+    /**
+     * Remove the location with the given id.
+     * 
+     * @param id The id of the location.
+     */
     removeLocation(id: number): boolean {
         // get marker index.
         const index = this.locations.findIndex(l => {
@@ -143,6 +202,7 @@ export class RoutingComponent implements IControl {
         }
 
         const removed = this.locations[index];
+        const removedLocation = removed.marker.getLngLat();
 
         // remove marker from map.
         this.locations[index].marker.remove();
@@ -171,13 +231,21 @@ export class RoutingComponent implements IControl {
         // report on removed location.
         this.events.trigger("location-removed", {
             component: this,
-            marker: removed
+            id: removed.id,
+            location: removedLocation
         });
     }
+    
+    private _getProfileFor(id: string): Profile {
+        const profile = this.profiles.find(x => x.id == id);
+        if (typeof (profile) === "undefined") {
+            throw Error(`Profile not in the profiles list: ${ id }`);
+        }
 
-    getDefaultPosition?: () => string;
+        return profile;
+    }
 
-    _calculateRoute(): void {
+    private _calculateRoute(): void {
         if (this.locations.length <= 1) return;
         if (!this.profile) return;
 
@@ -195,23 +263,21 @@ export class RoutingComponent implements IControl {
 
             this.api.getRoute({
                 locations: [locations[i], locations[i + 1]],
-                profile: this.profile
+                profile: this.profile.id
             }, e => {
                 this.routes[i] = e;
                 this._updateRoutesLayer();
 
-                this.events.trigger("calculated", {
+                this.events.trigger("route", {
                     component: this,
-                    route: {
-                        route: e,
-                        index: i
-                    }
+                    index: i,
+                    route: e
                 });
             });
         }
     }
 
-    _updateRoutesLayer(): void {
+    private _updateRoutesLayer(): void {
         const routesFeatures: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
             type: "FeatureCollection",
             features: []
@@ -219,11 +285,11 @@ export class RoutingComponent implements IControl {
 
         let totalDistance = 0;
         for (let i = 0; i < this.routes.length; i++) {
-            const r = this.routes[i];
+            const r = this.routes[i] as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
 
             if (r && r.features) {
                 let routeDistance = 0;
-                r.features.forEach((f: { properties: { distance: string; }; }) => {
+                r.features.forEach((f) => {
                     if (f && f.properties) {
                         if (f.properties.distance) {
                             routeDistance = parseFloat(f.properties.distance);
@@ -247,10 +313,16 @@ export class RoutingComponent implements IControl {
         source.setData(routesFeatures);
     }
 
-    _mapLoad(): void {
+    private _mapLoad(): void {
         // trigger load profiles
         this.api.getProfiles(profiles => {
-            this._createUI(profiles);
+            this.profiles = profiles;
+
+            if (this.options.defaultUI) this._createDefaultUI(profiles);
+
+            this.events.trigger("profiles-loaded", {
+                profiles: profiles
+            });
         });
 
         // get lowest label and road.
@@ -289,6 +361,7 @@ export class RoutingComponent implements IControl {
                 ]
             }
         });
+        const routeColor = "#000";
         this.map.addLayer({
             "id": "route",
             "type": "line",
@@ -298,17 +371,16 @@ export class RoutingComponent implements IControl {
                 "line-cap": "round"
             },
             "paint": {
-                "line-color": "#000",
+                "line-color": routeColor,
                 "line-width": [
                     "interpolate", ["linear"], ["zoom"],
                     10, 8,
-                    14, 16,
-                    16, 30
+                    14, 16
                 ],
                 "line-opacity": [
                     "interpolate", ["linear"], ["zoom"],
                     12, 1,
-                    13, 0.4
+                    13, 0.6
                 ]
             }
         }, lowestLabel);
@@ -327,12 +399,17 @@ export class RoutingComponent implements IControl {
             "source": "route-snap",
             "paint": {
                 "circle-color": "rgba(255, 255, 255, 1)",
+                "circle-stroke-color": routeColor,
                 "circle-stroke-width": 5,
+                "circle-stroke-opacity": [
+                    "interpolate", ["linear"], ["zoom"],
+                    12, 1,
+                    13, 0.6
+                ],
                 "circle-radius": [
                     "interpolate", ["linear"], ["zoom"],
                     10, 6,
-                    14, 8,
-                    16, 26
+                    14, 8
                 ]
             }
         }, lowestLabel);
@@ -372,10 +449,8 @@ export class RoutingComponent implements IControl {
             // trigger event.
             this.events.trigger("location", {
                 component: this,
-                marker: {
-                    marker: marker,
-                    id: markerId
-                }
+                id: markerId,
+                location: marker.getLngLat()
             });
 
             // recalculate routes.
@@ -416,10 +491,10 @@ export class RoutingComponent implements IControl {
             let tooCloseToMarker = false;
             for (let i = 0; i < this.locations.length; i++) {
                 const l = this.locations[i];
-                if (typeof(l) === "undefined") continue;
+                if (typeof (l) === "undefined") continue;
 
                 const pl = this.map.project(l.marker.getLngLat());
-                if (Math.abs(e.point.x - pl.x) < boxSize || 
+                if (Math.abs(e.point.x - pl.x) < boxSize ||
                     Math.abs(e.point.x - pl.x) < boxSize) {
                     tooCloseToMarker = true
                 }
@@ -482,7 +557,7 @@ export class RoutingComponent implements IControl {
         }
     }
 
-    private _mapMouseDown(e: MapMouseEvent) {
+    private _mapMouseDown() {
         this._dragging = false;
         if (typeof (this.snapPoint) !== "undefined") {
             this._dragging = true;
@@ -512,20 +587,20 @@ export class RoutingComponent implements IControl {
         return;
     }
 
-    private _createUI(profiles: Profile[]) {
+    private _createDefaultUI(profiles: Profile[]) {
 
         const componentHtml = ComponentHtml["index"];
         this.element.innerHTML = componentHtml;
 
         // add profiles as options.
-        let select = document.getElementById("profiles");
+        let select = document.getElementById("profiles") as HTMLSelectElement;
         for (const p in profiles) {
             const profile = profiles[p];
             const option = document.createElement("option");
 
             let profileName = profile.type;
             if (profile.name) {
-                profileName = profile.type + "." + profile.name;
+                profileName = profile.id;
             }
 
             option.value = profileName
@@ -535,33 +610,29 @@ export class RoutingComponent implements IControl {
 
         // set the first profile as the default or select the one that is there.
         if (this.profile) {
-            select.value = this.profile;
+            select.value = this.profile.id;
         } else {
-            this.profile = profiles[0].type;
-            if (profiles[0].name) {
-                this.profile = profiles[0].type + "." + profiles[0].name;
-            }
+            this.profile = profiles[0];
 
             this.events.trigger("profile", {
                 component: this,
-                profile: this.profile
+                profiles: [ this.profile ]
             });
         }
 
         // hook up the change event
         select.addEventListener("change", () => {
-            select = document.getElementById("profiles");
+            select = document.getElementById("profiles") as HTMLSelectElement;
 
-            this.profile = select.value;
+            // set profile.
+            this.profile = this._getProfileFor(select.value);
 
+            // trigger event.
             this.events.trigger("profile", {
                 component: this,
-                profile: this.profile
+                profiles: [this.profile]
             });
 
-            for (let i = 0; i < this.routes.length; i++) {
-                this.routes[i] = null;
-            }
             this._calculateRoute();
         });
     }

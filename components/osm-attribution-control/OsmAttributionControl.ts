@@ -67,7 +67,6 @@ export class OsmAttributionControl extends AttributionControl {
     }
 
     onAdd(map: mapboxgl.Map): HTMLElement {
-        console.log(map);
         this.map = map;
 
         // register move event to update edit location.
@@ -78,7 +77,6 @@ export class OsmAttributionControl extends AttributionControl {
     }
 
     _updateEditLocation() {
-        console.log(this);
 
         var element = document.getElementById(this.elementId);
         if (typeof element == "undefined") return;

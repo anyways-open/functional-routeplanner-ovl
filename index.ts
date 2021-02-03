@@ -1,10 +1,11 @@
 import { Map, LngLatLike } from "mapbox-gl";
-import { RoutingApi } from "@anyways-open/routing-api";
+import { Profile, RoutingApi } from "@anyways-open/routing-api";
 import { LayerControl } from "./components/layer-control/LayerControl";
 import { OsmAttributionControl } from "./components/osm-attribution-control/OsmAttributionControl";
-import { RoutingComponent } from "./components/routing-options/RoutingComponent";
+import { EventBase, RoutingComponent } from "./components/routing-options/RoutingComponent";
 import "./components/routing-options/RoutingComponent.css";
 import { UrlHash } from "@anyways-open/url-hash";
+import { ProfilesEvent } from "./components/routing-options/events/ProfilesEvent";
 
 const urlState = UrlHash.read();
 
@@ -63,29 +64,6 @@ const layerControl = new LayerControl([{
 map.addControl(layerControl, "top-left");
 
 map.on("load", () => {
-    if (typeof urlState.p !== "undefined") {
-        rc.setProfile(urlState.p);
-    }
-    if (typeof urlState.l !== "undefined") {
-        if (!Array.isArray(urlState.l)) {
-            const parts = urlState.l.split(",");                
-            rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
-        }
-        else {
-            urlState.l.forEach((l: string) => {
-                const parts = l.split(",");                
-                rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
-            });
-        }
-    }
-    if (typeof urlState.d !== "undefined") {
-        const parts = urlState.d.split(",");
-
-        if (parts.length === 2) {
-            rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
-        }
-    }
-
     function updateMapUrlState() {
         const center = map.getCenter();
         urlState.map = `${map.getZoom().toFixed(2)}/${center.lng.toFixed(5)}/${center.lat.toFixed(5)}`;
@@ -263,6 +241,7 @@ rc.on("location", () => {
     urlState.l = locations;
     UrlHash.write(urlState);
 });
+
 rc.on("location-removed", () => {
     const locations: string[] = [];
     
@@ -274,8 +253,28 @@ rc.on("location-removed", () => {
     UrlHash.write(urlState);
 });
 
-rc.on("profile", c => {
-    urlState.p = c.profile;
+rc.on("profiles-loaded", () => {
+    if (typeof urlState.p !== "undefined") {
+        if (rc.hasProfile(urlState.p)) rc.setProfile(urlState.p);
+    }
+    if (typeof urlState.l !== "undefined") {
+        if (!Array.isArray(urlState.l)) {
+            const parts = urlState.l.split(",");                
+            rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
+        }
+        else {
+            urlState.l.forEach((l: string) => {
+                const parts = l.split(",");                
+                rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
+            });
+        }
+    }
+});
+
+rc.on("profile", (c: EventBase) => {
+    const e = c as ProfilesEvent;
+
+    urlState.p = e.profiles[0].id;
 
     UrlHash.write(urlState);
 });

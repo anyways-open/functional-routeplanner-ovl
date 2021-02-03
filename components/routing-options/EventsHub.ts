@@ -1,7 +1,7 @@
 export class EventsHub<T> {
     _handlers: { name: string, callbacks: ((args: T) => void)[] }[] = [];
 
-    on(name: string | string[], callback: ((args: T) => void)) {
+    on(name: string | string[], callback: ((args: T) => void)): void {
         if (typeof name === "string") {
             let registered = this._handlers.find(
                 h => h.name === name);        
@@ -21,7 +21,7 @@ export class EventsHub<T> {
         }
     }
 
-    trigger(name: string, args: T) {
+    trigger(name: string, args: T): void {
         let registered = this._handlers.find(
             h => h.name === name);       
         if (registered) {
