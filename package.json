@@ -24,6 +24,7 @@
     "@anyways-open/routing-api": "0.0.4",
     "@anyways-open/url-hash": "0.0.1",
     "@mapbox/mapbox-gl-geocoder": "^2.0.1",
+    "@turf/nearest-point-on-line": "^6.3.0",
     "@turf/turf": "^5.1.6",
     "@types/mapbox-gl": "^1.7.0",
     "@typescript-eslint/eslint-plugin": "^4.14.1",

@@ -1,8 +1,10 @@
-import mapboxgl, { IControl, Map, MapMouseEvent, Marker } from "mapbox-gl";
+import mapboxgl, { GeoJSONSource, IControl, Map, MapMouseEvent, Marker } from "mapbox-gl";
 import { RoutingApi, Profile } from "@anyways-open/routing-api";
 import ComponentHtml from "*.html";
 import { EventsHub } from "../../libs/events/EventsHub";
 import { RoutingComponentEvent } from "./RoutingComponentEvent";
+import * as turf from "@turf/turf";
+import { NearestPointOnLine } from "@turf/nearest-point-on-line";
 
 export class RoutingComponent implements IControl {
     readonly api: RoutingApi;
@@ -14,6 +16,7 @@ export class RoutingComponent implements IControl {
 
     element: HTMLElement;
     map: Map;
+    snapPoint?: NearestPointOnLine;
 
     markerId = 0;
 
@@ -35,6 +38,9 @@ export class RoutingComponent implements IControl {
         // hook up events.
         this.map.on("load", () => this._mapLoad());
         this.map.on("click", (e) => this._mapClick(e));
+        this.map.on("mousemove", (e) => this._mapMouseMove(e));
+        this.map.on("mousedown", (e) => this._mapMouseDown(e));
+        this.map.on("mouseup", (e) => this._mapMouseUp(e));
 
         return this.element;
     }
@@ -69,6 +75,37 @@ export class RoutingComponent implements IControl {
             markerDetails = this._createMarker(l, "marker-destination");
         }
         this.locations.push(markerDetails);
+
+        // report on new location.
+        this.events.trigger("location", {
+            component: this,
+            marker: markerDetails
+        });
+
+        // calculate if locations.
+        if (this.locations.length > 1) {
+            this._calculateRoute();
+        }
+    }
+
+    /**
+     * Inserts a new location at the given index.
+     * 
+     * @param i The index to insert at.
+     * @param l The location to insert.
+     */
+    insertLocation(i: number, l: mapboxgl.LngLatLike): void {
+        // add markers for each location.
+        let markerDetails: { marker: Marker, id: number } = null;
+        const index = i;
+        if (index === 0) {
+            markerDetails = this._createMarker(l, "marker-origin");
+        } else {
+            markerDetails = this._createMarker(l, "marker-destination");
+        }
+        this.locations.splice(index, 0, markerDetails);
+        if (index > 0) this.routes[index - 1] = undefined;
+        this.routes.splice(index, 0, undefined);
 
         // report on new location.
         this.events.trigger("location", {
@@ -167,13 +204,15 @@ export class RoutingComponent implements IControl {
     }
 
     _updateRoutesLayer(): void {
-        const routesFeatures = {
+        const routesFeatures: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
             type: "FeatureCollection",
             features: []
         };
 
         let totalDistance = 0;
-        this.routes.forEach(r => {
+        for (let i = 0; i < this.routes.length; i++) {
+            const r = this.routes[i];
+
             if (r && r.features) {
                 let routeDistance = 0;
                 r.features.forEach((f: { properties: { distance: string; }; }) => {
@@ -181,6 +220,7 @@ export class RoutingComponent implements IControl {
                         if (f.properties.distance) {
                             routeDistance = parseFloat(f.properties.distance);
                         }
+                        f.properties["_route-index"] = i;
                     }
                 });
                 totalDistance += routeDistance;
@@ -188,14 +228,15 @@ export class RoutingComponent implements IControl {
                 routesFeatures.features =
                     routesFeatures.features.concat(r.features);
             }
-        });
+        }
 
         const distance = document.getElementById("distance");
         if (distance) {
             distance.innerHTML = "" + totalDistance.toFixed(0) + "m";
         }
 
-        this.map.getSource("route").setData(routesFeatures);
+        const source: GeoJSONSource = this.map.getSource("route") as GeoJSONSource;
+        source.setData(routesFeatures);
     }
 
     _mapLoad(): void {
@@ -263,6 +304,30 @@ export class RoutingComponent implements IControl {
                 ]
             }
         }, lowestLabel);
+
+        this.map.addSource("route-snap", {
+            type: "geojson",
+            data: {
+                type: "FeatureCollection",
+                features: [
+                ]
+            }
+        });
+        this.map.addLayer({
+            "id": "route-snap",
+            "type": "circle",
+            "source": "route-snap",
+            "paint": {
+                "circle-color": "rgba(255, 255, 255, 1)",
+                "circle-stroke-width": 5,
+                "circle-radius": [
+                    "interpolate", ["linear"], ["zoom"],
+                    10, 6,
+                    14, 8,
+                    16, 26
+                ]
+            }
+        }, lowestLabel);
     }
 
     private _createMarker(l: mapboxgl.LngLatLike, className: string): { marker: Marker, id: number } {
@@ -322,7 +387,121 @@ export class RoutingComponent implements IControl {
     }
 
     private _mapClick(e: MapMouseEvent) {
+        if (typeof (this.snapPoint) !== "undefined") {
+            return;
+        }
         this.addLocation(e.lngLat);
+    }
+
+    private _dragging = false;
+
+    private _mapMouseMove(e: MapMouseEvent) {
+        const routeLayer = this.map.getLayer("route");
+        if (typeof (routeLayer) === "undefined") return;
+
+        const snapSource: GeoJSONSource = this.map.getSource("route-snap") as GeoJSONSource;
+        if (typeof (snapSource) === "undefined") return;
+
+        if (!this._dragging) {
+            const boxSize = 10;
+
+            let tooCloseToMarker = false;
+            for (let i = 0; i < this.locations.length; i++) {
+                const l = this.locations[i];
+                if (typeof(l) === "undefined") continue;
+
+                const pl = this.map.project(l.marker.getLngLat());
+                if (Math.abs(e.point.x - pl.x) < boxSize || 
+                    Math.abs(e.point.x - pl.x) < boxSize) {
+                    tooCloseToMarker = true
+                }
+            }
+
+            let snapped: NearestPointOnLine;
+            if (!tooCloseToMarker) {
+                const features = this.map.queryRenderedFeatures(
+                    [[e.point.x - boxSize, e.point.y - boxSize],
+                    [e.point.x + boxSize, e.point.y + boxSize]], {
+                    layers: ["route"],
+                });
+
+                features.forEach(f => {
+                    if (f.geometry.type == "LineString") {
+                        if (f.properties && typeof (f.properties["_route-index"]) != "undefined") {
+                            const s = turf.nearestPointOnLine(f.geometry, [e.lngLat.lng, e.lngLat.lat]);
+                            if (typeof (s) === "undefined") return;
+                            if (s.properties.dist) {
+                                if (typeof (snapped) === "undefined") {
+                                    snapped = s;
+                                    snapped.properties["_route-index"] = f.properties["_route-index"];
+                                } else {
+                                    if (snapped.properties.dist) return;
+                                    if (s.properties.dist < snapped.properties.dist) {
+                                        snapped = s;
+                                        snapped.properties["_route-index"] = f.properties["_route-index"];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (typeof (snapped) === "undefined") {
+                const empty: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
+                    type: "FeatureCollection",
+                    features: []
+                };
+                snapSource.setData(empty);
+                this.snapPoint = undefined;
+                this.map.dragPan.enable();
+                return;
+            }
+            snapSource.setData(snapped);
+            this.snapPoint = snapped;
+
+            this.map.dragPan.disable();
+        } else {
+            if (typeof (this.snapPoint) === "undefined") {
+                return;
+            }
+            this.snapPoint.geometry = {
+                type: "Point",
+                coordinates: [e.lngLat.lng, e.lngLat.lat]
+            }
+
+            snapSource.setData(this.snapPoint);
+        }
+    }
+
+    private _mapMouseDown(e: MapMouseEvent) {
+        this._dragging = false;
+        if (typeof (this.snapPoint) !== "undefined") {
+            this._dragging = true;
+        }
+    }
+
+    private _mapMouseUp(e: MapMouseEvent) {
+        if (!this._dragging) return;
+
+        if (typeof (this.snapPoint) === "undefined") {
+            throw Error("Snappoint not set but dragging.");
+        }
+
+        const routeIndex: number = this.snapPoint.properties["_route-index"];
+        this.insertLocation(routeIndex + 1, e.lngLat);
+
+        const snapSource: GeoJSONSource = this.map.getSource("route-snap") as GeoJSONSource;
+        const empty: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
+            type: "FeatureCollection",
+            features: []
+        };
+        snapSource.setData(empty);
+        this.snapPoint = undefined;
+
+        this._dragging = false;
+        this.map.dragPan.enable();
+        return;
     }
 
     private _createUI(profiles: Profile[]) {
