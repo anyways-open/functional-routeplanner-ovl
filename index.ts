@@ -35,17 +35,8 @@ const map = new Map({
     zoom: mapState.zoom,
     preserveDrawingBuffer: true,
     attributionControl: false,
+    maxZoom: 18
 });
-
-// Add geolocate control to the map.
-map.addControl(
-    new GeolocateControl({
-        positionOptions: {
-            enableHighAccuracy: true
-        },
-        trackUserLocation: true
-    })
-);
 
 let routingEndpoint = "https://routing.anyways.eu/api/";
 if (urlState.host === "staging") {
@@ -71,11 +62,23 @@ const layerControl = new LayerControl([{
 },
 {
     name: "Cycle Highways",
-    layers: [ "cycle-highways" ]
+    layers: [ "cycle-highways-case", "cycle-highways" ]
 }]);
 map.addControl(layerControl, "top-right");
 
+const geolocationControl = new GeolocateControl({
+    positionOptions: {
+        enableHighAccuracy: true
+    },
+    showAccuracyCircle: true,
+    showUserLocation: true,
+    trackUserLocation: true
+})
+map.addControl(geolocationControl, "bottom-left");
+
 map.on("load", () => {
+    geolocationControl.trigger();
+
     function updateMapUrlState() {
         const center = map.getCenter();
         urlState.map = `${map.getZoom().toFixed(2)}/${center.lng.toFixed(5)}/${center.lat.toFixed(5)}`;
@@ -158,6 +161,35 @@ map.on("load", () => {
     }, lowestLabel);
 
     map.addLayer({
+        "id": "cycle-highways-case",
+        "type": "line",
+        "source": "cyclenetworks-tiles",
+        "source-layer": "cyclenetwork",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "paint": {
+            "line-color": "#fff",
+            "line-gap-width": [
+                "interpolate", ["linear"], ["zoom"],
+                10, 3,
+                12, 3,
+                16, 3
+            ],
+            "line-width": 2
+        },
+        "filter": [
+            "all",
+            [
+                "==",
+                "cycle_network",
+                "cycle_highway"
+            ]
+        ]
+    }, lowestLabel);
+
+    map.addLayer({
         "id": "cycle-highways",
         "type": "line",
         "source": "cyclenetworks-tiles",
@@ -171,14 +203,9 @@ map.on("load", () => {
             "line-width": [
                 "interpolate", ["linear"], ["zoom"],
                 10, 3,
-                12, 6,
-                16, 25
-            ],
-            "line-opacity": [
-                "interpolate", ["linear"], ["zoom"],
-                12, 1,
-                13, 0.4
-            ],
+                12, 3,
+                16, 3
+            ]
         },
         "filter": [
             "all",
