@@ -66,7 +66,7 @@ const layerControl = new LayerControl([{
     name: "Cycle Highways",
     layers: [ "cycle-highways-case", "cycle-highways" ]
 }]);
-map.addControl(layerControl, "top-right");
+// map.addControl(layerControl, "top-right");
 
 const geolocationControl = new GeolocateControl({
     positionOptions: {
