@@ -6,6 +6,8 @@ import { EventBase, RoutingComponent } from "./components/routing-options/Routin
 import "./components/routing-options/RoutingComponent.css";
 import { UrlHash } from "@anyways-open/url-hash";
 import { ProfilesEvent } from "./components/routing-options/events/ProfilesEvent";
+import "bootstrap";
+
 
 const urlState = UrlHash.read();
 
@@ -61,7 +63,7 @@ const layerControl = new LayerControl([{
     name: "Cycle Highways",
     layers: [ "cycle-highways" ]
 }]);
-map.addControl(layerControl, "top-left");
+map.addControl(layerControl, "top-right");
 
 map.on("load", () => {
     function updateMapUrlState() {
@@ -139,8 +141,8 @@ map.on("load", () => {
             "all",
             [
                 "==",
-                "network:type",
-                "node_network"
+                "cycle_network",
+                "srfn_gent"
             ]
         ]
     }, lowestLabel);
@@ -289,4 +291,4 @@ rc.on("profile", (c: EventBase) => {
     UrlHash.write(urlState);
 });
 
-map.addControl(rc);
+map.addControl(rc, "top-left");
