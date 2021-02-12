@@ -13,25 +13,25 @@ body { margin: 0; padding: 0; }
 #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
 .marker-origin svg {
-    width: 31px;
-    height: 40px;
+    width: 27px;
+    height: 35px;
     border-radius: 50%;
     cursor: pointer;
 }
 
 .marker-origin svg g {
-    fill: #00ff00;
+    fill: #1da1f2;
 }
 
 .marker-destination svg {
-    width: 31px;
-    height: 40px;
+    width: 27px;
+    height: 35px;
     border-radius: 50%;
     cursor: pointer;
 }
 
 .marker-destination svg g {
-    fill: #ff0000;
+    fill: #1da1f2;
 }
 
 .route-details {

@@ -529,7 +529,21 @@ export class RoutingComponent implements IControl {
                 ]
             }
         });
-        const routeColor = "#000";
+        const routeColor = "#1da1f2";
+        this.map.addLayer({
+            "id": "route-case",
+            "type": "line",
+            "source": "route",
+            "layout": {
+                "line-join": "round",
+                "line-cap": "round"
+            },
+            "paint": {
+                "line-color": "#fff",
+                "line-gap-width": 5,
+                "line-width": 2
+            }
+        }, lowestLabel);
         this.map.addLayer({
             "id": "route",
             "type": "line",
@@ -540,16 +554,7 @@ export class RoutingComponent implements IControl {
             },
             "paint": {
                 "line-color": routeColor,
-                "line-width": [
-                    "interpolate", ["linear"], ["zoom"],
-                    10, 8,
-                    14, 16
-                ],
-                "line-opacity": [
-                    "interpolate", ["linear"], ["zoom"],
-                    12, 1,
-                    13, 0.6
-                ]
+                "line-width": 5
             }
         }, lowestLabel);
 
@@ -568,17 +573,8 @@ export class RoutingComponent implements IControl {
             "paint": {
                 "circle-color": "rgba(255, 255, 255, 1)",
                 "circle-stroke-color": routeColor,
-                "circle-stroke-width": 5,
-                "circle-stroke-opacity": [
-                    "interpolate", ["linear"], ["zoom"],
-                    12, 1,
-                    13, 0.6
-                ],
-                "circle-radius": [
-                    "interpolate", ["linear"], ["zoom"],
-                    10, 6,
-                    14, 8
-                ]
+                "circle-stroke-width": 3,
+                "circle-radius": 5
             }
         }, lowestLabel);
     }
