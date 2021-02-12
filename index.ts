@@ -1,4 +1,4 @@
-import { Map, LngLatLike } from "mapbox-gl";
+import { Map, LngLatLike, GeolocateControl } from "mapbox-gl";
 import { Profile, RoutingApi } from "@anyways-open/routing-api";
 import { LayerControl } from "./components/layer-control/LayerControl";
 import { OsmAttributionControl } from "./components/osm-attribution-control/OsmAttributionControl";
@@ -36,6 +36,16 @@ const map = new Map({
     preserveDrawingBuffer: true,
     attributionControl: false,
 });
+
+// Add geolocate control to the map.
+map.addControl(
+    new GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true
+    })
+);
 
 let routingEndpoint = "https://routing.anyways.eu/api/";
 if (urlState.host === "staging") {

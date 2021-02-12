@@ -603,50 +603,52 @@ export class RoutingComponent implements IControl {
 
         // add profiles as options.
         let select = document.getElementById("profiles") as HTMLSelectElement;
-        for (const p in this.profiles) {
-            const profile = this.profiles[p];
-            const option = document.createElement("option");
+        if (select) {
+            for (const p in this.profiles) {
+                const profile = this.profiles[p];
+                const option = document.createElement("option");
 
-            let profileName = profile.type;
-            if (profile.name) {
-                profileName = profile.id;
+                let profileName = profile.type;
+                if (profile.name) {
+                    profileName = profile.id;
+                }
+
+                option.value = profileName
+                option.innerHTML = profileName;
+                select.appendChild(option);
             }
 
-            option.value = profileName
-            option.innerHTML = profileName;
-            select.appendChild(option);
-        }
+            // set the first profile as the default or select the one that is there.
+            if (this.profile) {
+                select.value = this.profile.id;
+            } else {
+                this.profile = this.profiles[0];
 
-        // set the first profile as the default or select the one that is there.
-        if (this.profile) {
-            select.value = this.profile.id;
-        } else {
-            this.profile = this.profiles[0];
-
-            this.events.trigger("profile", {
-                component: this,
-                profiles: [ this.profile ]
-            });
-        }
-
-        // hook up the change event
-        select.addEventListener("change", () => {
-            select = document.getElementById("profiles") as HTMLSelectElement;
-
-            // set profile.
-            this.profile = this._getProfileFor(select.value);
-
-            // reset routes and recalculate.
-            for (let i = 0; i < this.routes.length; i++) {
-                this.routes[i] = null;
+                this.events.trigger("profile", {
+                    component: this,
+                    profiles: [ this.profile ]
+                });
             }
-            this._calculateRoute();
 
-            // trigger event.
-            this.events.trigger("profile", {
-                component: this,
-                profiles: [this.profile]
+            // hook up the change event
+            select.addEventListener("change", () => {
+                select = document.getElementById("profiles") as HTMLSelectElement;
+
+                // set profile.
+                this.profile = this._getProfileFor(select.value);
+
+                // reset routes and recalculate.
+                for (let i = 0; i < this.routes.length; i++) {
+                    this.routes[i] = null;
+                }
+                this._calculateRoute();
+
+                // trigger event.
+                this.events.trigger("profile", {
+                    component: this,
+                    profiles: [this.profile]
+                });
             });
-        });
+        }
     }
 }

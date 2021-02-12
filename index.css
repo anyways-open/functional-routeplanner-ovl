@@ -42,3 +42,39 @@ body { margin: 0; padding: 0; }
 .mapboxgl-map {
     font-family: unset;
 }
+
+/* mapbox customizations */
+
+.mapboxgl-ctrl-group:not(:empty) {
+    box-shadow:3px 3px 2px rgba(0,0,0,.1);
+}
+
+/* boostrap customizations */
+
+.form-control:focus{
+    border-color: #cccccc;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    text-shadow: unset;
+}
+
+.form-control:-moz-focusring {
+    color: unset;
+    text-shadow: unset;
+}
+
+.btn-light {
+    background-color: unset;
+}
+
+.btn:hover {
+    color:initial;
+    background-color: initial;
+    border-color: initial;
+}
+
+.btn-light:not(:disabled):not(.disabled):active, .btn-light:not(:disabled):not(.disabled).active, .show > .btn-light.dropdown-toggle {
+    color:initial;
+    background-color: initial;
+    border-color: initial;
+}
