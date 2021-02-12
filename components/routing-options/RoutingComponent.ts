@@ -1,4 +1,4 @@
-import mapboxgl, { GeoJSONSource, IControl, Map, MapMouseEvent, Marker } from "mapbox-gl";
+import mapboxgl, { GeoJSONSource, IControl, LngLat, Map, MapMouseEvent, Marker } from "mapbox-gl";
 import { RoutingApi, Profile } from "@anyways-open/routing-api";
 import ComponentHtml from "*.html";
 import { EventsHub } from "./EventsHub";
@@ -7,8 +7,9 @@ import { NearestPointOnLine } from "@turf/nearest-point-on-line";
 import { LocationEvent } from "./events/LocationEvent";
 import { ProfilesEvent } from "./events/ProfilesEvent";
 import { RouteEvent } from "./events/RouteEvent";
+import { RoutingLocation } from "./RoutingLocation";
 
-export type EventBase = LocationEvent | ProfilesEvent | RouteEvent
+export type EventBase = LocationEvent | ProfilesEvent | RouteEvent | StateEvent
 
 export class RoutingComponent implements IControl {
     readonly api: RoutingApi;
@@ -16,7 +17,7 @@ export class RoutingComponent implements IControl {
         defaultUI: boolean
     };
     readonly routes: unknown[] = [];
-    readonly locations: { marker: Marker, id: number }[] = [];
+    readonly locations: RoutingLocation[] = [];
     readonly events: EventsHub<EventBase> = new EventsHub();
 
     private profiles: Profile[] = [];
@@ -41,7 +42,7 @@ export class RoutingComponent implements IControl {
      * @param name The name.
      * @param callback The callback.
      */
-    on(name: "location" | "location-removed" | "profiles-loaded" | "profile" | "route",
+    on(name: "location" | "location-removed" | "profiles-loaded" | "profile" | "route" | "state",
         callback: (args: EventBase) => void): void {
         this.events.on(name, callback);
     }
@@ -84,21 +85,105 @@ export class RoutingComponent implements IControl {
     getDefaultPosition?: () => string;
 
     /**
+     * Sets the state using the given string.
+     * @param state The state to set.
+     */
+    setFromState(state: string): void {
+        // state is as follows:
+        // an array of locations comma seperate 
+        // with each location: name/lon/lat
+        // - when not geocoded name=point ex: point/4.1445/51.4471
+        // - when geocoded name=escaped geocode string, ex: Sept%2042%2F4%2C%202275%20Wechelderzande/4.1445/51.4471
+        // - when user location name=user, ex; user/4.1445/51.4471
+
+        if (typeof (state) === "undefined") {
+            return;
+        }
+
+        // split.
+        const locs = state.split(",");
+
+        // get profile.
+        this.profile = this._getProfileFor(locs[0]);
+
+        // reset routes and recalculate.
+        for (let i = 0; i < this.routes.length; i++) {
+            this.routes[i] = null;
+        }
+
+        // parse locations.
+        for (let l = 1; l < locs.length; l++) {
+            const d = locs[l].split("/");
+            if (d.length != 3) return;
+
+            const loc = {
+                lng: parseFloat(d[1]),
+                lat: parseFloat(d[2])
+            };
+
+            const index = this.locations.length;
+            let markerDetails: RoutingLocation = null;
+            if (index === 0) {
+                markerDetails = this._createMarker(loc, "marker-origin");
+            } else {
+                markerDetails = this._createMarker(loc, "marker-destination");
+            }
+            this.locations.push(markerDetails);
+        }
+        this._calculateRoute();
+    }
+
+    private _getState(): string {
+        let s = `${ escape(this.profile.id) }`;
+        this.locations.forEach(l => {
+            if (s.length > 0) {
+                s += ",";
+            }
+
+            if (l.isUserLocation) {
+                s += `user/`;
+            } else {
+                if (l.name) {
+                    s += `${ escape(l.name) }/`;
+                } else {
+                    s += `point/`;
+                }
+            }
+
+            let location = l.location;
+            if (!location) {
+                location = l.marker.getLngLat();
+            }
+            s += `${ location.lng.toFixed(5) }/${ location.lat.toFixed(5) }`;
+        });
+
+        return s;
+    }
+
+    /**
      * Sets the profile.
      * 
      * @param profile The profile id.
      */
     setProfile(id: string): void {
-        console.log(id);
         // get profile.
         this.profile = this._getProfileFor(id);
-        console.log(this.profile);
 
         // reset routes and recalculate.
         for (let i = 0; i < this.routes.length; i++) {
             this.routes[i] = null;
         }
         this._calculateRoute();
+    }
+
+    /**
+     * Returns true if a profile was set.
+     */
+    hasProfileSet(): boolean {
+        if (typeof (this.profile) === "undefined") {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -122,20 +207,78 @@ export class RoutingComponent implements IControl {
     }
 
     /**
+     * Use to report the current location of the user.
+     * @param l The latest current location.
+     */
+    reportCurrentLocation(l: { lng: number; lat: number}): void {
+        if (this.locations.length <= 0) {
+            const locationId = this.markerId++;
+            const markerDetails: RoutingLocation = {
+                id: locationId,
+                isUserLocation: true,
+                location: l
+            };
+            this.locations.push(markerDetails);
+    
+            // report on new location.
+            this.events.trigger("location", {
+                component: this,
+                location: markerDetails.location,
+                id: markerDetails.id
+            });
+            this.events.trigger("state", {
+                state: this._getState()
+            });
+    
+            // calculate if locations.
+            if (this.locations.length > 1) {
+                this._calculateRoute();
+            }
+        } else {
+            const loc0 = this.locations[0];
+            // if start location is very close, log it
+            let lngLat = loc0.location;
+            if (!lngLat) {
+                lngLat = loc0.marker.getLngLat();
+            }
+
+            const dist = turf.distance([ l.lng, l.lat ], [ lngLat.lng, lngLat.lat ]);
+            const isClose: boolean = dist < 0.001;
+            console.log(dist);
+
+            // if location is close to start location, replace it.
+            if (loc0.isUserLocation || isClose) {
+                if (loc0.marker) {
+                    loc0.marker.remove();
+                }
+
+                const markerDetails: RoutingLocation = {
+                    id: loc0.id,
+                    isUserLocation: true,
+                    location: l
+                };
+                this.locations[0] = markerDetails;
+            }
+        }
+    }
+
+    /**
      * Adds a new location.
      * 
      * First location is taken as origin, next as extra sequential destinations.
      * @param l The location.
+     * @param name The name, the geocode location or a custom name.
      */
-    addLocation(l: mapboxgl.LngLatLike): void {
+    addLocation(l: mapboxgl.LngLatLike, name?: string): void {        
         // add markers for each location.
-        let markerDetails: { marker: Marker, id: number } = null;
+        let markerDetails: RoutingLocation = null;
         const index = this.locations.length;
         if (index === 0) {
             markerDetails = this._createMarker(l, "marker-origin");
         } else {
             markerDetails = this._createMarker(l, "marker-destination");
         }
+        markerDetails.name = name;
         this.locations.push(markerDetails);
 
         // report on new location.
@@ -144,6 +287,9 @@ export class RoutingComponent implements IControl {
             location: markerDetails.marker.getLngLat(),
             id: markerDetails.id
         });
+        this.events.trigger("state", {
+            state: this._getState()
+        })
 
         // calculate if locations.
         if (this.locations.length > 1) {
@@ -151,7 +297,7 @@ export class RoutingComponent implements IControl {
         }
     }
 
-    /**
+    /**marker
      * Inserts a new location at the given index.
      * 
      * @param i The index to insert at.
@@ -159,7 +305,7 @@ export class RoutingComponent implements IControl {
      */
     insertLocation(i: number, l: mapboxgl.LngLatLike): void {
         // add markers for each location.
-        let markerDetails: { marker: Marker, id: number } = null;
+        let markerDetails: RoutingLocation = null;
         const index = i;
         if (index === 0) {
             markerDetails = this._createMarker(l, "marker-origin");
@@ -176,6 +322,9 @@ export class RoutingComponent implements IControl {
             location: markerDetails.marker.getLngLat(),
             id: markerDetails.id
         });
+        this.events.trigger("state", {
+            state: this._getState()
+        })
 
         // calculate if locations.
         if (this.locations.length > 1) {
@@ -189,7 +338,10 @@ export class RoutingComponent implements IControl {
     getLocations(): { lng: number, lat: number, id: number }[] {
         const locations: { lng: number, lat: number, id: number }[] = [];
         this.locations.forEach(l => {
-            const lngLat = l.marker.getLngLat();
+            let lngLat = l.location;
+            if (!lngLat) {
+                lngLat = l.marker.getLngLat();
+            }
             locations.push({ lng: lngLat.lng, lat: lngLat.lat, id: l.id });
         });
 
@@ -243,6 +395,9 @@ export class RoutingComponent implements IControl {
             id: removed.id,
             location: removedLocation
         });
+        this.events.trigger("state", {
+            state: this._getState()
+        })
     }
     
     private _getProfileFor(id: string): Profile {
@@ -260,7 +415,11 @@ export class RoutingComponent implements IControl {
 
         const locations: { lng: number, lat: number }[] = [];
         this.locations.forEach(l => {
-            locations.push(l.marker.getLngLat());
+            let lngLat = l.location;
+            if (!lngLat) {
+                lngLat = l.marker.getLngLat();
+            }
+            locations.push(lngLat);
         });
 
         for (let i = 0; i < locations.length - 1; i++) {
@@ -424,7 +583,7 @@ export class RoutingComponent implements IControl {
         }, lowestLabel);
     }
 
-    private _createMarker(l: mapboxgl.LngLatLike, className: string): { marker: Marker, id: number } {
+    private _createMarker(l: mapboxgl.LngLatLike, className: string): RoutingLocation {
         const element = document.createElement("div");
         element.className = className ?? "";
         element.innerHTML = ComponentHtml["marker"];
@@ -461,6 +620,9 @@ export class RoutingComponent implements IControl {
                 id: markerId,
                 location: marker.getLngLat()
             });
+            this.events.trigger("state", {
+                state: this._getState()
+            })
 
             // recalculate routes.
             this._calculateRoute();
@@ -474,7 +636,8 @@ export class RoutingComponent implements IControl {
 
         return {
             marker: marker,
-            id: markerId
+            id: markerId,
+            isUserLocation: false
         };
     }
 
@@ -502,7 +665,11 @@ export class RoutingComponent implements IControl {
                 const l = this.locations[i];
                 if (typeof (l) === "undefined") continue;
 
-                const pl = this.map.project(l.marker.getLngLat());
+                let location = l.location;
+                if (!location) {
+                    location = l.marker.getLngLat();
+                }
+                const pl = this.map.project(location);
                 if (Math.abs(e.point.x - pl.x) < boxSize ||
                     Math.abs(e.point.x - pl.x) < boxSize) {
                     tooCloseToMarker = true
@@ -628,6 +795,9 @@ export class RoutingComponent implements IControl {
                     component: this,
                     profiles: [ this.profile ]
                 });
+                this.events.trigger("state", {
+                    state: this._getState()
+                })
             }
 
             // hook up the change event
@@ -648,6 +818,9 @@ export class RoutingComponent implements IControl {
                     component: this,
                     profiles: [this.profile]
                 });
+                this.events.trigger("state", {
+                    state: this._getState()
+                })
             });
         }
     }

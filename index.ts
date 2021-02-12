@@ -7,6 +7,7 @@ import "./components/routing-options/RoutingComponent.css";
 import { UrlHash } from "@anyways-open/url-hash";
 import { ProfilesEvent } from "./components/routing-options/events/ProfilesEvent";
 import "bootstrap";
+import { StateEvent } from "./components/routing-options/events/StateEvent";
 
 
 const urlState = UrlHash.read();
@@ -58,7 +59,8 @@ map.addControl(osmAttributionControl);
 
 const layerControl = new LayerControl([{
     name: "Node Networks",
-    layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels" ] 
+    layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels" ] ,
+    visible: false
 },
 {
     name: "Cycle Highways",
@@ -75,6 +77,13 @@ const geolocationControl = new GeolocateControl({
     trackUserLocation: true
 })
 map.addControl(geolocationControl, "bottom-left");
+
+geolocationControl.on("geolocate", function(data: { coords: { latitude: any; longitude: any; }; }) {
+    rc.reportCurrentLocation({
+        lat: data.coords.latitude,
+        lng: data.coords.longitude
+    });
+});
 
 map.on("load", () => {
     geolocationControl.trigger();
@@ -134,7 +143,8 @@ map.on("load", () => {
         "source-layer": "cyclenetwork",
         "layout": {
             "line-join": "round",
-            "line-cap": "round"
+            "line-cap": "round",
+            "visibility": "none"
         },
         "paint": {
             "line-color": nodesColor,
@@ -224,7 +234,7 @@ map.on("load", () => {
         "source-layer": "cyclenodes",
         "minzoom": 11,
         "layout": {
-            "visibility": "visible"
+            "visibility": "none"
         },
         "paint": {
             "circle-stroke-width": 2,
@@ -242,7 +252,7 @@ map.on("load", () => {
         "source-layer": "cyclenodes",
         "minzoom": 11,
         "layout": {
-            "visibility": "visible"
+            "visibility": "none"
         },
         "paint": {
             "circle-radius": 10,
@@ -257,7 +267,7 @@ map.on("load", () => {
         "source-layer": "cyclenodes",
         "minzoom": 11,
         "layout": {
-            "visibility": "visible",
+            "visibility": "none",
             "text-field": "{rcn_ref}",
             "text-size": 13
         },
@@ -270,62 +280,21 @@ map.on("load", () => {
     });
 });
 
-rc.on("location", () => {
-    if (!rc.profilesLoaded()) return;
+rc.on("state", (e: EventBase) => {
+    const s = e as StateEvent;
 
-    const locations: string[] = [];
-    
-    rc.getLocations().forEach(l => {
-        locations.push(`${l.lng.toFixed(5)},${l.lat.toFixed(5)}`);
-    });
-    
-    urlState.l = locations;
-    UrlHash.write(urlState);
-});
-
-rc.on("location-removed", () => {
-    if (!rc.profilesLoaded()) return;
-    
-    const locations: string[] = [];
-    
-    rc.getLocations().forEach(l => {
-        locations.push(`${l.lng.toFixed(5)},${l.lat.toFixed(5)}`);
-    });
-    
-    urlState.l = locations;
+    urlState.route = s.state;
     UrlHash.write(urlState);
 });
 
 rc.on("profiles-loaded", () => {
-    if (typeof urlState.p !== "undefined") {
-        if (rc.hasProfile(urlState.p)) { 
-            rc.setProfile(urlState.p); 
-        } else {
-            console.log(`Profile not found, taking default: ${urlState.p}`);
-        }
+    if (typeof urlState.route !== "undefined") {
+        rc.setFromState(urlState.route);
     }
-    if (typeof urlState.l !== "undefined") {
-        if (!Array.isArray(urlState.l)) {
-            const parts = urlState.l.split(",");                
-            rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
-        }
-        else {
-            urlState.l.forEach((l: string) => {
-                const parts = l.split(",");                
-                rc.addLocation([parseFloat(parts[0]), parseFloat(parts[1])]);
-            });
-        }
+
+    if (!rc.hasProfileSet()) {
+        rc.setProfile("bicycle.commute");
     }
-});
-
-rc.on("profile", (c: EventBase) => {
-    if (!rc.profilesLoaded()) return;
-    
-    const e = c as ProfilesEvent;
-
-    urlState.p = e.profiles[0].id;
-
-    UrlHash.write(urlState);
 });
 
 map.addControl(rc, "top-left");
