@@ -1,4 +1,4 @@
-import mapboxgl, { GeoJSONSource, IControl, Map, MapMouseEvent, Marker } from "mapbox-gl";
+import mapboxgl, { GeoJSONSource, IControl, Map, MapMouseEvent, Marker, PointLike } from "mapbox-gl";
 import { RoutingApi, Profile } from "@anyways-open/routing-api";
 import ComponentHtml from "*.html";
 import { EventsHub } from "./EventsHub";
@@ -64,8 +64,8 @@ export class RoutingComponent implements IControl {
         this.ui.build();
 
         // always add 2 locations to start.
-        this.ui.addLocation(false, "");
-        this.ui.addLocation(false, "");
+        this.ui.addLocation("start", "");
+        this.ui.addLocation("end", "");
 
         // hook up events.
         this.map.on("load", () => this._mapLoad());
@@ -131,19 +131,25 @@ export class RoutingComponent implements IControl {
 
             const index = this.locations.length;
             let markerDetails: RoutingLocation = null;
+            let type: "via" | "user" | "end" | "start" = "start";
             if (index === 0) {
-                markerDetails = this._createMarker(loc, "marker-origin");
+                markerDetails = this._createMarker(loc, "start");
+                type = "start";
+            } else if (index === locs.length - 2) {
+                markerDetails = this._createMarker(loc, "end");
+                type = "end";
             } else {
-                markerDetails = this._createMarker(loc, "marker-destination");
+                markerDetails = this._createMarker(loc, "via");
+                type = "via";
             }
             this.locations.push(markerDetails);
 
             // update ui.
             const name = unescape(d[0]);
             if (this.ui.count() > index) {
-                this.ui.updateLocation(index, false, name);
+                this.ui.updateLocation(index, type, name);
             } else {
-                this.ui.addLocation(false, name);
+                this.ui.addLocation(type, name);
             }
         }
         this._calculateRoute();
@@ -237,7 +243,7 @@ export class RoutingComponent implements IControl {
             this.locations.push(markerDetails);
 
             // set first location as user location in ui.
-            this.ui.updateLocation(0, true, "Huidige locatie");
+            this.ui.updateLocation(0, "user", "Huidige locatie");
     
             // report on new location.
             this.events.trigger("location", {
@@ -278,7 +284,7 @@ export class RoutingComponent implements IControl {
                 this.locations[0] = markerDetails;
 
                 // set first location as user location in ui.
-                this.ui.updateLocation(0, true, "Huidige locatie");
+                this.ui.updateLocation(0, "user", "Huidige locatie");
             }
         }
     }
@@ -294,19 +300,22 @@ export class RoutingComponent implements IControl {
         // add markers for each location.
         let markerDetails: RoutingLocation = null;
         const index = this.locations.length;
+        let type: "via" | "user" | "end" | "start" = "start";
         if (index === 0) {
-            markerDetails = this._createMarker(l, "marker-origin");
+            markerDetails = this._createMarker(l, "start");
+            type = "start";
         } else {
-            markerDetails = this._createMarker(l, "marker-destination");
+            markerDetails = this._createMarker(l, "end");
+            type = "end";
         }
         markerDetails.name = name;
         this.locations.push(markerDetails);
 
         // update ui.
         if (this.ui.count() > index) {
-            this.ui.updateLocation(index, false, name);
+            this.ui.updateLocation(index, type, name);
         } else {
-            this.ui.addLocation(false, name);
+            this.ui.addLocation(type, name);
         }
 
         // report on new location.
@@ -336,9 +345,9 @@ export class RoutingComponent implements IControl {
         let markerDetails: RoutingLocation = null;
         const index = i;
         if (index === 0) {
-            markerDetails = this._createMarker(l, "marker-origin");
+            markerDetails = this._createMarker(l, "start");
         } else {
-            markerDetails = this._createMarker(l, "marker-destination");
+            markerDetails = this._createMarker(l, "via");
         }
         this.locations.splice(index, 0, markerDetails);
         if (index > 0) this.routes[index - 1] = undefined;
@@ -613,14 +622,25 @@ export class RoutingComponent implements IControl {
         }, lowestLabel);
     }
 
-    private _createMarker(l: mapboxgl.LngLatLike, className: string): RoutingLocation {
+    private _createMarker(l: mapboxgl.LngLatLike, type: "start" | "via" | "end" ): RoutingLocation {
         const element = document.createElement("div");
-        element.className = className ?? "";
-        element.innerHTML = ComponentHtml["marker"];
+
+        let offset: PointLike = [0, -20];
+        if (type == "start") {
+            element.className = "marker-origin";
+            element.innerHTML = ComponentHtml["marker"];
+        } else if (type == "end") {
+            element.className = "marker-destination";
+            element.innerHTML = ComponentHtml["marker"];
+        } else {
+            element.className = "marker-via";
+            element.innerHTML = ComponentHtml["via"];
+            offset = [0 ,0]
+        }
 
         const marker = new Marker(element, {
             draggable: true,
-            offset: [0, -20]
+            offset: offset
         }).setLngLat(l)
             .addTo(this.map);
         const markerId = this.markerId++;

@@ -30,20 +30,20 @@ export class UI {
         return this.locationElements.length;
     }
 
-    addLocation(userLocation: boolean, value: string): void {
+    addLocation(type: "via" | "user" | "end" | "start", value: string): void {
         const locationContainer = document.createElement("div");
         locationContainer.className = "btn-toolbar border-0 pb-1";
         this.locationsContainer.append(locationContainer);
         this.locationElements.push(locationContainer);
         
-        this._buildLocationContent(locationContainer, userLocation, value);
+        this._buildLocationContent(locationContainer, type, value);
     }
 
-    updateLocation(idx: number, userLocation: boolean, value: string): void {
+    updateLocation(idx: number, type: "via" | "user" | "end" | "start", value: string): void {
         const locationContainer = this.locationElements[idx];
         locationContainer.innerHTML = "";
         
-        this._buildLocationContent(locationContainer, userLocation, value);
+        this._buildLocationContent(locationContainer, type, value);
     }
 
     removeLocation(idx: number): void {
@@ -54,7 +54,7 @@ export class UI {
         this.locationElements.splice(idx, 1);
     }
 
-    insertLocation(idx: number, userLocation: boolean, value: string): void {
+    insertLocation(idx: number, type: "via" | "user" | "end" | "start", value: string): void {
         // remove all after index.
         for (let i = idx; i < this.locationElements.length; i++) {
             this.locationElements[i].remove();
@@ -66,7 +66,7 @@ export class UI {
         this.locationsContainer.append(locationContainer);
         this.locationElements.splice(idx, 0, locationContainer);
         
-        this._buildLocationContent(locationContainer, userLocation, value);
+        this._buildLocationContent(locationContainer, type, value);
 
         // add all after index.
         for (let i = idx + 1; i < this.locationElements.length; i++) {
@@ -74,11 +74,13 @@ export class UI {
         }
     }
 
-    private _buildLocationContent(container: HTMLElement, userLocation: boolean, value: string) {
+    private _buildLocationContent(container: HTMLElement, type: "via" | "user" | "end" | "start", value: string) {
         // construct icon an add.
         const locationIcon = document.createElement("div");
-        if (userLocation) {
+        if (type == "user") {
             locationIcon.innerHTML = ComponentHtml["locationDot"];
+        } else if (type == "via") {
+            locationIcon.innerHTML = ComponentHtml["locationVia"];
         } else {
             locationIcon.innerHTML = ComponentHtml["locationMarker"];
         }
