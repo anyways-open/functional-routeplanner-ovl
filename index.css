@@ -73,8 +73,3 @@ body { margin: 0; padding: 0; }
     border-color: initial;
 }
 
-.btn-light:not(:disabled):not(.disabled):active, .btn-light:not(:disabled):not(.disabled).active, .show > .btn-light.dropdown-toggle {
-    color:initial;
-    background-color: initial;
-    border-color: initial;
-}

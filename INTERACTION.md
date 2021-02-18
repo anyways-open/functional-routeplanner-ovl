@@ -15,6 +15,7 @@ START:
 
 1.2: Location on:
     ACTION: Map initializes on East-Flanders, then zoom to user location.
+    ACTION: Routing control has from location filled in to the current location and expands to two locations.
 
     1.2.1: User clicks on map or uses search to find location.
         ACTION: The destination location is shown on the map with a marker.

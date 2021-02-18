@@ -1,0 +1,15 @@
+.routing-component-locations {
+    font-size: 0.9rem;
+    padding-left: 4px;
+}
+
+.routing-component-locations .form-control {
+    font-size: 0.9rem;
+    padding-left: 0px;
+}
+
+.routing-component-locations .input-group {
+    border-bottom: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: #c2c2c2;
+}
