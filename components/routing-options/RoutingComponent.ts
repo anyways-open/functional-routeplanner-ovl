@@ -1,4 +1,4 @@
-import mapboxgl, { GeoJSONSource, IControl, LngLat, Map, MapMouseEvent, Marker } from "mapbox-gl";
+import mapboxgl, { GeoJSONSource, IControl, Map, MapMouseEvent, Marker } from "mapbox-gl";
 import { RoutingApi, Profile } from "@anyways-open/routing-api";
 import ComponentHtml from "*.html";
 import { EventsHub } from "./EventsHub";
@@ -8,6 +8,8 @@ import { LocationEvent } from "./events/LocationEvent";
 import { ProfilesEvent } from "./events/ProfilesEvent";
 import { RouteEvent } from "./events/RouteEvent";
 import { RoutingLocation } from "./RoutingLocation";
+import { StateEvent } from "./events/StateEvent";
+import { UI } from "./UI";
 
 export type EventBase = LocationEvent | ProfilesEvent | RouteEvent | StateEvent
 
@@ -20,9 +22,9 @@ export class RoutingComponent implements IControl {
     readonly locations: RoutingLocation[] = [];
     readonly events: EventsHub<EventBase> = new EventsHub();
 
+    private ui: UI;
     private profiles: Profile[] = [];
     private profile?: Profile;
-    private element?: HTMLElement;
     private map: Map;
     private snapPoint?: NearestPointOnLine;
     private markerId = 0;
@@ -55,9 +57,15 @@ export class RoutingComponent implements IControl {
     onAdd(map: mapboxgl.Map): HTMLElement {
         this.map = map;
 
-        // create element.
-        this.element = document.createElement("div");
-        this.element.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
+        // create ui.
+        const element = document.createElement("div");
+        element.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
+        this.ui = new UI(element);
+        this.ui.build();
+
+        // always add 2 locations to start.
+        this.ui.addLocation(false, "");
+        this.ui.addLocation(false, "");
 
         // hook up events.
         this.map.on("load", () => this._mapLoad());
@@ -66,7 +74,7 @@ export class RoutingComponent implements IControl {
         this.map.on("mousedown", () => this._mapMouseDown());
         this.map.on("mouseup", (e) => this._mapMouseUp(e));
 
-        return this.element;
+        return element;
     }
 
     /**
@@ -129,6 +137,14 @@ export class RoutingComponent implements IControl {
                 markerDetails = this._createMarker(loc, "marker-destination");
             }
             this.locations.push(markerDetails);
+
+            // update ui.
+            const name = unescape(d[0]);
+            if (this.ui.count() > index) {
+                this.ui.updateLocation(index, false, name);
+            } else {
+                this.ui.addLocation(false, name);
+            }
         }
         this._calculateRoute();
     }
@@ -219,6 +235,9 @@ export class RoutingComponent implements IControl {
                 location: l
             };
             this.locations.push(markerDetails);
+
+            // set first location as user location in ui.
+            this.ui.updateLocation(0, true, "Huidige locatie");
     
             // report on new location.
             this.events.trigger("location", {
@@ -236,7 +255,7 @@ export class RoutingComponent implements IControl {
             }
         } else {
             const loc0 = this.locations[0];
-            // if start location is very close, log it
+            
             let lngLat = loc0.location;
             if (!lngLat) {
                 lngLat = loc0.marker.getLngLat();
@@ -244,7 +263,6 @@ export class RoutingComponent implements IControl {
 
             const dist = turf.distance([ l.lng, l.lat ], [ lngLat.lng, lngLat.lat ]);
             const isClose: boolean = dist < 0.001;
-            console.log(dist);
 
             // if location is close to start location, replace it.
             if (loc0.isUserLocation || isClose) {
@@ -258,6 +276,9 @@ export class RoutingComponent implements IControl {
                     location: l
                 };
                 this.locations[0] = markerDetails;
+
+                // set first location as user location in ui.
+                this.ui.updateLocation(0, true, "Huidige locatie");
             }
         }
     }
@@ -280,6 +301,13 @@ export class RoutingComponent implements IControl {
         }
         markerDetails.name = name;
         this.locations.push(markerDetails);
+
+        // update ui.
+        if (this.ui.count() > index) {
+            this.ui.updateLocation(index, false, name);
+        } else {
+            this.ui.addLocation(false, name);
+        }
 
         // report on new location.
         this.events.trigger("location", {
@@ -315,6 +343,9 @@ export class RoutingComponent implements IControl {
         this.locations.splice(index, 0, markerDetails);
         if (index > 0) this.routes[index - 1] = undefined;
         this.routes.splice(index, 0, undefined);
+
+        // update ui.
+        this.ui.insertLocation(index, false, "");
 
         // report on new location.
         this.events.trigger("location", {
@@ -370,6 +401,9 @@ export class RoutingComponent implements IControl {
 
         // remove locations.
         this.locations.splice(index, 1);
+
+        // update ui.
+        this.ui.removeLocation(index);
 
         // remove route with this location as target.
         if (index > 0 && index - 1 < this.routes.length) {
@@ -761,8 +795,6 @@ export class RoutingComponent implements IControl {
 
     private _createDefaultUI() {
 
-        const componentHtml = ComponentHtml["index"];
-        this.element.innerHTML = componentHtml;
 
         // add profiles as options.
         let select = document.getElementById("profiles") as HTMLSelectElement;

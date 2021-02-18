@@ -13,3 +13,9 @@
     border-bottom-style: solid;
     border-bottom-color: #c2c2c2;
 }
+
+.mapboxgl-ctrl-group .routing-component .button {
+    width: initial;
+    height: initial;
+    padding: initial;
+}

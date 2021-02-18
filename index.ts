@@ -1,4 +1,4 @@
-import { Map, LngLatLike, GeolocateControl } from "mapbox-gl";
+import { Map, LngLatLike, GeolocateControl, NavigationControl } from "mapbox-gl";
 import { Profile, RoutingApi } from "@anyways-open/routing-api";
 import { LayerControl } from "./components/layer-control/LayerControl";
 import { OsmAttributionControl } from "./components/osm-attribution-control/OsmAttributionControl";
@@ -68,6 +68,11 @@ const layerControl = new LayerControl([{
 }]);
 // map.addControl(layerControl, "top-right");
 
+const nav = new NavigationControl({
+    visualizePitch: true
+});
+map.addControl(nav, "top-right");
+
 const geolocationControl = new GeolocateControl({
     positionOptions: {
         enableHighAccuracy: true
@@ -76,7 +81,7 @@ const geolocationControl = new GeolocateControl({
     showUserLocation: true,
     trackUserLocation: true
 })
-map.addControl(geolocationControl, "bottom-left");
+map.addControl(geolocationControl, "top-right");
 
 geolocationControl.on("geolocate", function(data: { coords: { latitude: any; longitude: any; }; }) {
     rc.reportCurrentLocation({
