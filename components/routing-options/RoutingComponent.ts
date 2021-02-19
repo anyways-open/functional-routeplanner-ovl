@@ -10,6 +10,7 @@ import { RouteEvent } from "./events/RouteEvent";
 import { RoutingLocation } from "./RoutingLocation";
 import { StateEvent } from "./events/StateEvent";
 import { UI } from "./UI";
+import { GeocodingControl } from "../geocoder/GeocoderControl";
 
 export type EventBase = LocationEvent | ProfilesEvent | RouteEvent | StateEvent
 
@@ -21,6 +22,7 @@ export class RoutingComponent implements IControl {
     readonly routes: unknown[] = [];
     readonly locations: RoutingLocation[] = [];
     readonly events: EventsHub<EventBase> = new EventsHub();
+    readonly geocoder: GeocodingControl;
 
     private ui: UI;
     private profiles: Profile[] = [];
@@ -30,12 +32,15 @@ export class RoutingComponent implements IControl {
     private markerId = 0;
 
     constructor(api: RoutingApi, options?: {
-        defaultUI?: boolean
+        defaultUI?: boolean,
+        geocoder: GeocodingControl
     }) {
         this.api = api;
         this.options = {
-            defaultUI: options?.defaultUI ?? true
+            defaultUI: options?.defaultUI ?? true,
         };
+
+        this.geocoder = options?.geocoder;
     }
 
     /**
@@ -308,6 +313,7 @@ export class RoutingComponent implements IControl {
             markerDetails = this._createMarker(l, "end");
             type = "end";
         }
+
         markerDetails.name = name;
         this.locations.push(markerDetails);
 
@@ -318,8 +324,18 @@ export class RoutingComponent implements IControl {
             this.ui.addLocation(type, name);
         }
         if (this.locations.length > 2) {
-            this.ui.updateLocation(this.locations.length - 2, "via", "point");
-            this._updateMarker(this.locations[this.locations.length - 2].marker, "via");
+            const previousLocation = this.locations[this.locations.length - 2];
+            this.ui.updateLocation(this.locations.length - 2, "via", previousLocation.name);
+            this._updateMarker(previousLocation.marker, "via");
+        }
+
+        // trigger reverse geocode if needed.
+        if (!name) {
+            this.geocoder.reverseGeocode({ lng: 0, lat: 0 }, results => {
+                if (results?.length) {
+                    this._updateLocationName(index, results[0]);
+                }
+            });
         }
 
         // report on new location.
@@ -336,6 +352,11 @@ export class RoutingComponent implements IControl {
         if (this.locations.length > 1) {
             this._calculateRoute();
         }
+    }
+
+    private _updateLocationName(idx: number, name: string): void {
+        this.locations[idx].name = name;
+        this.ui.updateLocationName(idx, name);
     }
 
     /**marker
@@ -419,7 +440,7 @@ export class RoutingComponent implements IControl {
         this.ui.removeLocation(index);
         if (this.locations.length > 1) {
             const last = this.locations.length - 1;
-            this.ui.updateLocation(last, "end", "point");
+            this.ui.updateLocation(last, "end", this.locations[last].name);
             this._updateMarker(this.locations[last].marker, "end");
         }
 
@@ -728,7 +749,7 @@ export class RoutingComponent implements IControl {
         if (typeof (this.snapPoint) !== "undefined") {
             return;
         }
-        this.addLocation(e.lngLat, "point");
+        this.addLocation(e.lngLat, "");
     }
 
     private _dragging = false;

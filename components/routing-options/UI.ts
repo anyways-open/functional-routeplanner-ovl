@@ -1,11 +1,10 @@
 import ComponentHtml from "*.html";
-import { distance } from "@turf/turf";
 
 export class UI {
     
     private element: HTMLElement;
     private locationsContainer: HTMLElement;
-    private locationElements: HTMLElement[] = [];
+    private locationElements: { root: HTMLElement, input: HTMLInputElement }[] = [];
 
     private routeDetailsElement: HTMLElement;
     private routeElements: HTMLElement[] = [];
@@ -74,20 +73,24 @@ export class UI {
         const locationContainer = document.createElement("div");
         locationContainer.className = "btn-toolbar border-0 pb-1";
         this.locationsContainer.append(locationContainer);
-        this.locationElements.push(locationContainer);
         
-        this._buildLocationContent(locationContainer, type, value, this.locationElements.length == 1);
+        const i = this._buildLocationContent(locationContainer, type, value, this.locationElements.length == 1);
+        this.locationElements.push({ root: locationContainer, input: i});
     }
 
     updateLocation(idx: number, type: "via" | "user" | "end" | "start", value: string): void {
-        const locationContainer = this.locationElements[idx];
+        const locationContainer = this.locationElements[idx].root;
         locationContainer.innerHTML = "";
         
-        this._buildLocationContent(locationContainer, type, value, idx == 0);
+        this.locationElements[idx].input = this._buildLocationContent(locationContainer, type, value, idx == 0);
+    }
+
+    updateLocationName(idx: number, value: string): void {
+        this.locationElements[idx].input.value = value;
     }
 
     removeLocation(idx: number): void {
-        const locationContainer = this.locationElements[idx];
+        const locationContainer = this.locationElements[idx].root;
         locationContainer.remove();
 
         // remove locations.
@@ -98,24 +101,23 @@ export class UI {
 
         // remove all after index.
         for (let i = idx; i < this.locationElements.length; i++) {
-            this.locationElements[i].remove();
+            this.locationElements[i].root.remove();
         }
 
         // insert location.
         const locationContainer = document.createElement("div");
         locationContainer.className = "btn-toolbar border-0 pb-1";
         this.locationsContainer.append(locationContainer);
-        this.locationElements.splice(idx, 0, locationContainer);
-        
-        this._buildLocationContent(locationContainer, type, value, idx == 0);
+        const i = this._buildLocationContent(locationContainer, type, value, idx == 0);
+        this.locationElements.splice(idx, 0, { root: locationContainer, input: i});
 
         // add all after index.
         for (let i = idx + 1; i < this.locationElements.length; i++) {
-            this.locationsContainer.append(this.locationElements[i]);
+            this.locationsContainer.append(this.locationElements[i].root);
         }
     }
 
-    private _buildLocationContent(container: HTMLElement, type: "via" | "user" | "end" | "start", value: string, menu?: boolean) {
+    private _buildLocationContent(container: HTMLElement, type: "via" | "user" | "end" | "start", value: string, menu?: boolean): HTMLInputElement {
         menu ??= false;
 
         // construct icon an add.
@@ -154,6 +156,8 @@ export class UI {
             locationIcon.innerHTML = ComponentHtml["locationMarker"];
         }
         container.append(locationIcon);
+
+        return input;
     }
 
     private _buildRouteDetailContent(container: HTMLElement, description: string, stats: { distance: number, time: number }) {

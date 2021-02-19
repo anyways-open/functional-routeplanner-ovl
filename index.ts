@@ -8,6 +8,7 @@ import { UrlHash } from "@anyways-open/url-hash";
 import { ProfilesEvent } from "./components/routing-options/events/ProfilesEvent";
 import "bootstrap";
 import { StateEvent } from "./components/routing-options/events/StateEvent";
+import { GeocodingControl } from "./components/geocoder/GeocoderControl";
 
 
 const urlState = UrlHash.read();
@@ -49,7 +50,9 @@ if (urlState.host === "staging") {
 }
 
 const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
-const rc = new RoutingComponent(ra);
+const rc = new RoutingComponent(ra, {
+    geocoder: new GeocodingControl()
+});
 
 const osmAttributionControl = new OsmAttributionControl({
     compact: false,
