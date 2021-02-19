@@ -69,8 +69,14 @@ export class RoutingComponent implements IControl {
         this.ui.build();
 
         // always add 2 locations to start.
-        this.ui.addLocation("start", "");
-        this.ui.addLocation("end", "");
+        this.ui.addLocation({
+            type: "start",
+            placeholder: "Van"
+        });
+        this.ui.addLocation({
+            type: "end",
+            placeholder: "Naar"
+        });
 
         // hook up events.
         this.map.on("load", () => this._mapLoad());
@@ -152,9 +158,9 @@ export class RoutingComponent implements IControl {
             // update ui.
             const name = unescape(d[0]);
             if (this.ui.count() > index) {
-                this.ui.updateLocation(index, type, name);
+                this.ui.updateLocation(index, { type: type, value: name });
             } else {
-                this.ui.addLocation(type, name);
+                this.ui.addLocation({ type: type, value: name });
             }
         }
         this._calculateRoute();
@@ -248,7 +254,7 @@ export class RoutingComponent implements IControl {
             this.locations.push(markerDetails);
 
             // set first location as user location in ui.
-            this.ui.updateLocation(0, "user", "Huidige locatie");
+            this.ui.updateLocation(0, { type: "user", value: "Huidige locatie" });
     
             // report on new location.
             this.events.trigger("location", {
@@ -289,7 +295,7 @@ export class RoutingComponent implements IControl {
                 this.locations[0] = markerDetails;
 
                 // set first location as user location in ui.
-                this.ui.updateLocation(0, "user", "Huidige locatie");
+                this.ui.updateLocation(0, { type: "user", value: "Huidige locatie" });
             }
         }
     }
@@ -319,13 +325,13 @@ export class RoutingComponent implements IControl {
 
         // update ui.
         if (this.ui.count() > index) {
-            this.ui.updateLocation(index, type, name);
+            this.ui.updateLocation(index, { type: type, value: name });
         } else {
-            this.ui.addLocation(type, name);
+            this.ui.addLocation({ type: type, value: name });
         }
         if (this.locations.length > 2) {
             const previousLocation = this.locations[this.locations.length - 2];
-            this.ui.updateLocation(this.locations.length - 2, "via", previousLocation.name);
+            this.ui.updateLocation(this.locations.length - 2, { type: "via", value:  previousLocation.name });
             this._updateMarker(previousLocation.marker, "via");
         }
 
@@ -379,7 +385,14 @@ export class RoutingComponent implements IControl {
         this.routes.splice(index, 0, undefined);
 
         // update ui.
-        this.ui.insertLocation(index, "via", "");
+        this.ui.insertLocation(index,  { type: "via" });
+
+        // trigger geocode.
+            this.geocoder.reverseGeocode({ lng: 0, lat: 0 }, results => {
+                if (results?.length) {
+                    this._updateLocationName(index, results[0]);
+                }
+            });
 
         // report on new location.
         this.events.trigger("location", {
@@ -437,10 +450,14 @@ export class RoutingComponent implements IControl {
         this.locations.splice(index, 1);
 
         // update ui.
-        this.ui.removeLocation(index);
+        if (this.ui.count() > 2) {
+            this.ui.removeLocation(index);
+        } else {
+            this.ui.updateLocationName(index, "");
+        }
         if (this.locations.length > 1) {
             const last = this.locations.length - 1;
-            this.ui.updateLocation(last, "end", this.locations[last].name);
+            this.ui.updateLocation(last, {type: "end", value: this.locations[last].name, placeholder: "Naar"});
             this._updateMarker(this.locations[last].marker, "end");
         }
 

@@ -1,4 +1,5 @@
 import ComponentHtml from "*.html";
+import { UILocation } from "./UILocation";
 
 export class UI {
     
@@ -69,20 +70,20 @@ export class UI {
         this._buildRouteDetailContent(routeDetail, description, stats);
     }
 
-    addLocation(type: "via" | "user" | "end" | "start", value: string): void {
+    addLocation(location: UILocation): void {
         const locationContainer = document.createElement("div");
         locationContainer.className = "btn-toolbar border-0 pb-1";
         this.locationsContainer.append(locationContainer);
         
-        const i = this._buildLocationContent(locationContainer, type, value, this.locationElements.length == 1);
+        const i = this._buildLocationContent(locationContainer, location, this.locationElements.length == 0);
         this.locationElements.push({ root: locationContainer, input: i});
     }
 
-    updateLocation(idx: number, type: "via" | "user" | "end" | "start", value: string): void {
+    updateLocation(idx: number, location: UILocation): void {
         const locationContainer = this.locationElements[idx].root;
         locationContainer.innerHTML = "";
         
-        this.locationElements[idx].input = this._buildLocationContent(locationContainer, type, value, idx == 0);
+        this.locationElements[idx].input = this._buildLocationContent(locationContainer, location, idx == 0);
     }
 
     updateLocationName(idx: number, value: string): void {
@@ -97,7 +98,7 @@ export class UI {
         this.locationElements.splice(idx, 1);
     }
 
-    insertLocation(idx: number, type: "via" | "user" | "end" | "start", value: string): void {
+    insertLocation(idx: number, location: UILocation): void {
 
         // remove all after index.
         for (let i = idx; i < this.locationElements.length; i++) {
@@ -108,7 +109,7 @@ export class UI {
         const locationContainer = document.createElement("div");
         locationContainer.className = "btn-toolbar border-0 pb-1";
         this.locationsContainer.append(locationContainer);
-        const i = this._buildLocationContent(locationContainer, type, value, idx == 0);
+        const i = this._buildLocationContent(locationContainer, location, idx == 0);
         this.locationElements.splice(idx, 0, { root: locationContainer, input: i});
 
         // add all after index.
@@ -117,7 +118,7 @@ export class UI {
         }
     }
 
-    private _buildLocationContent(container: HTMLElement, type: "via" | "user" | "end" | "start", value: string, menu?: boolean): HTMLInputElement {
+    private _buildLocationContent(container: HTMLElement, location: UILocation, menu?: boolean): HTMLInputElement {
         menu ??= false;
 
         // construct icon an add.
@@ -137,7 +138,8 @@ export class UI {
         const input = document.createElement("input");
         input.type = "text";
         input.className = "form-control border-0";
-        input.value = value;
+        if (location.value) input.value = location.value;
+        if (location.placeholder) input.placeholder = location.placeholder;
         locationInputGroup.append(input);
 
         const button = document.createElement("button");
@@ -148,9 +150,9 @@ export class UI {
 
         // construct icon an add.
         const locationIcon = document.createElement("div");
-        if (type == "user") {
+        if (location.type == "user") {
             locationIcon.innerHTML = ComponentHtml["locationDot"];
-        } else if (type == "via" || type == "start") {
+        } else if (location.type == "via" || location.type == "start") {
             locationIcon.innerHTML = ComponentHtml["locationVia"];
         } else {
             locationIcon.innerHTML = ComponentHtml["locationMarker"];
