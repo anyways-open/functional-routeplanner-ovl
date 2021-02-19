@@ -21,6 +21,12 @@ export class UI {
         locationsContainer.className = "routing-component-locations container py-2";
         element.append(locationsContainer);
         this.locationsContainer = locationsContainer;
+
+        const profilesContainer = document.createElement("div");
+        profilesContainer.className = "profiles-container"
+        const profileSelection = ComponentHtml["profileSelection"];
+        profilesContainer.innerHTML = profileSelection;
+        element.append(profilesContainer);
     }
 
     count(): number {

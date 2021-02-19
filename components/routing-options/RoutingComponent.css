@@ -92,4 +92,64 @@
     top: -2px;
     width: 14px;
     box-sizing: border-box;
+    cursor: pointer;
+}
+
+.marker-origin svg {
+    width: 27px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.marker-origin svg g {
+    fill: #1da1f2;
+}
+
+.marker-destination svg {
+    width: 27px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.marker-destination svg g {
+    fill: #1da1f2;
+}
+
+.routing-component-locations {
+    border-bottom: 1px;
+}
+
+.profiles-container {
+    background-color: #0d8bd9;
+    border-radius: 0px 0px 4px 4px;
+}
+
+.profiles-container .btn-group {
+    width: 100%;
+}
+
+.btn-profile {
+    text-align: center;
+    color: #fff;
+    width: 50%;
+}
+
+.btn-profile img {
+    height: 25px;
+}
+
+.btn-profile span {
+    display: block;
+}
+
+.btn-profile:hover {
+    color: #fff;
+    background-color: #1da1f2;
+}
+
+.btn-profile.active {
+    color: #fff;
+    background-color: #1da1f2;
 }

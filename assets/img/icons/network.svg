@@ -44,94 +44,94 @@
          cx="4.1587272"
          cy="2.9566975"
          r="1.097464"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <circle
          id="circle9"
          stroke="#2d4959"
          cx="-0.23112917"
          cy="17.22373"
          r="1.097464"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <circle
          id="circle11"
          stroke="#2d4959"
          cx="11.840976"
          cy="6.2490892"
          r="1.097464"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <circle
          id="circle13"
          stroke="#2d4959"
          cx="9.6460476"
          cy="15.028802"
          r="1.097464"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <circle
          id="circle15"
          stroke="#2d4959"
          cx="15.133368"
          cy="0.76176941"
          r="1.097464"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <circle
          id="circle17"
          stroke="#2d4959"
          cx="15.133368"
          cy="11.736409"
          r="2.1949279"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <circle
          id="circle19"
          stroke="#2d4959"
          cx="4.707459"
          cy="10.090214"
          r="2.74366"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <path
          d="M 0.31760284,16.674998 3.6099949,12.285142"
          id="Path-9"
          stroke="#2d4959"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <path
          d="m 5.2561909,2.9566975 6.0360521,2.74366"
          id="Path-11"
          stroke="#2d4959"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <path
          d="M 8.548583,13.931338 6.3536549,11.73641"
          id="Path-12"
          stroke="#2d4959"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <path
          d="m 10.194779,14.48007 3.292392,-1.097464"
          id="Path-13"
          stroke="#2d4959"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <path
          d="M 13.487171,11.187678 7.4511189,10.638946"
          id="Path-15"
          stroke="#2d4959"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <path
          d="M 7.4511189,8.4440175 11.292243,6.7978215"
          id="Path-16"
          stroke="#2d4959"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <path
          d="m 12.389707,6.7978215 1.646196,2.7436601"
          id="Path-17"
          stroke="#2d4959"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
       <path
          d="M 15.133367,9.5414816 V 1.8592334"
          id="Path-18"
          stroke="#2d4959"
-         style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+         style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
     </g>
     <path
        d="M 8.1587269,10.346553 V 7.0541615"
        id="Path-10"
        stroke="#2d4959"
-       style="stroke-width:1.09746;stroke:#000005;stroke-opacity:1" />
+       style="stroke-width:1.09746;stroke:#fff;stroke-opacity:1" />
   </g>
 </svg>
