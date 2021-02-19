@@ -1,4 +1,4 @@
-import mapboxgl, { GeoJSONSource, IControl, Map, MapMouseEvent, Marker, PointLike } from "mapbox-gl";
+import mapboxgl, { GeoJSONSource, IControl, LngLat, Map, MapMouseEvent, Marker, PointLike } from "mapbox-gl";
 import { RoutingApi, Profile } from "@anyways-open/routing-api";
 import ComponentHtml from "*.html";
 import { EventsHub } from "./EventsHub";
@@ -167,7 +167,7 @@ export class RoutingComponent implements IControl {
     }
 
     private _getState(): string {
-        let s = `${ escape(this.profile.id) }`;
+        let s = `${escape(this.profile.id)}`;
         this.locations.forEach(l => {
             if (s.length > 0) {
                 s += ",";
@@ -177,7 +177,7 @@ export class RoutingComponent implements IControl {
                 s += `user/`;
             } else {
                 if (l.name) {
-                    s += `${ escape(l.name) }/`;
+                    s += `${escape(l.name)}/`;
                 } else {
                     s += `point/`;
                 }
@@ -187,7 +187,7 @@ export class RoutingComponent implements IControl {
             if (!location) {
                 location = l.marker.getLngLat();
             }
-            s += `${ location.lng.toFixed(5) }/${ location.lat.toFixed(5) }`;
+            s += `${location.lng.toFixed(5)}/${location.lat.toFixed(5)}`;
         });
 
         return s;
@@ -235,15 +235,15 @@ export class RoutingComponent implements IControl {
     /**
      * Returns true if the profiles are loaded.
      */
-    profilesLoaded() : boolean {
-        return typeof(this.profiles) != "undefined";
+    profilesLoaded(): boolean {
+        return typeof (this.profiles) != "undefined";
     }
 
     /**
      * Use to report the current location of the user.
      * @param l The latest current location.
      */
-    reportCurrentLocation(l: { lng: number; lat: number}): void {
+    reportCurrentLocation(l: { lng: number; lat: number }): void {
         if (this.locations.length <= 0) {
             const locationId = this.markerId++;
             const markerDetails: RoutingLocation = {
@@ -255,7 +255,7 @@ export class RoutingComponent implements IControl {
 
             // set first location as user location in ui.
             this.ui.updateLocation(0, { type: "user", value: "Huidige locatie" });
-    
+
             // report on new location.
             this.events.trigger("location", {
                 component: this,
@@ -265,20 +265,20 @@ export class RoutingComponent implements IControl {
             this.events.trigger("state", {
                 state: this._getState()
             });
-    
+
             // calculate if locations.
             if (this.locations.length > 1) {
                 this._calculateRoute();
             }
         } else {
             const loc0 = this.locations[0];
-            
+
             let lngLat = loc0.location;
             if (!lngLat) {
                 lngLat = loc0.marker.getLngLat();
             }
 
-            const dist = turf.distance([ l.lng, l.lat ], [ lngLat.lng, lngLat.lat ]);
+            const dist = turf.distance([l.lng, l.lat], [lngLat.lng, lngLat.lat]);
             const isClose: boolean = dist < 0.001;
 
             // if location is close to start location, replace it.
@@ -307,7 +307,7 @@ export class RoutingComponent implements IControl {
      * @param l The location.
      * @param name The name, the geocode location or a custom name.
      */
-    addLocation(l: mapboxgl.LngLatLike, name?: string): void {        
+    addLocation(l: mapboxgl.LngLatLike, name?: string): void {
         // add markers for each location.
         let markerDetails: RoutingLocation = null;
         const index = this.locations.length;
@@ -331,13 +331,14 @@ export class RoutingComponent implements IControl {
         }
         if (this.locations.length > 2) {
             const previousLocation = this.locations[this.locations.length - 2];
-            this.ui.updateLocation(this.locations.length - 2, { type: "via", value:  previousLocation.name });
+            this.ui.updateLocation(this.locations.length - 2, { type: "via", value: previousLocation.name });
             this._updateMarker(previousLocation.marker, "via");
         }
 
         // trigger reverse geocode if needed.
         if (!name) {
-            this.geocoder.reverseGeocode({ lng: 0, lat: 0 }, results => {
+            const lngLat = LngLat.convert(l);
+            this.geocoder.reverseGeocode(lngLat, results => {
                 if (results?.length) {
                     this._updateLocationName(index, results[0]);
                 }
@@ -385,14 +386,15 @@ export class RoutingComponent implements IControl {
         this.routes.splice(index, 0, undefined);
 
         // update ui.
-        this.ui.insertLocation(index,  { type: "via" });
+        this.ui.insertLocation(index, { type: "via" });
 
         // trigger geocode.
-            this.geocoder.reverseGeocode({ lng: 0, lat: 0 }, results => {
-                if (results?.length) {
-                    this._updateLocationName(index, results[0]);
-                }
-            });
+        const lngLat = LngLat.convert(l);
+        this.geocoder.reverseGeocode(lngLat, results => {
+            if (results?.length) {
+                this._updateLocationName(index, results[0]);
+            }
+        });
 
         // report on new location.
         this.events.trigger("location", {
@@ -457,7 +459,7 @@ export class RoutingComponent implements IControl {
         }
         if (this.locations.length > 1) {
             const last = this.locations.length - 1;
-            this.ui.updateLocation(last, {type: "end", value: this.locations[last].name, placeholder: "Naar"});
+            this.ui.updateLocation(last, { type: "end", value: this.locations[last].name, placeholder: "Naar" });
             this._updateMarker(this.locations[last].marker, "end");
         }
 
@@ -489,11 +491,11 @@ export class RoutingComponent implements IControl {
             state: this._getState()
         })
     }
-    
+
     private _getProfileFor(id: string): Profile {
         const profile = this.profiles.find(x => x.id == id);
         if (typeof (profile) === "undefined") {
-            throw Error(`Profile not in the profiles list: ${ id }`);
+            throw Error(`Profile not in the profiles list: ${id}`);
         }
 
         return profile;
@@ -553,7 +555,7 @@ export class RoutingComponent implements IControl {
                     if (f && f.properties) {
                         if (f.properties.distance) {
                             routeDistance = parseFloat(f.properties.distance);
-                        } 
+                        }
                         if (f.properties.time) {
                             routeTime = parseFloat(f.properties.time);
                         }
@@ -572,12 +574,12 @@ export class RoutingComponent implements IControl {
         source.setData(routesFeatures);
 
         if (this.ui.routeCount() == 0) {
-            this.ui.addRoute("Snelste route", { 
+            this.ui.addRoute("Snelste route", {
                 distance: totalDistance,
                 time: totalTime
             });
         } else {
-            this.ui.updateRoute(0, "Snelste route", { 
+            this.ui.updateRoute(0, "Snelste route", {
                 distance: totalDistance,
                 time: totalTime
             });
@@ -696,7 +698,7 @@ export class RoutingComponent implements IControl {
         }
     }
 
-    private _createMarker(l: mapboxgl.LngLatLike, type: "start" | "via" | "end" ): RoutingLocation {
+    private _createMarker(l: mapboxgl.LngLatLike, type: "start" | "via" | "end"): RoutingLocation {
         const element = document.createElement("div");
 
         let offset: PointLike = [0, -20];
@@ -706,7 +708,7 @@ export class RoutingComponent implements IControl {
         } else {
             element.className = "marker-via";
             element.innerHTML = ComponentHtml["via"];
-            offset = [0 ,0]
+            offset = [0, 0]
         }
 
         const marker = new Marker(element, {
@@ -912,7 +914,7 @@ export class RoutingComponent implements IControl {
 
                 this.events.trigger("profile", {
                     component: this,
-                    profiles: [ this.profile ]
+                    profiles: [this.profile]
                 });
                 this.events.trigger("state", {
                     state: this._getState()
