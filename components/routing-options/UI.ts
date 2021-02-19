@@ -1,10 +1,14 @@
 import ComponentHtml from "*.html";
+import { distance } from "@turf/turf";
 
 export class UI {
     
     private element: HTMLElement;
     private locationsContainer: HTMLElement;
     private locationElements: HTMLElement[] = [];
+
+    private routeDetailsElement: HTMLElement;
+    private routeElements: HTMLElement[] = [];
 
     constructor(element: HTMLElement) {
         this.element = element;
@@ -27,10 +31,43 @@ export class UI {
         const profileSelection = ComponentHtml["profileSelection"];
         profilesContainer.innerHTML = profileSelection;
         element.append(profilesContainer);
+
+        // const routesContainer = document.createElement("div");
+        // routesContainer.className = "routes-container"
+        // const routeDetails = ComponentHtml["routeDetails"];
+        // routesContainer.innerHTML = routeDetails;
+        // element.append(routesContainer);
     }
 
     count(): number {
         return this.locationElements.length;
+    }
+
+    routeCount(): number {
+        return this.routeElements.length;
+    }
+
+    addRoute(description: string, stats: { distance: number, time: number }): void {
+        if (!this.routeDetailsElement) {
+            const routeDetailsElement = document.createElement("div");
+            routeDetailsElement.className = "container";
+            this.element.append(routeDetailsElement);
+            this.routeDetailsElement = routeDetailsElement;
+        }
+
+        const routeDetail = document.createElement("div");
+        routeDetail.className = "route-detail row my-1";
+        this.routeDetailsElement.append(routeDetail);
+        this.routeElements.push(routeDetail);
+
+        this._buildRouteDetailContent(routeDetail, description, stats);
+    }
+
+    updateRoute(idx: number, description: string, stats: { distance: number, time: number }): void {
+        const routeDetail = this.routeElements[idx];
+        routeDetail.innerHTML = "";
+
+        this._buildRouteDetailContent(routeDetail, description, stats);
     }
 
     addLocation(type: "via" | "user" | "end" | "start", value: string): void {
@@ -117,5 +154,55 @@ export class UI {
             locationIcon.innerHTML = ComponentHtml["locationMarker"];
         }
         container.append(locationIcon);
+    }
+
+    private _buildRouteDetailContent(container: HTMLElement, description: string, stats: { distance: number, time: number }) {
+        const descriptionElement = document.createElement("div");
+        descriptionElement.className = "col-6 py-3";
+        descriptionElement.innerHTML = description;
+        container.append(descriptionElement);
+
+        const statsElement = document.createElement("div");
+        statsElement.className = "col-4 py-3";
+        container.append(statsElement);
+
+        const distanceElement = document.createElement("div");
+        statsElement.append(distanceElement);
+
+        const distanceStrong = document.createElement("strong");
+        distanceStrong.innerHTML = this._formatDistance(stats.distance);
+        distanceElement.append(distanceStrong);
+
+        const timeElement = document.createElement("div");
+        statsElement.append(timeElement);
+
+        const timeStrong = document.createElement("strong");
+        timeStrong.innerHTML = this._formatTime(stats.time);
+        timeElement.append(timeStrong);
+
+        // construct icon and add.
+        const bicycleIcon = document.createElement("div");
+        bicycleIcon.className = "col-2 py-3";
+        bicycleIcon.innerHTML = ComponentHtml["routeBicycle"];
+        container.append(bicycleIcon);
+    }
+
+    private _formatDistance(distance: number) {
+        if (distance < 1000) {
+            return "" + Math.round(distance) + " m";
+        }
+        return "" + ((distance / 1000).toFixed(2) + " km").replace(".", ",");
+    }
+
+    private _formatTime(time: number) {
+        if (time < 60) {
+            return `< 1 min`;
+        }
+        if (time < 3600) {
+            return `${Math.round(time / 60)} min`;
+        }
+        const h = Math.floor(time / 3600);
+        const m = Math.floor((time % 3600) / 60);
+        return `${h} uur, ${m}`;
     }
 }

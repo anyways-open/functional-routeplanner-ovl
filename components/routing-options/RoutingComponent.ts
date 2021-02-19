@@ -504,33 +504,46 @@ export class RoutingComponent implements IControl {
         };
 
         let totalDistance = 0;
+        let totalTime = 0;
         for (let i = 0; i < this.routes.length; i++) {
             const r = this.routes[i] as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
 
             if (r && r.features) {
                 let routeDistance = 0;
+                let routeTime = 0;
                 r.features.forEach((f) => {
                     if (f && f.properties) {
                         if (f.properties.distance) {
                             routeDistance = parseFloat(f.properties.distance);
+                        } 
+                        if (f.properties.time) {
+                            routeTime = parseFloat(f.properties.time);
                         }
                         f.properties["_route-index"] = i;
                     }
                 });
                 totalDistance += routeDistance;
+                totalTime += routeTime;
 
                 routesFeatures.features =
                     routesFeatures.features.concat(r.features);
             }
         }
 
-        const distance = document.getElementById("distance");
-        if (distance) {
-            distance.innerHTML = "" + totalDistance.toFixed(0) + "m";
-        }
-
         const source: GeoJSONSource = this.map.getSource("route") as GeoJSONSource;
         source.setData(routesFeatures);
+
+        if (this.ui.routeCount() == 0) {
+            this.ui.addRoute("Snelste route", { 
+                distance: totalDistance,
+                time: totalTime
+            });
+        } else {
+            this.ui.updateRoute(0, "Snelste route", { 
+                distance: totalDistance,
+                time: totalTime
+            });
+        }
     }
 
     private _mapLoad(): void {

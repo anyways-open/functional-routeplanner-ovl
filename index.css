@@ -1,29 +1,16 @@
 @import './node_modules/mapbox-gl/dist/mapbox-gl.css';
 @import './node_modules/bootstrap/dist/css/bootstrap.css';
 
-body { margin: 0; padding: 0; }
-#map { position: absolute; top: 0; bottom: 0; width: 100%; }
-
-.marker-origin svg {
-    width: 27px;
-    height: 35px;
-    border-radius: 50%;
-    cursor: pointer;
+body { 
+    margin: 0; 
+    padding: 0; 
+    font-size: 0.85rem;
 }
-
-.marker-origin svg g {
-    fill: #1da1f2;
-}
-
-.marker-destination svg {
-    width: 27px;
-    height: 35px;
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.marker-destination svg g {
-    fill: #1da1f2;
+#map { 
+    position: absolute; 
+    top: 0; 
+    bottom: 0; 
+    width: 100%; 
 }
 
 .route-details {
@@ -42,6 +29,18 @@ body { margin: 0; padding: 0; }
 }
 
 /* boostrap customizations */
+
+.btn {
+    font-size: unset;
+}
+
+.input {
+    font-size: unset;
+}
+
+.form-control {
+    font-size: unset;
+}
 
 .form-control:focus{
     border-color: #cccccc;
