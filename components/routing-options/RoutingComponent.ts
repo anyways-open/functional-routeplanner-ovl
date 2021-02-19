@@ -317,6 +317,10 @@ export class RoutingComponent implements IControl {
         } else {
             this.ui.addLocation(type, name);
         }
+        if (this.locations.length > 2) {
+            this.ui.updateLocation(this.locations.length - 2, "via", "point");
+            this._updateMarker(this.locations[this.locations.length - 2].marker, "via");
+        }
 
         // report on new location.
         this.events.trigger("location", {
@@ -354,7 +358,7 @@ export class RoutingComponent implements IControl {
         this.routes.splice(index, 0, undefined);
 
         // update ui.
-        this.ui.insertLocation(index, false, "");
+        this.ui.insertLocation(index, "via", "");
 
         // report on new location.
         this.events.trigger("location", {
@@ -413,6 +417,11 @@ export class RoutingComponent implements IControl {
 
         // update ui.
         this.ui.removeLocation(index);
+        if (this.locations.length > 1) {
+            const last = this.locations.length - 1;
+            this.ui.updateLocation(last, "end", "point");
+            this._updateMarker(this.locations[last].marker, "end");
+        }
 
         // remove route with this location as target.
         if (index > 0 && index - 1 < this.routes.length) {
@@ -622,14 +631,25 @@ export class RoutingComponent implements IControl {
         }, lowestLabel);
     }
 
+    private _updateMarker(marker: Marker, type: "start" | "via" | "end") {
+        const element = marker.getElement();
+
+        console.log(element);
+        element.innerHTML = "";
+        if (type == "end") {
+            element.className = "marker-destination mapboxgl-marker";
+            element.innerHTML = ComponentHtml["marker"];
+        } else {
+            element.className = "marker-via mapboxgl-marker";
+            element.innerHTML = ComponentHtml["via"];
+        }
+    }
+
     private _createMarker(l: mapboxgl.LngLatLike, type: "start" | "via" | "end" ): RoutingLocation {
         const element = document.createElement("div");
 
         let offset: PointLike = [0, -20];
-        if (type == "start") {
-            element.className = "marker-origin";
-            element.innerHTML = ComponentHtml["marker"];
-        } else if (type == "end") {
+        if (type == "end") {
             element.className = "marker-destination";
             element.innerHTML = ComponentHtml["marker"];
         } else {
@@ -695,7 +715,7 @@ export class RoutingComponent implements IControl {
         if (typeof (this.snapPoint) !== "undefined") {
             return;
         }
-        this.addLocation(e.lngLat);
+        this.addLocation(e.lngLat, "point");
     }
 
     private _dragging = false;

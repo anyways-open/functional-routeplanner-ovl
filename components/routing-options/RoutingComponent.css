@@ -24,6 +24,10 @@
     height: 20px;
 }
 
+.location-input {
+    margin-left: 5px;
+}
+
 .user-location-dot {
     background-color: #1da1f2;
     width: 10px;
