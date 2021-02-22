@@ -10,6 +10,9 @@ export class UI {
     private routeDetailsElement: HTMLElement;
     private routeElements: HTMLElement[] = [];
 
+    private search: (idx: number) => void;
+    private remove: (idx: number) => void;
+
     constructor(element: HTMLElement) {
         this.element = element;
     }
@@ -37,6 +40,14 @@ export class UI {
         // const routeDetails = ComponentHtml["routeDetails"];
         // routesContainer.innerHTML = routeDetails;
         // element.append(routesContainer);
+    }
+
+    on(event: "search" | "remove", handler: (idx: number) => void): void {
+        if (event == "search") {
+            this.search = handler;
+        } else {
+            this.remove = handler;
+        }
     }
 
     count(): number {
@@ -70,12 +81,30 @@ export class UI {
         this._buildRouteDetailContent(routeDetail, description, stats);
     }
 
+    removeRoute(idx: number): void {
+        const routeDetail = this.routeElements[idx];
+        routeDetail.remove();
+        routeDetail.innerHTML = "";
+
+        // remove locations.
+        this.routeElements.splice(idx, 1);
+
+        if (this.routeElements.length == 0) {
+            this.routeDetailsElement.remove();
+            this.routeDetailsElement = undefined;
+        }
+    }
+
     addLocation(location: UILocation): void {
         const locationContainer = document.createElement("div");
         locationContainer.className = "btn-toolbar border-0 pb-1";
         this.locationsContainer.append(locationContainer);
         
-        const i = this._buildLocationContent(locationContainer, location, this.locationElements.length == 0);
+        const i = UI._buildLocationContent(locationContainer, location, this.locationElements.length == 0, () => {
+            this.search(this.locationElements.findIndex(v => v.root == locationContainer));
+        }, () => {
+            this.remove(this.locationElements.findIndex(v => v.root == locationContainer));
+        });
         this.locationElements.push({ root: locationContainer, input: i});
     }
 
@@ -83,7 +112,11 @@ export class UI {
         const locationContainer = this.locationElements[idx].root;
         locationContainer.innerHTML = "";
         
-        this.locationElements[idx].input = this._buildLocationContent(locationContainer, location, idx == 0);
+        this.locationElements[idx].input = UI._buildLocationContent(locationContainer, location, idx == 0, () => {
+            this.search(this.locationElements.findIndex(v => v.root == locationContainer));
+        }, () => {
+            this.remove(this.locationElements.findIndex(v => v.root == locationContainer));
+        });
     }
 
     updateLocationName(idx: number, value: string): void {
@@ -109,7 +142,11 @@ export class UI {
         const locationContainer = document.createElement("div");
         locationContainer.className = "btn-toolbar border-0 pb-1";
         this.locationsContainer.append(locationContainer);
-        const i = this._buildLocationContent(locationContainer, location, idx == 0);
+        const i = UI._buildLocationContent(locationContainer, location, idx == 0, () => {
+            this.search(this.locationElements.findIndex(v => v.root == locationContainer));
+        }, () => {
+            this.remove(this.locationElements.findIndex(v => v.root == locationContainer));
+        });
         this.locationElements.splice(idx, 0, { root: locationContainer, input: i});
 
         // add all after index.
@@ -118,7 +155,8 @@ export class UI {
         }
     }
 
-    private _buildLocationContent(container: HTMLElement, location: UILocation, menu?: boolean): HTMLInputElement {
+    private static _buildLocationContent(container: HTMLElement, location: UILocation, 
+        menu: boolean, search: () => void, remove?: () => void, ): HTMLInputElement {
         menu ??= false;
 
         // construct icon an add.
@@ -142,11 +180,23 @@ export class UI {
         if (location.placeholder) input.placeholder = location.placeholder;
         locationInputGroup.append(input);
 
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "btn btn-light border-0";
-        button.innerHTML = ComponentHtml["searchImg"];
-        locationInputGroup.append(button);
+        const searchButton = document.createElement("button");
+        searchButton.type = "button";
+        searchButton.className = "btn btn-light border-0";
+        searchButton.innerHTML = ComponentHtml["searchImg"];
+        locationInputGroup.append(searchButton);
+        searchButton.addEventListener("click", () => {
+            search();
+        });
+
+        const closeButton = document.createElement("button");
+        closeButton.type = "button";
+        closeButton.className = "btn btn-light border-0";
+        closeButton.innerHTML = ComponentHtml["closeImg"];
+        locationInputGroup.append(closeButton);
+        closeButton.addEventListener("click", () => {
+            remove();
+        });
 
         // construct icon an add.
         const locationIcon = document.createElement("div");

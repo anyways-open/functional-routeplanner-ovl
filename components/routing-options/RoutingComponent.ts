@@ -67,6 +67,8 @@ export class RoutingComponent implements IControl {
         element.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
         this.ui = new UI(element);
         this.ui.build();
+        this.ui.on("search", (idx) => this._geocoder_search(idx));
+        this.ui.on("remove", (idx) => this._geocoder_remove(idx));
 
         // always add 2 locations to start.
         this.ui.addLocation({
@@ -433,16 +435,14 @@ export class RoutingComponent implements IControl {
      * 
      * @param id The id of the location.
      */
-    removeLocation(id: number): boolean {
-        // get marker index.
-        const index = this.locations.findIndex(l => {
-            return l.id == id;
-        });
+    removeLocation(index: number): boolean {
         if (index < 0) {
             return false;
         }
 
         const removed = this.locations[index];
+        console.log(removed);
+        console.log(this.locations);
         const removedLocation = removed.marker.getLngLat();
 
         // remove marker from map.
@@ -573,16 +573,20 @@ export class RoutingComponent implements IControl {
         const source: GeoJSONSource = this.map.getSource("route") as GeoJSONSource;
         source.setData(routesFeatures);
 
-        if (this.ui.routeCount() == 0) {
-            this.ui.addRoute("Snelste route", {
-                distance: totalDistance,
-                time: totalTime
-            });
+        if (totalDistance == 0 && this.ui.routeCount() > 0) {
+            this.ui.removeRoute(0);
         } else {
-            this.ui.updateRoute(0, "Snelste route", {
-                distance: totalDistance,
-                time: totalTime
-            });
+            if (this.ui.routeCount() == 0) {
+                this.ui.addRoute("Snelste route", {
+                    distance: totalDistance,
+                    time: totalTime
+                });
+            } else {
+                this.ui.updateRoute(0, "Snelste route", {
+                    distance: totalDistance,
+                    time: totalTime
+                });
+            }
         }
     }
 
@@ -687,7 +691,6 @@ export class RoutingComponent implements IControl {
     private _updateMarker(marker: Marker, type: "start" | "via" | "end") {
         const element = marker.getElement();
 
-        console.log(element);
         element.innerHTML = "";
         if (type == "end") {
             element.className = "marker-destination mapboxgl-marker";
@@ -737,6 +740,14 @@ export class RoutingComponent implements IControl {
                 this.routes[index] = null;
             }
 
+            // trigger geocode.
+            const lngLat = marker.getLngLat();
+            this.geocoder.reverseGeocode(lngLat, results => {
+                if (results?.length) {
+                    this._updateLocationName(index, results[0]);
+                }
+            });
+
             // trigger event.
             this.events.trigger("location", {
                 component: this,
@@ -753,7 +764,11 @@ export class RoutingComponent implements IControl {
 
         // add click event.
         element.addEventListener("click", (e) => {
-            this.removeLocation(markerId);
+            // get marker index.
+            const index = this.locations.findIndex(l => {
+                return l.id == markerId;
+            });
+            this.removeLocation(index);
             e.stopPropagation();
         }, true);
 
@@ -872,7 +887,6 @@ export class RoutingComponent implements IControl {
 
         const routeIndex: number = this.snapPoint.properties["_route-index"];
         this.insertLocation(routeIndex + 1, e.lngLat);
-
         const snapSource: GeoJSONSource = this.map.getSource("route-snap") as GeoJSONSource;
         const empty: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
             type: "FeatureCollection",
@@ -944,5 +958,14 @@ export class RoutingComponent implements IControl {
                 })
             });
         }
+    }
+
+    private _geocoder_remove(idx: number): void {
+        console.log(idx);
+        this.removeLocation(idx);
+    }
+
+    private _geocoder_search(idx: number): void {
+        console.log("search:" + idx);
     }
 }

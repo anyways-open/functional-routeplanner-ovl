@@ -3,7 +3,7 @@ export class GeocodingControl {
     reverseGeocode(l: { lng: number; lat: number}, callback: ((results: string[]) => void)): void {
         if (!l) return callback([ "Invalid location." ]);
         
-        const xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest(); 
         const apiKey = "OZUCIh4RNx38vXF8gF4H";
         xhr.open("GET", `https://api.maptiler.com/geocoding/${l.lng},${l.lat}.json?key=${apiKey}`);
         xhr.onload = () => {
