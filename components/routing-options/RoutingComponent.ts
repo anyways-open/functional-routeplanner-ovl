@@ -275,7 +275,6 @@ export class RoutingComponent implements IControl {
                 state: this._getState()
             });
 
-
             // calculate if locations.
             if (this.locations.length > 1) {
                 this._calculateRoute();
@@ -482,9 +481,13 @@ export class RoutingComponent implements IControl {
         // update ui.
         if (this.ui.count() > 2) {
             this.ui.removeLocation(index);
+        } else if (index == 0) {
+            this.ui.updateLocation(0, { type: "start", value: "", placeholder: "Van" });
         } else {
-            this.ui.updateLocationName(index, "");
+            this.ui.updateLocation(1, { type: "end", value: "", placeholder: "Naar" });
         }
+
+        // make sure the last location is of type "end".
         if (this.locations.length > 1) {
             const last = this.locations.length - 1;
             const lastLocation = this.locations[last];
