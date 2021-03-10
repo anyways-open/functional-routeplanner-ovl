@@ -72,8 +72,7 @@ const geolocationControl = new GeolocateControl({
         enableHighAccuracy: true
     },
     showAccuracyCircle: true,
-    showUserLocation: true,
-    trackUserLocation: true
+    showUserLocation: true
 })
 map.addControl(geolocationControl, "top-right");
 
