@@ -11,6 +11,7 @@ import { StateEvent } from "./components/routing-options/events/StateEvent";
 import { GeocodingControl } from "./components/geocoder/GeocoderControl";
 import { BaseLayerControl } from "./components/baselayer-control/BaseLayerControl";
 import BaseLayerImages from "./assets/img/base-layers/*.png";
+import Icons from "./assets/img/icons/*.*";
 
 
 const urlState = UrlHash.read();
@@ -312,15 +313,32 @@ const baseLayerControl = new BaseLayerControl({
         imagery: BaseLayerImages["sattelite"],
     }
 });
-map.addControl(baseLayerControl, "bottom-left");
+map.addControl(baseLayerControl, "bottom-right");
 
-// const layerControl = new LayerControl([{
-//     name: "Node Networks",
-//     layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels" ] ,
-//     visible: false
-// },
-// {
-//     name: "Cycle Highways",
-//     layers: [ "cycle-highways-case", "cycle-highways" ]
-// }]);
-// map.addControl(layerControl, "top-left");
+const layerControl = new LayerControl([{
+    name: "Node Networks",
+    layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels" ],
+    build: (el, c) => {
+        el.innerHTML = "<span>" +
+        "<img src=\"" + Icons["network"].svg + "\" />" +
+        "</span>" +
+      "<span>" +
+            "Fietsknoopunten Gent" +
+        "</span>";
+    },
+    visible: false
+},
+{
+    name: "Cycle Highways",
+    layers: [ "cycle-highways-case", "cycle-highways" ],
+    build: (el, c) => {
+        el.innerHTML = "<span>" +
+        "<img src=\"" + Icons["highway"].svg + "\" />" +
+        "</span>" +
+      "<span>" +
+            "Fietsnelwegen" +
+        "</span>";
+    },
+    visible: true
+}]);
+map.addControl(layerControl, "bottom-right");

@@ -64,3 +64,43 @@ body {
     border-color: initial;
 }
 
+/* layer control */
+
+.layer-control {
+    background: #0d8bd9;
+    z-index: 1;
+    border-radius: 3px;
+    width: 120px;
+    padding: 2px;
+}
+
+.layer-control a {
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    background: #0d8bd9;
+    display: block;
+    margin: 0;
+    padding: 0;
+    padding: 10px;
+    text-decoration: none;
+    text-align: center;
+}
+
+
+.layer-control a:hover {
+    background: #1da1f2;
+    color: #fff;
+    border: none;
+}
+
+.layer-control a.active {
+    background: #1da1f2;
+    border: none;
+}
+
+.layer-control a.active:hover {
+    background: #1da1f2;
+    color: #fff;
+    border: none;
+}

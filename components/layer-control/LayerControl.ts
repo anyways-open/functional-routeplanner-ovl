@@ -11,9 +11,9 @@ export class LayerControl implements IControl {
     constructor(layers: LayerConfig[]) {
         this.layers = layers;
 
-        for (var l = 0; l < this.layers.length; l++) {
-            this.layers[l].visible = true;
-        }
+        // for (let l = 0; l < this.layers.length; l++) {
+        //     this.layers[l].visible = true;
+        // }
     }
 
     onAdd(map: mapboxgl.Map): HTMLElement {
@@ -24,20 +24,20 @@ export class LayerControl implements IControl {
         this.element.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
 
         this.navElement = document.createElement("nav");
-        this.navElement.classList.add("layers");
+        this.navElement.classList.add("layer-control");
         this.element.appendChild(this.navElement);
 
         // build initial layers
         this._buildLayers();
         
         // hook up events.
-        var me = this;
-        this.map.on("data", function (e) { me._onMapData(e); });
+        this.map.on("data", (e) => this._onMapData(e));
 
         return this.element;
     }
 
-    onRemove(map: mapboxgl.Map) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+    onRemove(map: mapboxgl.Map): void {
 
     }
 
@@ -48,7 +48,7 @@ export class LayerControl implements IControl {
     }
 
     private toggleLayer(layerId: string, visible: boolean) {
-        var layer = this.map.getLayer(layerId);
+        const layer = this.map.getLayer(layerId);
 
         if (typeof layer == "undefined") return;
 
@@ -63,13 +63,20 @@ export class LayerControl implements IControl {
         this.navElement.innerHTML = "";
 
         this.layers.forEach(l => {
-            var layerButton = document.createElement("a");
+            const layerButton = document.createElement("a");
             layerButton.href.link("#");
             layerButton.classList.add("btn");
             layerButton.type = "button";
-            layerButton.innerHTML = l.name;
+
             if (l.visible) {
                 layerButton.classList.add("active");
+            }
+
+            // call build layer function.
+            if (l.build) {
+                l.build(layerButton, l);
+            } else {
+                layerButton.innerHTML = l.name;
             }
             layerButton.addEventListener("click", e => {
                 if (l.visible) {
