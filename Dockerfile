@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:14s AS build
+FROM mhart/alpine-node:14 AS build
 WORKDIR /app
 COPY . .
 
