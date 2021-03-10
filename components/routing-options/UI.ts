@@ -1,4 +1,5 @@
 import ComponentHtml from "*.html";
+import { ProfileConfig } from "./ProfileConfig";
 import { UILocation } from "./UILocation";
 
 export class UI {
@@ -10,11 +11,21 @@ export class UI {
     private routeDetailsElement: HTMLElement;
     private routeElements: HTMLElement[] = [];
 
-    private search: (idx: number) => void;
-    private remove: (idx: number) => void;
+    private searchEvent: (idx: number) => void;
+    private removeEvent: (idx: number) => void;
+    private profileEvent: (profile: number) => void;
 
-    constructor(element: HTMLElement) {
+    private profiles: { config: ProfileConfig, element?: HTMLElement }[] = [];
+    private profile = 0;
+
+    constructor(element: HTMLElement, options: {
+        profiles: ProfileConfig[],
+        profile: number
+    }) {
         this.element = element;
+
+        this.profiles = options.profiles.map(x => { return { config: x }});
+        this.profile = 0;
     }
 
     build(): void {        
@@ -31,9 +42,33 @@ export class UI {
 
         const profilesContainer = document.createElement("div");
         profilesContainer.className = "profiles-container"
-        const profileSelection = ComponentHtml["profileSelection"];
-        profilesContainer.innerHTML = profileSelection;
+        // const profileSelection = ComponentHtml["profileSelection"];
+        // profilesContainer.innerHTML = profileSelection;
         element.append(profilesContainer);
+
+        const profilesToolbar = document.createElement("div");
+        profilesToolbar.className = "btn-toolbar p-1 border-0";
+        profilesContainer.append(profilesToolbar);
+
+        const profileButtons = document.createElement("div");
+        profileButtons.className = "btn-group";
+        profilesToolbar.append(profileButtons);
+
+        this.profiles.forEach((p, i) => {
+            const profileButton = document.createElement("div");
+            profileButton.className = "btn btn-profile border-0";
+            profileButton.innerHTML = "<span>" +
+                    "<img src=\"" + p.config.image + "\" />" +
+                    "</span>" +
+                "<span>" +
+                        p.config.description +
+                    "</span>";
+            profileButton.addEventListener("click", () => this._selectProfile(i));
+            profileButtons.append(profileButton);
+
+            p.element = profileButton;
+        });
+        this.selectProfile(this.profile);
 
         // const routesContainer = document.createElement("div");
         // routesContainer.className = "routes-container"
@@ -42,11 +77,13 @@ export class UI {
         // element.append(routesContainer);
     }
 
-    on(event: "search" | "remove", handler: (idx: number) => void): void {
+    on(event: "search" | "remove" | "profile", handler: (idx: number) => void): void {
         if (event == "search") {
-            this.search = handler;
+            this.searchEvent = handler;
+        } else if (event == "remove") {
+            this.removeEvent = handler;
         } else {
-            this.remove = handler;
+            this.profileEvent = handler;
         }
     }
 
@@ -101,9 +138,9 @@ export class UI {
         this.locationsContainer.append(locationContainer);
         
         const i = UI._buildLocationContent(locationContainer, location, this.locationElements.length == 0, () => {
-            this.search(this.locationElements.findIndex(v => v.root == locationContainer));
+            this.searchEvent(this.locationElements.findIndex(v => v.root == locationContainer));
         }, () => {
-            this.remove(this.locationElements.findIndex(v => v.root == locationContainer));
+            this.removeEvent(this.locationElements.findIndex(v => v.root == locationContainer));
         });
         this.locationElements.push({ root: locationContainer, input: i});
     }
@@ -113,9 +150,9 @@ export class UI {
         locationContainer.innerHTML = "";
         
         this.locationElements[idx].input = UI._buildLocationContent(locationContainer, location, idx == 0, () => {
-            this.search(this.locationElements.findIndex(v => v.root == locationContainer));
+            this.searchEvent(this.locationElements.findIndex(v => v.root == locationContainer));
         }, () => {
-            this.remove(this.locationElements.findIndex(v => v.root == locationContainer));
+            this.removeEvent(this.locationElements.findIndex(v => v.root == locationContainer));
         });
     }
 
@@ -143,9 +180,9 @@ export class UI {
         locationContainer.className = "btn-toolbar border-0 pb-1";
         this.locationsContainer.append(locationContainer);
         const i = UI._buildLocationContent(locationContainer, location, idx == 0, () => {
-            this.search(this.locationElements.findIndex(v => v.root == locationContainer));
+            this.searchEvent(this.locationElements.findIndex(v => v.root == locationContainer));
         }, () => {
-            this.remove(this.locationElements.findIndex(v => v.root == locationContainer));
+            this.removeEvent(this.locationElements.findIndex(v => v.root == locationContainer));
         });
         this.locationElements.splice(idx, 0, { root: locationContainer, input: i});
 
@@ -153,6 +190,25 @@ export class UI {
         for (let i = idx + 1; i < this.locationElements.length; i++) {
             this.locationsContainer.append(this.locationElements[i].root);
         }
+    }
+
+    selectProfile(p: number): void {
+        this.profile = p;
+
+        this.profiles.forEach((p, i) => {
+            if (i == this.profile) {
+                p.element.className = "btn btn-profile border-0 active";
+            } else {
+                p.element.className = "btn btn-profile border-0";
+            }
+        });
+    }
+
+    private _selectProfile(i: number) {
+        if (this.profileEvent) {
+            this.profileEvent(i);
+        }
+        this.selectProfile(i);
     }
 
     private static _buildLocationContent(container: HTMLElement, location: UILocation, 

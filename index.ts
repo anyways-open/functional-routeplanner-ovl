@@ -54,7 +54,16 @@ if (urlState.host === "staging") {
 
 const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
 const rc = new RoutingComponent(ra, {
-    geocoder: new GeocodingControl()
+    geocoder: new GeocodingControl(),
+    profiles: [ {
+        id: "bicycle",
+        description: "Functioneel fietsen",
+        image: Icons["bicycle"].svg
+    },{
+        id: "bicycle.client_network",
+        description: "Fietsnetwerken",
+        image: Icons["network"].svg
+    } ]
 });
 
 const osmAttributionControl = new OsmAttributionControl({

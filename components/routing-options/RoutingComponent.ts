@@ -11,14 +11,12 @@ import { RoutingLocation } from "./RoutingLocation";
 import { StateEvent } from "./events/StateEvent";
 import { UI } from "./UI";
 import { GeocodingControl } from "../geocoder/GeocoderControl";
+import { ProfileConfig } from "./ProfileConfig";
 
 export type EventBase = LocationEvent | ProfilesEvent | RouteEvent | StateEvent
 
 export class RoutingComponent implements IControl {
     readonly api: RoutingApi;
-    readonly options: {
-        defaultUI: boolean
-    };
     readonly routes: unknown[] = [];
     readonly locations: RoutingLocation[] = [
         new RoutingLocation(-2, false),
@@ -27,22 +25,19 @@ export class RoutingComponent implements IControl {
     readonly geocoder: GeocodingControl;
 
     private ui: UI;
-    private profiles: Profile[] = [];
-    private profile?: Profile;
+    private profiles: { config: ProfileConfig, backend?: Profile }[] = [];
+    private profile = 0;
     private map: Map;
     private snapPoint?: NearestPointOnLine;
     private markerId = 0;
 
     constructor(api: RoutingApi, options?: {
-        defaultUI?: boolean,
-        geocoder: GeocodingControl
+        geocoder: GeocodingControl,
+        profiles: ProfileConfig[]
     }) {
         this.api = api;
-        this.options = {
-            defaultUI: options?.defaultUI ?? true,
-        };
-
         this.geocoder = options?.geocoder;
+        this.profiles = options?.profiles.map(p => { return { config: p, backend: null as Profile } });
     }
 
     /**
@@ -67,10 +62,11 @@ export class RoutingComponent implements IControl {
         // create ui.
         const element = document.createElement("div");
         element.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
-        this.ui = new UI(element);
+        this.ui = new UI(element, { profiles: this.profiles.map(p => p.config), profile: this.profile });
         this.ui.build();
         this.ui.on("search", (idx) => this._geocoder_search(idx));
         this.ui.on("remove", (idx) => this._geocoder_remove(idx));
+        this.ui.on("profile", (p) => this._selectProfile(p));
 
         // always add 2 locations to start.
         this.ui.addLocation({
@@ -128,7 +124,8 @@ export class RoutingComponent implements IControl {
         const locs = state.split(",");
 
         // get profile.
-        this.profile = this._getProfileFor(locs[0]);
+        this.profile = this.profiles.findIndex(p => p.config.id == locs[0]);
+        this.ui.selectProfile(this.profile);
 
         // reset routes and recalculate.
         for (let i = 0; i < this.routes.length; i++) {
@@ -177,8 +174,24 @@ export class RoutingComponent implements IControl {
         this._calculateRoute();
     }
 
+    private _selectProfile(p: number): void {
+        // get profile.
+        this.profile = p;
+
+        // reset routes and recalculate.
+        for (let i = 0; i < this.routes.length; i++) {
+            this.routes[i] = null;
+        }
+
+        this.events.trigger("state", {
+            state: this._getState()
+        });
+
+        this._calculateRoute();
+    }
+
     private _getState(): string {
-        let s = `${escape(this.profile.id)}`;
+        let s = `${escape(this.profiles[this.profile].config.id)}`;
         this.locations.forEach(l => {
             if (s.length > 0) {
                 s += ",";
@@ -213,7 +226,7 @@ export class RoutingComponent implements IControl {
      */
     setProfile(id: string): void {
         // get profile.
-        this.profile = this._getProfileFor(id);
+        this.profile = this.profiles.findIndex(p => p.config.id === id);
 
         // reset routes and recalculate.
         for (let i = 0; i < this.routes.length; i++) {
@@ -238,7 +251,7 @@ export class RoutingComponent implements IControl {
      * @param id The profile id.
      */
     hasProfile(id: string): boolean {
-        const profile = this.profiles.find(x => x.id == id);
+        const profile = this.profiles.find(x => x.config.id == id);
         if (typeof (profile) === "undefined") {
             return false;
         }
@@ -290,7 +303,7 @@ export class RoutingComponent implements IControl {
 
                 isCloseOrEmpty = dist < 0.001;
             }
-            
+
             // if location is close to start location, replace it.
             if (loc0.isUserLocation || isCloseOrEmpty) {
                 if (loc0.isMarker()) loc0.getMarker().remove();
@@ -314,7 +327,7 @@ export class RoutingComponent implements IControl {
     addLocation(l: mapboxgl.LngLatLike, name?: string): void {
         // add location or overwrite first empty.
         let index = -1;
-        for (let i = 0; i < this.locations.length;i++) {
+        for (let i = 0; i < this.locations.length; i++) {
             const l = this.locations[i];
             if (!l || l.isEmpty()) {
                 index = i;
@@ -526,18 +539,9 @@ export class RoutingComponent implements IControl {
         })
     }
 
-    private _getProfileFor(id: string): Profile {
-        const profile = this.profiles.find(x => x.id == id);
-        if (typeof (profile) === "undefined") {
-            throw Error(`Profile not in the profiles list: ${id}`);
-        }
-
-        return profile;
-    }
-
     private _calculateRoute(): void {
         if (this.locations.length <= 1) return;
-        if (!this.profile) return;
+        if (this.profile < 0) return;
 
         const locations: { lng: number, lat: number }[] = [];
         this.locations.forEach(l => {
@@ -561,7 +565,7 @@ export class RoutingComponent implements IControl {
 
             this.api.getRoute({
                 locations: [locations[i], locations[i + 1]],
-                profile: this.profile.id
+                profile: this.profiles[this.profile].config.id
             }, e => {
                 this.routes[i] = e;
                 this._updateRoutesLayer();
@@ -631,13 +635,15 @@ export class RoutingComponent implements IControl {
     private _mapLoad(): void {
         // trigger load profiles
         this.api.getProfiles(profiles => {
-            this.profiles = profiles;
+
+            this.profiles = this.profiles.map(p => {
+                p.backend = profiles.find(x => x.id == p.config.id);
+                return p;
+            });
 
             this.events.trigger("profiles-loaded", {
                 profiles: profiles
             });
-
-            if (this.options.defaultUI) this._createDefaultUI();
         });
 
         // get lowest label and road.
@@ -930,65 +936,6 @@ export class RoutingComponent implements IControl {
         this._dragging = false;
         this.map.dragPan.enable();
         return;
-    }
-
-    private _createDefaultUI() {
-
-        // add profiles as options.
-        let select = document.getElementById("profiles") as HTMLSelectElement;
-        if (select) {
-            for (const p in this.profiles) {
-                const profile = this.profiles[p];
-                const option = document.createElement("option");
-
-                let profileName = profile.type;
-                if (profile.name) {
-                    profileName = profile.id;
-                }
-
-                option.value = profileName
-                option.innerHTML = profileName;
-                select.appendChild(option);
-            }
-
-            // set the first profile as the default or select the one that is there.
-            if (this.profile) {
-                select.value = this.profile.id;
-            } else {
-                this.profile = this.profiles[0];
-
-                this.events.trigger("profile", {
-                    component: this,
-                    profiles: [this.profile]
-                });
-                this.events.trigger("state", {
-                    state: this._getState()
-                })
-            }
-
-            // hook up the change event
-            select.addEventListener("change", () => {
-                select = document.getElementById("profiles") as HTMLSelectElement;
-
-                // set profile.
-                this.profile = this._getProfileFor(select.value);
-
-                // reset routes and recalculate.
-                for (let i = 0; i < this.routes.length; i++) {
-                    this.routes[i] = null;
-                }
-                this._calculateRoute();
-
-                // trigger event.
-                this.events.trigger("profile", {
-                    component: this,
-                    profiles: [this.profile]
-                });
-                this.events.trigger("state", {
-                    state: this._getState()
-                })
-            });
-        }
     }
 
     private _geocoder_remove(idx: number): void {
