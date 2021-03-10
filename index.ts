@@ -72,7 +72,8 @@ const geolocationControl = new GeolocateControl({
         enableHighAccuracy: true
     },
     showAccuracyCircle: true,
-    showUserLocation: true
+    showUserLocation: true,
+    trackUserLocation: false
 })
 map.addControl(geolocationControl, "top-right");
 
@@ -84,7 +85,7 @@ geolocationControl.on("geolocate", function(data: { coords: { latitude: any; lon
 });
 
 map.on("load", () => {
-    geolocationControl.trigger();
+    // geolocationControl.trigger();
 
     map.addSource("aiv", {
         "type": "raster",
