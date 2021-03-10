@@ -9,6 +9,8 @@ import { ProfilesEvent } from "./components/routing-options/events/ProfilesEvent
 import "bootstrap";
 import { StateEvent } from "./components/routing-options/events/StateEvent";
 import { GeocodingControl } from "./components/geocoder/GeocoderControl";
+import { BaseLayerControl } from "./components/baselayer-control/BaseLayerControl";
+import BaseLayerImages from "./assets/img/base-layers/*.png";
 
 
 const urlState = UrlHash.read();
@@ -60,17 +62,6 @@ const osmAttributionControl = new OsmAttributionControl({
 });   
 map.addControl(osmAttributionControl);    
 
-const layerControl = new LayerControl([{
-    name: "Node Networks",
-    layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels" ] ,
-    visible: false
-},
-{
-    name: "Cycle Highways",
-    layers: [ "cycle-highways-case", "cycle-highways" ]
-}]);
-// map.addControl(layerControl, "top-right");
-
 const nav = new NavigationControl({
     visualizePitch: true
 });
@@ -96,6 +87,13 @@ geolocationControl.on("geolocate", function(data: { coords: { latitude: any; lon
 map.on("load", () => {
     geolocationControl.trigger();
 
+    map.addSource("aiv", {
+        "type": "raster",
+        "tiles": ["https://tile.informatievlaanderen.be/ws/raadpleegdiensten/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=omwrgbmrvl&STYLE=&FORMAT=image/png&tileMatrixSet=GoogleMapsVL&tileMatrix={z}&tileRow={y}&tileCol={x}"],
+        "tileSize": 256,
+        "attribution": "AIV"
+    });
+    
     function updateMapUrlState() {
         const center = map.getCenter();
         urlState.map = `${map.getZoom().toFixed(2)}/${center.lng.toFixed(5)}/${center.lat.toFixed(5)}`;
@@ -306,3 +304,23 @@ rc.on("profiles-loaded", () => {
 });
 
 map.addControl(rc, "top-left");
+
+const baseLayerControl = new BaseLayerControl({
+    source: "aiv",
+    images: {
+        map: BaseLayerImages["map"],
+        imagery: BaseLayerImages["sattelite"],
+    }
+});
+map.addControl(baseLayerControl, "bottom-left");
+
+// const layerControl = new LayerControl([{
+//     name: "Node Networks",
+//     layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels" ] ,
+//     visible: false
+// },
+// {
+//     name: "Cycle Highways",
+//     layers: [ "cycle-highways-case", "cycle-highways" ]
+// }]);
+// map.addControl(layerControl, "top-left");
