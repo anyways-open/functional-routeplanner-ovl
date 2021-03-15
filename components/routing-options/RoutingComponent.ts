@@ -201,7 +201,7 @@ export class RoutingComponent implements IControl {
         } else {
             for (let r = this.ui.routeCount() - 1; r >= 0; r--) {
                 if (this.route == r) continue;
-                
+
                 this.ui.removeRoute(r);
             }
 
@@ -599,6 +599,12 @@ export class RoutingComponent implements IControl {
         })
     }
 
+    private _updateLocationLocation(i: number, location: { lng: number; lat: number }): void {
+        const loc = this.locations[i];
+        console.log(location);
+        loc.setLngLat(location);
+    }
+
     private _calculateRoute(): void {
         if (this.locations.length <= 1) return;
         if (this.profile < 0) return;
@@ -647,11 +653,14 @@ export class RoutingComponent implements IControl {
         };
 
         const routeDetails: { distance: number, time: number }[] = [];
+        let firstLineString: GeoJSON.LineString = null;
+
         for (let i = 0; i < this.routes.length; i++) {
             if (!this.routes[i]) continue;
 
             const routes = this.routes[i].routes;
 
+            let lastLineString: GeoJSON.LineString = null;
             routes.forEach((route, r) => {
                 const geojson = route as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
 
@@ -665,6 +674,7 @@ export class RoutingComponent implements IControl {
                 if (geojson && geojson.features) {
                     let routeDistance = 0;
                     let routeTime = 0;
+
                     geojson.features.forEach((f) => {
                         if (f && f.properties) {
                             if (f.properties.distance) {
@@ -675,6 +685,16 @@ export class RoutingComponent implements IControl {
                             }
                             f.properties["_route-segment-index"] = i;
                             f.properties["_route-index"] = r;
+
+                            if (r == this.route) {
+                                if (f.geometry.type == "LineString") {
+                                    if (!firstLineString) {
+                                        firstLineString = f.geometry as GeoJSON.LineString;
+                                        console.log(firstLineString);
+                                    }
+                                    lastLineString = f.geometry as GeoJSON.LineString;
+                                }
+                            }
                         }
                     });
                     routeDetail.distance += routeDistance;
@@ -682,8 +702,18 @@ export class RoutingComponent implements IControl {
 
                     routesFeatures.features =
                         routesFeatures.features.concat(geojson.features);
+
+                    if (lastLineString) {
+                        const c = lastLineString.coordinates[lastLineString.coordinates.length - 1];
+                        this._updateLocationLocation(i + 1, { lng: c[0], lat: c[1] });
+                    }
                 }
             });
+        }
+
+        if (firstLineString) {
+            const c = firstLineString.coordinates[0];
+            this._updateLocationLocation(0, { lng: c[0], lat: c[1] });
         }
 
         const source: GeoJSONSource = this.map.getSource("route") as GeoJSONSource;
@@ -695,7 +725,7 @@ export class RoutingComponent implements IControl {
             }
 
             if (this.ui.routeCount() == 1) {
-                this.ui.updateRoute(0, "Snelste route", routeDetails[this.route], true);            
+                this.ui.updateRoute(0, "Snelste route", routeDetails[this.route], true);
             } else {
                 this.ui.addRoute("Snelste route", routeDetails[this.route], true);
             }

@@ -34,4 +34,10 @@ export class RoutingLocation {
 
         return this.location;
     }
+
+    public setLngLat(location: { lng: number; lat: number}): void {
+        if (this.marker) {
+            this.marker.setLngLat(location);
+        }
+    }
 }
