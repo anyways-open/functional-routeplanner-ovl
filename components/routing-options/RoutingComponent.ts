@@ -601,7 +601,6 @@ export class RoutingComponent implements IControl {
 
     private _updateLocationLocation(i: number, location: { lng: number; lat: number }): void {
         const loc = this.locations[i];
-        console.log(location);
         loc.setLngLat(location);
     }
 
@@ -690,7 +689,6 @@ export class RoutingComponent implements IControl {
                                 if (f.geometry.type == "LineString") {
                                     if (!firstLineString) {
                                         firstLineString = f.geometry as GeoJSON.LineString;
-                                        console.log(firstLineString);
                                     }
                                     lastLineString = f.geometry as GeoJSON.LineString;
                                 }

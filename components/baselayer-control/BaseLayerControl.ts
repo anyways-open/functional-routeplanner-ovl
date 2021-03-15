@@ -6,6 +6,8 @@ export class BaseLayerControl implements IControl {
     readonly _imageryImage: string;
     readonly _mapImage: string;
 
+    private toggleEvent: (on: boolean) => void;
+
     _map: Map;
     _element: HTMLElement;
     _navElement: HTMLElement;
@@ -28,6 +30,12 @@ export class BaseLayerControl implements IControl {
         this._imagerySourceName = options.source;
         this._imageryImage = options.images.imagery;
         this._mapImage = options.images.map;
+    }
+
+    on(event: "toggle", handler: (on: boolean) => void): void {
+        if (event == "toggle") {
+            this.toggleEvent = handler;
+        }
     }
 
     onAdd(map: mapboxgl.Map): HTMLElement {
@@ -75,6 +83,8 @@ export class BaseLayerControl implements IControl {
     activateImagery(): void {
         // make fills visible.
         this.setFillVisibility(false);
+        this.setRoadColor(false);
+        this.setLabels(false);
 
         // show imagery.
         if (this._imageryLayer != null) {
@@ -85,6 +95,8 @@ export class BaseLayerControl implements IControl {
         if (this._backgroundLayer != null) {
             this._map.setLayoutProperty(this._backgroundLayer.id, "visibility", "none");
         }
+
+        if (this.toggleEvent) this.toggleEvent(true);
 
         // hide/show buttons.
         this._imageryElement.classList.value = "";
@@ -97,6 +109,8 @@ export class BaseLayerControl implements IControl {
     deActivateImagery(): void {
         // make fills visible.
         this.setFillVisibility(true);
+        this.setRoadColor(true);
+        this.setLabels(true);
 
         // show background.
         if (this._backgroundLayer != null) {
@@ -107,6 +121,8 @@ export class BaseLayerControl implements IControl {
         if (this._imageryLayer != null) {
             this._map.setLayoutProperty(this._imageryLayer.id, "visibility", "none");
         }
+
+        if (this.toggleEvent) this.toggleEvent(false);
 
         // hide/show buttons.
         this._mapElement.classList.value = "";
@@ -124,6 +140,44 @@ export class BaseLayerControl implements IControl {
         this.deActivateImagery();
     }
 
+    private setLabels(visible: boolean): void {
+        const style = this._map.getStyle();
+        for (let l = 0; l < style.layers.length; l++) {
+            const layer = style.layers[l];
+            if (layer.type === "symbol" &&
+                (layer["source-layer"] === "transportation_name" || 
+                 layer["source-layer"] === "place")) {
+                if (!layer.layout) {
+                    layer.layout = {};
+                }
+                if (visible) {
+                    this._map.setPaintProperty(layer.id, "text-color", "#000");
+                    this._map.setPaintProperty(layer.id, "text-halo-color", "hsl(0, 0%, 100%)");
+                } else {
+                    this._map.setPaintProperty(layer.id, "text-color", "#fff");
+                    this._map.setPaintProperty(layer.id, "text-halo-color", "#000");
+                }
+            }
+        }
+    }
+
+    private setRoadColor(visible: boolean): void {
+        const style = this._map.getStyle();
+        for (let l = 0; l < style.layers.length; l++) {
+            const layer = style.layers[l];
+            if (layer.type === "line" &&
+                layer["source-layer"] === "transportation") {
+                if (!layer.layout) {
+                    layer.layout = {};
+                }
+                if (visible) {
+                    this._map.setPaintProperty(layer.id, "line-color", "#fff");
+                } else {
+                    this._map.setPaintProperty(layer.id, "line-color", "#000");
+                }
+            }
+        }
+    }
 
     private setFillVisibility(visible: boolean): void {
         const style = this._map.getStyle();

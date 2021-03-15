@@ -94,6 +94,15 @@ geolocationControl.on("geolocate", function(data: { coords: { latitude: any; lon
     });
 });
 
+const baseLayerControl = new BaseLayerControl({
+    source: "aiv",
+    images: {
+        map: BaseLayerImages["map"],
+        imagery: BaseLayerImages["sattelite"],
+    }
+});
+map.addControl(baseLayerControl, "bottom-right");
+
 map.on("load", () => {
     // geolocationControl.trigger();
 
@@ -186,7 +195,7 @@ map.on("load", () => {
         ]
     }, lowestLabel);
 
-    map.addLayer({
+    const caseLayer = map.addLayer({
         "id": "cycle-highways-case",
         "type": "line",
         "source": "cyclenetworks-tiles",
@@ -294,6 +303,16 @@ map.on("load", () => {
             "text-halo-blur": 0
         }
     });
+
+    baseLayerControl.on("toggle", (on) => {
+        //if (map.getLayer("cycle-highways-case")) return;
+
+        if (on) {
+            map.setPaintProperty("cycle-highways-case", "line-color", "#000");
+        } else {
+            map.setPaintProperty("cycle-highways-case", "line-color", "#fff");
+        }
+    });
 });
 
 rc.on("state", (e: EventBase) => {
@@ -314,15 +333,6 @@ rc.on("profiles-loaded", () => {
 });
 
 map.addControl(rc, "top-left");
-
-const baseLayerControl = new BaseLayerControl({
-    source: "aiv",
-    images: {
-        map: BaseLayerImages["map"],
-        imagery: BaseLayerImages["sattelite"],
-    }
-});
-map.addControl(baseLayerControl, "bottom-right");
 
 const layerControl = new LayerControl([{
     name: "Node Networks",
