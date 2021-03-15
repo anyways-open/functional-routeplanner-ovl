@@ -154,6 +154,15 @@
     background-color: #1da1f2;
 }
 
+.route-detail {
+    border-left: 4px #fff solid;
+}
+
+.route-detail-selected {
+    /* background-color: #9fd7f9; */
+    border-left: 4px #1da1f2 solid;
+}
+
 .route-detail.active {
     border-left: 4px #1da1f2 solid;
 }

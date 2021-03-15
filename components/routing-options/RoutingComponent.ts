@@ -17,7 +17,7 @@ export type EventBase = LocationEvent | ProfilesEvent | RouteEvent | StateEvent
 
 export class RoutingComponent implements IControl {
     readonly api: RoutingApi;
-    readonly routes: unknown[] = [];
+    readonly routes: { routes: unknown[] }[] = [];
     readonly locations: RoutingLocation[] = [
         new RoutingLocation(-2, false),
         new RoutingLocation(-1, false)];
@@ -30,6 +30,7 @@ export class RoutingComponent implements IControl {
     private map: Map;
     private snapPoint?: NearestPointOnLine;
     private markerId = 0;
+    private route = 0;
 
     constructor(api: RoutingApi, options?: {
         geocoder: GeocodingControl,
@@ -67,6 +68,7 @@ export class RoutingComponent implements IControl {
         this.ui.on("search", (idx) => this._geocoder_search(idx));
         this.ui.on("remove", (idx) => this._geocoder_remove(idx));
         this.ui.on("profile", (p) => this._selectProfile(p));
+        this.ui.on("route", (r) => this._activateRoute(r));
 
         // always add 2 locations to start.
         this.ui.addLocation({
@@ -171,6 +173,7 @@ export class RoutingComponent implements IControl {
                 this.ui.addLocation({ type: type, value: name });
             }
         }
+        this._hideShowAlternate(this.locations.length <= 2);
         this._calculateRoute();
     }
 
@@ -188,6 +191,60 @@ export class RoutingComponent implements IControl {
         });
 
         this._calculateRoute();
+    }
+
+    private _hideShowAlternate(visbility: boolean) {
+
+        if (visbility) {
+            this.map.setLayoutProperty("route-case-alternate", "visibility", "visible");
+            this.map.setLayoutProperty("route-alternate", "visibility", "visible");
+        } else {
+            for (let r = this.ui.routeCount() - 1; r >= 0; r--) {
+                if (this.route == r) continue;
+                
+                this.ui.removeRoute(r);
+            }
+
+            this.map.setLayoutProperty("route-case-alternate", "visibility", "none");
+            this.map.setLayoutProperty("route-alternate", "visibility", "none");
+        }
+    }
+
+    private _activateRoute(r: number): void {
+        this.route = r;
+
+        this.map.setFilter("route-alternate", [
+            "all",
+            [
+                "!=",
+                "_route-index",
+                r
+            ]
+        ]);
+        this.map.setFilter("route-case-alternate", [
+            "all",
+            [
+                "!=",
+                "_route-index",
+                r
+            ]
+        ]);
+        this.map.setFilter("route", [
+            "all",
+            [
+                "==",
+                "_route-index",
+                r
+            ]
+        ]);
+        this.map.setFilter("route-case", [
+            "all",
+            [
+                "==",
+                "_route-index",
+                r
+            ]
+        ]);
     }
 
     private _getState(): string {
@@ -386,12 +443,13 @@ export class RoutingComponent implements IControl {
         });
         this.events.trigger("state", {
             state: this._getState()
-        })
+        });
 
         // calculate if locations.
         if (this.locations.length > 1) {
             this._calculateRoute();
         }
+        this._hideShowAlternate(this.locations.length <= 2);
     }
 
     private _updateLocationName(idx: number, name: string): void {
@@ -447,6 +505,7 @@ export class RoutingComponent implements IControl {
         if (this.locations.length > 1) {
             this._calculateRoute();
         }
+        this._hideShowAlternate(this.locations.length <= 2);
     }
 
     /**
@@ -527,6 +586,7 @@ export class RoutingComponent implements IControl {
 
         // recalculate routes.
         this._calculateRoute();
+        this._hideShowAlternate(this.locations.length <= 2);
 
         // report on removed location.
         this.events.trigger("location-removed", {
@@ -563,17 +623,18 @@ export class RoutingComponent implements IControl {
             if (!locations[i]) continue;
             if (!locations[i + 1]) continue;
 
-            this.api.getRoute({
+            const profile = this.profiles[this.profile].config.id;
+            this.api.getRoutes({
                 locations: [locations[i], locations[i + 1]],
-                profile: this.profiles[this.profile].config.id
+                profiles: [profile, "bicycle.node_network"]
             }, e => {
-                this.routes[i] = e;
+                this.routes[i] = { routes: [e[profile], e["bicycle.node_network"]] };
                 this._updateRoutesLayer();
 
                 this.events.trigger("route", {
                     component: this,
                     index: i,
-                    route: e
+                    route: this.routes[i]
                 });
             });
         }
@@ -585,50 +646,71 @@ export class RoutingComponent implements IControl {
             features: []
         };
 
-        let totalDistance = 0;
-        let totalTime = 0;
+        const routeDetails: { distance: number, time: number }[] = [];
         for (let i = 0; i < this.routes.length; i++) {
-            const r = this.routes[i] as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
+            if (!this.routes[i]) continue;
 
-            if (r && r.features) {
-                let routeDistance = 0;
-                let routeTime = 0;
-                r.features.forEach((f) => {
-                    if (f && f.properties) {
-                        if (f.properties.distance) {
-                            routeDistance = parseFloat(f.properties.distance);
-                        }
-                        if (f.properties.time) {
-                            routeTime = parseFloat(f.properties.time);
-                        }
-                        f.properties["_route-index"] = i;
-                    }
-                });
-                totalDistance += routeDistance;
-                totalTime += routeTime;
+            const routes = this.routes[i].routes;
 
-                routesFeatures.features =
-                    routesFeatures.features.concat(r.features);
-            }
+            routes.forEach((route, r) => {
+                const geojson = route as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
+
+                let routeDetail = { distance: 0, time: 0 };
+                if (r < routeDetails.length) {
+                    routeDetail = routeDetails[r];
+                } else {
+                    routeDetails.push(routeDetail);
+                }
+
+                if (geojson && geojson.features) {
+                    let routeDistance = 0;
+                    let routeTime = 0;
+                    geojson.features.forEach((f) => {
+                        if (f && f.properties) {
+                            if (f.properties.distance) {
+                                routeDistance = parseFloat(f.properties.distance);
+                            }
+                            if (f.properties.time) {
+                                routeTime = parseFloat(f.properties.time);
+                            }
+                            f.properties["_route-segment-index"] = i;
+                            f.properties["_route-index"] = r;
+                        }
+                    });
+                    routeDetail.distance += routeDistance;
+                    routeDetail.time += routeTime;
+
+                    routesFeatures.features =
+                        routesFeatures.features.concat(geojson.features);
+                }
+            });
         }
 
         const source: GeoJSONSource = this.map.getSource("route") as GeoJSONSource;
         source.setData(routesFeatures);
 
-        if (totalDistance == 0 && this.ui.routeCount() > 0) {
-            this.ui.removeRoute(0);
-        } else if (totalDistance > 0) {
-            if (this.ui.routeCount() == 0) {
-                this.ui.addRoute("Snelste route", {
-                    distance: totalDistance,
-                    time: totalTime
-                });
-            } else {
-                this.ui.updateRoute(0, "Snelste route", {
-                    distance: totalDistance,
-                    time: totalTime
-                });
+        if (this.locations.length > 2) {
+            while (1 < this.ui.routeCount()) {
+                this.ui.removeRoute(0);
             }
+
+            if (this.ui.routeCount() == 1) {
+                this.ui.updateRoute(0, "Snelste route", routeDetails[this.route], true);            
+            } else {
+                this.ui.addRoute("Snelste route", routeDetails[this.route], true);
+            }
+        } else {
+            while (routeDetails.length < this.ui.routeCount()) {
+                this.ui.removeRoute(0);
+            }
+
+            routeDetails.forEach((routeDetail, r) => {
+                if (r < this.ui.routeCount()) {
+                    this.ui.updateRoute(r, "Snelste route", routeDetail, r == this.route);
+                } else {
+                    this.ui.addRoute("Snelste route", routeDetail, r == this.route);
+                }
+            });
         }
     }
 
@@ -695,7 +777,58 @@ export class RoutingComponent implements IControl {
                 "line-color": "#fff",
                 "line-gap-width": 5,
                 "line-width": 2
-            }
+            },
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "_route-index",
+                    0
+                ]
+            ]
+        }, lowestLabel);
+        this.map.addLayer({
+            "id": "route-case-alternate",
+            "type": "line",
+            "source": "route",
+            "layout": {
+                "line-join": "round",
+                "line-cap": "round"
+            },
+            "paint": {
+                "line-color": "#fff",
+                "line-gap-width": 5,
+                "line-width": 2
+            },
+            "filter": [
+                "all",
+                [
+                    "!=",
+                    "_route-index",
+                    0
+                ]
+            ]
+        }, lowestLabel);
+        this.map.addLayer({
+            "id": "route-alternate",
+            "type": "line",
+            "source": "route",
+            "layout": {
+                "line-join": "round",
+                "line-cap": "round"
+            },
+            "paint": {
+                "line-color": "#94b8b8",
+                "line-width": 5
+            },
+            "filter": [
+                "all",
+                [
+                    "!=",
+                    "_route-index",
+                    0
+                ]
+            ]
         }, lowestLabel);
         this.map.addLayer({
             "id": "route",
@@ -708,7 +841,15 @@ export class RoutingComponent implements IControl {
             "paint": {
                 "line-color": routeColor,
                 "line-width": 5
-            }
+            },
+            "filter": [
+                "all",
+                [
+                    "==",
+                    "_route-index",
+                    0
+                ]
+            ]
         }, lowestLabel);
 
         this.map.addSource("route-snap", {

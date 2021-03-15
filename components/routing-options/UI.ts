@@ -14,6 +14,7 @@ export class UI {
     private searchEvent: (idx: number) => void;
     private removeEvent: (idx: number) => void;
     private profileEvent: (profile: number) => void;
+    private routeEvent: (profile: number) => void;
 
     private profiles: { config: ProfileConfig, element?: HTMLElement }[] = [];
     private profile = 0;
@@ -77,11 +78,13 @@ export class UI {
         // element.append(routesContainer);
     }
 
-    on(event: "search" | "remove" | "profile", handler: (idx: number) => void): void {
+    on(event: "search" | "remove" | "profile" | "route", handler: (idx: number) => void): void {
         if (event == "search") {
             this.searchEvent = handler;
         } else if (event == "remove") {
             this.removeEvent = handler;
+        } else if (event == "route") {
+            this.routeEvent = handler;
         } else {
             this.profileEvent = handler;
         }
@@ -95,7 +98,7 @@ export class UI {
         return this.routeElements.length;
     }
 
-    addRoute(description: string, stats: { distance: number, time: number }): void {
+    addRoute(description: string, stats: { distance: number, time: number }, selected: boolean): void {
         if (!this.routeDetailsElement) {
             const routeDetailsElement = document.createElement("div");
             routeDetailsElement.className = "container";
@@ -104,24 +107,25 @@ export class UI {
         }
 
         const routeDetail = document.createElement("div");
-        routeDetail.className = "route-detail row my-1";
         this.routeDetailsElement.append(routeDetail);
+        const i = this.routeElements.length;
         this.routeElements.push(routeDetail);
+        routeDetail.addEventListener("click", () => this._selectRoute(i));
 
-        this._buildRouteDetailContent(routeDetail, description, stats);
+        this._buildRouteDetailContent(routeDetail, description, stats, selected);
     }
 
-    updateRoute(idx: number, description: string, stats: { distance: number, time: number }): void {
+    updateRoute(idx: number, description: string, stats: { distance: number, time: number }, selected: boolean): void {
         const routeDetail = this.routeElements[idx];
         routeDetail.innerHTML = "";
 
-        this._buildRouteDetailContent(routeDetail, description, stats);
+        this._buildRouteDetailContent(routeDetail, description, stats, selected);
     }
 
     removeRoute(idx: number): void {
         const routeDetail = this.routeElements[idx];
-        routeDetail.remove();
         routeDetail.innerHTML = "";
+        routeDetail.remove();
 
         // remove locations.
         this.routeElements.splice(idx, 1);
@@ -130,6 +134,16 @@ export class UI {
             this.routeDetailsElement.remove();
             this.routeDetailsElement = undefined;
         }
+    }
+
+    selectRoute(idx: number): void {
+        this.routeElements.forEach((re, i) => {
+            if (i === idx) {
+                this._routeDetailContentSelect(re, true);
+            } else {
+                this._routeDetailContentSelect(re, false);
+            }
+        })
     }
 
     addLocation(location: UILocation): void {
@@ -204,6 +218,14 @@ export class UI {
         });
     }
 
+    private _selectRoute(i: number) {
+        if (this.routeEvent) {
+            this.routeEvent(i);
+        }
+
+        this.selectRoute(i);
+    }
+
     private _selectProfile(i: number) {
         if (this.profileEvent) {
             this.profileEvent(i);
@@ -268,7 +290,19 @@ export class UI {
         return input;
     }
 
-    private _buildRouteDetailContent(container: HTMLElement, description: string, stats: { distance: number, time: number }) {
+    private _routeDetailContentSelect(container: HTMLElement, selected: boolean): void {
+        if (selected) {
+            container.className = "route-detail route-detail-selected row my-1";
+        } else {
+            container.className = "route-detail row my-1";
+        }
+    }
+
+    private _buildRouteDetailContent(container: HTMLElement, description: string, stats: { distance: number, time: number }, 
+        selected: boolean) {
+
+        this._routeDetailContentSelect(container, selected);
+
         const descriptionElement = document.createElement("div");
         descriptionElement.className = "col-6 py-3";
         descriptionElement.innerHTML = description;
