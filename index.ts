@@ -202,8 +202,7 @@ map.on("load", () => {
         "source-layer": "cyclenetwork",
         "layout": {
             "line-join": "round",
-            "line-cap": "round",
-            "visibility": "none"
+            "line-cap": "round"
         },
         "paint": {
             "line-color": "#fff",
@@ -265,8 +264,7 @@ map.on("load", () => {
         "source-layer": "cyclenetwork",
         "layout": {
             "line-join": "round",
-            "line-cap": "round",
-            "visibility": "none"
+            "line-cap": "round"
         },
         "paint": {
             "line-color": nodesColor,
@@ -293,9 +291,6 @@ map.on("load", () => {
         "source": "cyclenetworks-tiles",
         "source-layer": "cyclenodes",
         "minzoom": 12.5,
-        "layout": {
-            "visibility": "none"
-        },
         "paint": {
             "circle-stroke-width": 2,
             "circle-stroke-color": nodesColor,
@@ -319,9 +314,6 @@ map.on("load", () => {
         "source": "cyclenetworks-tiles",
         "source-layer": "cyclenodes",
         "minzoom": 12.5,
-        "layout": {
-            "visibility": "none"
-        },
         "paint": {
             "circle-radius": 10,
             "circle-color": "#fff"
@@ -343,7 +335,6 @@ map.on("load", () => {
         "source-layer": "cyclenodes",
         "minzoom": 12.5,
         "layout": {
-            "visibility": "none",
             "text-field": "{rcn_ref}",
             "text-size": 13
         },
@@ -406,7 +397,7 @@ const layerControl = new LayerControl([{
             "Fietsknoopunten Gent" +
         "</span>";
     },
-    visible: false
+    visible: true
 },
 {
     name: "Cycle Highways",
