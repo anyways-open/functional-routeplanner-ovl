@@ -155,7 +155,7 @@ export class BaseLayerControl implements IControl {
                     this._map.setPaintProperty(layer.id, "text-halo-color", "hsl(0, 0%, 100%)");
                 } else {
                     this._map.setPaintProperty(layer.id, "text-color", "#fff");
-                    this._map.setPaintProperty(layer.id, "text-halo-color", "#000");
+                    this._map.setPaintProperty(layer.id, "text-halo-color", "rgba(0,0,0,0.4)");
                 }
             }
         }

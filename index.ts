@@ -159,43 +159,7 @@ map.on("load", () => {
         url: "https://api.anyways.eu/tiles/cyclenetworks/mvt.json"
     });
 
-    const nodesColor = "#9999ff";
-
     map.addLayer({
-        "id": "cycle-node-network",
-        "type": "line",
-        "source": "cyclenetworks-tiles",
-        "source-layer": "cyclenetwork",
-        "layout": {
-            "line-join": "round",
-            "line-cap": "round",
-            "visibility": "none"
-        },
-        "paint": {
-            "line-color": nodesColor,
-            "line-width": [
-                "interpolate", ["linear"], ["zoom"],
-                10, 2,
-                13, 4,
-                16, 10
-            ],
-            "line-opacity":[
-                "interpolate", ["linear"], ["zoom"],
-                12, 1,
-                13, 0.4
-            ]
-        },
-        "filter": [
-            "all",
-            [
-                "==",
-                "cycle_network",
-                "srfn_gent"
-            ]
-        ]
-    }, lowestLabel);
-
-    const caseLayer = map.addLayer({
         "id": "cycle-highways-case",
         "type": "line",
         "source": "cyclenetworks-tiles",
@@ -220,6 +184,38 @@ map.on("load", () => {
                 "==",
                 "cycle_network",
                 "cycle_highway"
+            ]
+        ]
+    }, lowestLabel);
+
+    const nodesColor = "#ccad00";
+
+    map.addLayer({
+        "id": "cycle-node-network-case",
+        "type": "line",
+        "source": "cyclenetworks-tiles",
+        "source-layer": "cyclenetwork",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round",
+            "visibility": "none"
+        },
+        "paint": {
+            "line-color": "#fff",
+            "line-gap-width": [
+                "interpolate", ["linear"], ["zoom"],
+                10, 3,
+                12, 3,
+                16, 3
+            ],
+            "line-width": 2
+        },
+        "filter": [
+            "all",
+            [
+                "==",
+                "cycle_network",
+                "srfn_gent"
             ]
         ]
     }, lowestLabel);
@@ -251,13 +247,42 @@ map.on("load", () => {
             ]
         ]
     }, lowestLabel);
+
+    map.addLayer({
+        "id": "cycle-node-network",
+        "type": "line",
+        "source": "cyclenetworks-tiles",
+        "source-layer": "cyclenetwork",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round",
+            "visibility": "none"
+        },
+        "paint": {
+            "line-color": nodesColor,
+            "line-width": [
+                "interpolate", ["linear"], ["zoom"],
+                10, 3,
+                12, 3,
+                16, 3
+            ]
+        },
+        "filter": [
+            "all",
+            [
+                "==",
+                "cycle_network",
+                "srfn_gent"
+            ]
+        ]
+    }, lowestLabel);
     
     map.addLayer({
         "id": "cyclenodes-circles",
         "type": "circle",
         "source": "cyclenetworks-tiles",
         "source-layer": "cyclenodes",
-        "minzoom": 11,
+        "minzoom": 12.5,
         "layout": {
             "visibility": "none"
         },
@@ -267,7 +292,15 @@ map.on("load", () => {
             "circle-radius": 10,
             "circle-color": "#000000",
             "circle-opacity": 0
-        }
+        },
+        "filter": [
+            "all",
+            [
+                "==",
+                "cycle_network",
+                "srfn_gent"
+            ]
+        ]
     });
 
     map.addLayer({
@@ -275,14 +308,22 @@ map.on("load", () => {
         "type": "circle",
         "source": "cyclenetworks-tiles",
         "source-layer": "cyclenodes",
-        "minzoom": 11,
+        "minzoom": 12.5,
         "layout": {
             "visibility": "none"
         },
         "paint": {
             "circle-radius": 10,
-            "circle-color": "#FFFFFF"
-        }
+            "circle-color": "#fff"
+        },
+        "filter": [
+            "all",
+            [
+                "==",
+                "cycle_network",
+                "srfn_gent"
+            ]
+        ]
     });
 
     map.addLayer({
@@ -290,7 +331,7 @@ map.on("load", () => {
         "type": "symbol",
         "source": "cyclenetworks-tiles",
         "source-layer": "cyclenodes",
-        "minzoom": 11,
+        "minzoom": 12.5,
         "layout": {
             "visibility": "none",
             "text-field": "{rcn_ref}",
@@ -298,18 +339,28 @@ map.on("load", () => {
         },
         "paint": {
             "text-color": nodesColor,
-            "text-halo-color": "#FFFFFF",
-            "text-halo-width": 2,
+            "text-halo-color": nodesColor,
+            "text-halo-width": 0.5,
             "text-halo-blur": 0
-        }
+        },
+        "filter": [
+            "all",
+            [
+                "==",
+                "cycle_network",
+                "srfn_gent"
+            ]
+        ]
     });
 
     baseLayerControl.on("toggle", (on) => {
-        //if (map.getLayer("cycle-highways-case")) return;
-
         if (on) {
+            map.setPaintProperty("cycle-node-network-case", "line-color", "#000");
+            map.setPaintProperty("cyclenodes-circles-center", "circle-color", "#000");
             map.setPaintProperty("cycle-highways-case", "line-color", "#000");
         } else {
+            map.setPaintProperty("cycle-node-network-case", "line-color", "#fff");
+            map.setPaintProperty("cyclenodes-circles-center", "circle-color", "#fff");
             map.setPaintProperty("cycle-highways-case", "line-color", "#fff");
         }
     });
@@ -336,7 +387,7 @@ map.addControl(rc, "top-left");
 
 const layerControl = new LayerControl([{
     name: "Node Networks",
-    layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels" ],
+    layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case" ],
     build: (el, c) => {
         el.innerHTML = "<span>" +
         "<img src=\"" + Icons["network"].svg + "\" />" +
