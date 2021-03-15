@@ -184,6 +184,11 @@ map.on("load", () => {
                 "==",
                 "cycle_network",
                 "cycle_highway"
+            ],
+            [
+                "!=",
+                "state",
+                "proposed"
             ]
         ]
     }, lowestLabel);
@@ -244,6 +249,11 @@ map.on("load", () => {
                 "==",
                 "cycle_network",
                 "cycle_highway"
+            ],
+            [
+                "!=",
+                "state",
+                "proposed"
             ]
         ]
     }, lowestLabel);
