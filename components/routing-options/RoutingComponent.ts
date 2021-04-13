@@ -16,8 +16,13 @@ import { ProfileConfig } from "./ProfileConfig";
 export type EventBase = LocationEvent | ProfilesEvent | RouteEvent | StateEvent
 
 export class RoutingComponent implements IControl {
-    readonly api: RoutingApi;
-    readonly routes: { routes: unknown[] }[] = [];
+    readonly api: RoutingApi; 
+    readonly routes: { // an array of routes along all locations.
+        routes: { 
+            route: unknown, // the route or multiple if alternative routes.
+            description: string 
+        }[]
+    }[] = [];
     readonly locations: RoutingLocation[] = [
         new RoutingLocation(-2, false),
         new RoutingLocation(-1, false)];
@@ -633,7 +638,13 @@ export class RoutingComponent implements IControl {
                 locations: [locations[i], locations[i + 1]],
                 profiles: [profile, "bicycle.node_network"]
             }, e => {
-                this.routes[i] = { routes: [e[profile], e["bicycle.node_network"]] };
+                this.routes[i] = { routes:  [{ 
+                        route: e[profile],
+                        description: "Snelste route"
+                    }, {
+                        route: e["bicycle.node_network"],
+                        description: "Alternatieve route"
+                    }]};
                 this._updateRoutesLayer();
 
                 this.events.trigger("route", {
@@ -651,7 +662,8 @@ export class RoutingComponent implements IControl {
             features: []
         };
 
-        const routeDetails: { distance: number, time: number }[] = [];
+        // route details, usually just 1, but there could be an alternative route.
+        const routeDetails: { distance: number, time: number, description: string }[] = [];
         let firstLineString: GeoJSON.LineString = null;
 
         for (let i = 0; i < this.routes.length; i++) {
@@ -661,9 +673,9 @@ export class RoutingComponent implements IControl {
 
             let lastLineString: GeoJSON.LineString = null;
             routes.forEach((route, r) => {
-                const geojson = route as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
+                const geojson = route.route as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
 
-                let routeDetail = { distance: 0, time: 0 };
+                let routeDetail = { distance: 0, time: 0, description: route.description };
                 if (r < routeDetails.length) {
                     routeDetail = routeDetails[r];
                 } else {
@@ -717,15 +729,17 @@ export class RoutingComponent implements IControl {
         const source: GeoJSONSource = this.map.getSource("route") as GeoJSONSource;
         source.setData(routesFeatures);
 
+        console.log(routeDetails);
+
         if (this.locations.length > 2) {
             while (1 < this.ui.routeCount()) {
                 this.ui.removeRoute(0);
             }
 
             if (this.ui.routeCount() == 1) {
-                this.ui.updateRoute(0, "Snelste route", routeDetails[this.route], true);
+                this.ui.updateRoute(0, routeDetails[this.route].description, routeDetails[this.route], true);
             } else {
-                this.ui.addRoute("Snelste route", routeDetails[this.route], true);
+                this.ui.addRoute(routeDetails[this.route].description, routeDetails[this.route], true);
             }
         } else {
             while (routeDetails.length < this.ui.routeCount()) {
@@ -734,9 +748,9 @@ export class RoutingComponent implements IControl {
 
             routeDetails.forEach((routeDetail, r) => {
                 if (r < this.ui.routeCount()) {
-                    this.ui.updateRoute(r, "Snelste route", routeDetail, r == this.route);
+                    this.ui.updateRoute(r, routeDetails[r].description, routeDetail, r == this.route);
                 } else {
-                    this.ui.addRoute("Snelste route", routeDetail, r == this.route);
+                    this.ui.addRoute(routeDetails[r].description, routeDetail, r == this.route);
                 }
             });
         }
