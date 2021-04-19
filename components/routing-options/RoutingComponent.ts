@@ -16,11 +16,11 @@ import { ProfileConfig } from "./ProfileConfig";
 export type EventBase = LocationEvent | ProfilesEvent | RouteEvent | StateEvent
 
 export class RoutingComponent implements IControl {
-    readonly api: RoutingApi; 
+    readonly api: RoutingApi;
     readonly routes: { // an array of routes along all locations.
-        routes: { 
+        routes: {
             route: unknown, // the route or multiple if alternative routes.
-            description: string 
+            description: string
         }[]
     }[] = [];
     readonly locations: RoutingLocation[] = [
@@ -638,13 +638,15 @@ export class RoutingComponent implements IControl {
                 locations: [locations[i], locations[i + 1]],
                 profiles: [profile, "bicycle.node_network"]
             }, e => {
-                this.routes[i] = { routes:  [{ 
+                this.routes[i] = {
+                    routes: [{
                         route: e[profile],
                         description: "Snelste route"
                     }, {
                         route: e["bicycle.node_network"],
                         description: "Alternatieve route"
-                    }]};
+                    }]
+                };
                 this._updateRoutesLayer();
 
                 this.events.trigger("route", {
@@ -1128,5 +1130,34 @@ export class RoutingComponent implements IControl {
 
     private _geocoder_search(idx: number): void {
         console.log("search:" + idx);
+        const searchString = this.ui.getLocationValue(idx);
+        console.log("searched for:" + searchString);
+
+        this.geocoder.geocode(searchString, (result) => {
+            if (result.length == 0) return;
+
+            console.log(result);
+
+            if (idx < this.locations.length) {
+                if ((idx - this.locations.length) > 1) throw Error("Geocoder can only append locations.");
+
+                this.addLocation(result[0].location, searchString);
+            } else {
+                this._updateLocationLocation(idx, result[0].location);
+            }
+
+            // trigger event.
+            this.events.trigger("location", {
+                component: this,
+                id: idx,
+                location: result[0].location
+            });
+            this.events.trigger("state", {
+                state: this._getState()
+            });
+
+            // recalculate routes.
+            this._calculateRoute();
+        });
     }
 }

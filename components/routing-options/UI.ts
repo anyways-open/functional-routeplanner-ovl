@@ -174,6 +174,10 @@ export class UI {
         this.locationElements[idx].input.value = value;
     }
 
+    getLocationValue(idx: number): string {
+        return this.locationElements[idx].input.value;
+    }
+
     removeLocation(idx: number): void {
         const locationContainer = this.locationElements[idx].root;
         locationContainer.remove();
@@ -254,17 +258,30 @@ export class UI {
         const input = document.createElement("input");
         input.type = "text";
         input.className = "form-control border-0";
+        // input.oninput = (e) => {
+        //     console.log("input");
+        //     console.log(e);
+        //     search();
+        // };
+        input.onkeydown = (e) => {
+            if (e.key === "Enter") {
+                search();
+            }
+        };
         if (location.value) input.value = location.value;
         if (location.placeholder) input.placeholder = location.placeholder;
         locationInputGroup.append(input);
 
         const searchButton = document.createElement("button");
         searchButton.type = "button";
-        searchButton.className = "btn btn-light border-0";
+        searchButton.className = "btn btn-light border-0 invisible";
         searchButton.innerHTML = ComponentHtml["searchImg"];
         locationInputGroup.append(searchButton);
-        searchButton.addEventListener("click", () => {
-            search();
+        input.addEventListener("focusin", () => {
+            searchButton.className = "btn btn-light border-0";
+        });
+        input.addEventListener("focusout", () => {
+            searchButton.className = "btn btn-light border-0 invisible";
         });
 
         const closeButton = document.createElement("button");
