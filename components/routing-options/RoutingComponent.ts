@@ -624,6 +624,7 @@ export class RoutingComponent implements IControl {
             locations.push(lngLat);
         });
 
+        const doAlternatives = locations.length == 2;
         for (let i = 0; i < locations.length - 1; i++) {
             // make sure the array has minimum dimensions.
             while (this.routes.length <= i) {
@@ -634,18 +635,26 @@ export class RoutingComponent implements IControl {
             if (!locations[i + 1]) continue;
 
             const profile = this.profiles[this.profile].config.id;
-            this.api.getRoutes({
+            this.api.getRoute({
                 locations: [locations[i], locations[i + 1]],
-                profiles: [profile, "bicycle.node_network"]
+                profile: profile,
+                alternative: doAlternatives
             }, e => {
+                let routes = [ { 
+                    route: e[profile + "0"],
+                    description: "Snelste route" } ];
+
+                for (var a = 1; a <= 3; a++) {
+                    var altnerative = e[profile + `${a}`];
+                    if (altnerative) {
+                        routes.push( { 
+                            route: altnerative,
+                            description: `Altneratief ${a}`
+                        });
+                    }
+                }
                 this.routes[i] = {
-                    routes: [{
-                        route: e[profile],
-                        description: "Snelste route"
-                    }, {
-                        route: e["bicycle.node_network"],
-                        description: "Alternatieve route"
-                    }]
+                    routes: routes
                 };
                 this._updateRoutesLayer();
 
@@ -1125,14 +1134,11 @@ export class RoutingComponent implements IControl {
     }
 
     private _geocoder_remove(idx: number): void {
-        console.log(idx);
         this.removeLocation(idx);
     }
 
     private _geocoder_search(idx: number): void {
-        console.log("search:" + idx);
         const searchString = this.ui.getLocationValue(idx);
-        console.log("searched for:" + searchString);
 
         this.geocoder.geocode(searchString, (result) => {
             if (result.length == 0) return;

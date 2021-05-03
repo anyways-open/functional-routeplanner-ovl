@@ -43,8 +43,8 @@ const map = new Map({
     maxZoom: 18
 });
 
-// let routingEndpoint = "https://staging.anyways.eu/routing-api2/";
-let routingEndpoint = "https://routing.anyways.eu/api/";
+let routingEndpoint = "https://staging.anyways.eu/routing-api2/";
+//let routingEndpoint = "https://routing.anyways.eu/api/";
 if (urlState.host === "staging") {
 	console.log("Using staging server");
 	routingEndpoint = "https://staging.anyways.eu/routing-api/";
