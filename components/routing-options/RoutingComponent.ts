@@ -731,8 +731,6 @@ export class RoutingComponent implements IControl {
         const source: GeoJSONSource = this.map.getSource("route") as GeoJSONSource;
         source.setData(routesFeatures);
 
-        console.log(routeDetails);
-
         if (this.locations.length > 2) {
             while (1 < this.ui.routeCount()) {
                 this.ui.removeRoute(0);
@@ -808,7 +806,10 @@ export class RoutingComponent implements IControl {
                 ]
             }
         });
-        const routeColor = "#1da1f2";
+        const routeColorLight = "#1da1f2";
+        const routeColorDark = "#0d8bd9";
+        const routeColor = routeColorLight;
+        const routeColorCasing = "#000";
         this.map.addLayer({
             "id": "route-case",
             "type": "line",
@@ -818,8 +819,8 @@ export class RoutingComponent implements IControl {
                 "line-cap": "round"
             },
             "paint": {
-                "line-color": "#fff",
-                "line-gap-width": 5,
+                "line-color": routeColorCasing,
+                "line-gap-width": 7,
                 "line-width": 2
             },
             "filter": [
@@ -840,8 +841,8 @@ export class RoutingComponent implements IControl {
                 "line-cap": "round"
             },
             "paint": {
-                "line-color": "#fff",
-                "line-gap-width": 5,
+                "line-color": "#000",
+                "line-gap-width": 7,
                 "line-width": 2
             },
             "filter": [
@@ -863,7 +864,7 @@ export class RoutingComponent implements IControl {
             },
             "paint": {
                 "line-color": "#94b8b8",
-                "line-width": 5
+                "line-width": 7
             },
             "filter": [
                 "all",
@@ -884,7 +885,7 @@ export class RoutingComponent implements IControl {
             },
             "paint": {
                 "line-color": routeColor,
-                "line-width": 5
+                "line-width": 7
             },
             "filter": [
                 "all",
