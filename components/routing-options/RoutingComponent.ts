@@ -638,21 +638,33 @@ export class RoutingComponent implements IControl {
             this.api.getRoute({
                 locations: [locations[i], locations[i + 1]],
                 profile: profile,
-                alternatives: doAlternatives ? 2 : null;
+                alternatives: doAlternatives ? 2 : null
             }, e => {
-                let routes = [ { 
-                    route: e[profile + "0"],
-                    description: "Snelste route" } ];
 
-                for (var a = 1; a <= 3; a++) {
-                    var altnerative = e[profile + `${a}`];
-                    if (altnerative) {
-                        routes.push( { 
-                            route: altnerative,
-                            description: `Altneratief ${a}`
-                        });
+                console.log(`Route result ${i}`);
+                console.log(e);
+
+                let routes = [];
+                if (e[profile + "0"]) {
+                    routes.push({ 
+                        route: e[profile + "0"],
+                        description: "Snelste route" });
+
+                    for (var a = 1; a <= 3; a++) {
+                        var altnerative = e[profile + `${a}`];
+                        if (altnerative) {
+                            routes.push( { 
+                                route: altnerative,
+                                description: `Altneratief ${a}`
+                            });
+                        }
                     }
+                } else {
+                    routes.push({ 
+                        route: e,
+                        description: "Snelste route" });
                 }
+                
                 this.routes[i] = {
                     routes: routes
                 };

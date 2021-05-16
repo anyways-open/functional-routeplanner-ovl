@@ -389,6 +389,7 @@ map.on("load", () => {
         "id": "school-routes",
         "type": "line",
         "source": "school-routes",
+        "minzoom": 13,
         "layout": {
             "line-join": "round",
             "line-cap": "round"
