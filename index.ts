@@ -58,11 +58,11 @@ const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
 const rc = new RoutingComponent(ra, {
     geocoder: new GeocodingControl("OZUCIh4RNx38vXF8gF4H"),
     profiles: [ {
-        id: "bicycle",
+        id: "bicycle.commute",
         description: "Functioneel fietsen",
         image: Icons["bicycle"].svg
     },{
-        id: "bicycle.client_network",
+        id: "bicycle.functional_network",
         description: "Fietsnetwerken",
         image: Icons["network"].svg
     } ]
