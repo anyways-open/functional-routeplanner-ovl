@@ -427,7 +427,8 @@ export class RoutingComponent implements IControl {
         if (this.locations.length > 2) {
             const previousLocation = this.locations[this.locations.length - 2];
             this.ui.updateLocation(this.locations.length - 2, { type: "via", value: previousLocation.name });
-            this._updateMarkerType(previousLocation.getMarker(), "via");
+            previousLocation.updateMarkerType("via");
+            //this._updateMarkerType(previousLocation.getMarker(), "via");
         }
 
         // trigger reverse geocode if needed.
@@ -570,7 +571,8 @@ export class RoutingComponent implements IControl {
             const lastLocation = this.locations[last];
             if (!lastLocation.isEmpty()) {
                 this.ui.updateLocation(last, { type: "end", value: this.locations[last].name, placeholder: "Naar" });
-                this._updateMarkerType(this.locations[last].getMarker(), "end");
+                //this._updateMarkerType(this.locations[last].getMarker(), "end");
+                this.locations[last].updateMarkerType("end");
             }
         }
 
@@ -962,7 +964,7 @@ export class RoutingComponent implements IControl {
         } else {
             element.className = "marker-via";
             element.innerHTML = ComponentHtml["via"];
-            offset = [0, 0]
+            offset = [0, -4]
         }
 
         const marker = new Marker(element, {

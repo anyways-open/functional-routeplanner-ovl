@@ -1,4 +1,5 @@
 import { Marker } from "mapbox-gl";
+import ComponentHtml from "*.html";
 
 export class RoutingLocation {
     readonly id: number;
@@ -23,6 +24,23 @@ export class RoutingLocation {
         if (this.marker) return true;
 
         return false;
+    }
+
+    public updateMarkerType(type: "start" | "via" | "end") {
+        const element = this.marker.getElement();
+
+        console.log(`update to ${type}`);
+
+        element.innerHTML = "";
+        if (type == "end") {
+            element.className = "marker-destination mapboxgl-marker";
+            element.innerHTML = ComponentHtml["marker"];
+            this.marker.setOffset([0, -20]);
+        } else {
+            element.className = "marker-via mapboxgl-marker";
+            element.innerHTML = ComponentHtml["via"];
+            this.marker.setOffset([0, -5]);
+        }
     }
 
     public isEmpty(): boolean {
