@@ -638,7 +638,7 @@ export class RoutingComponent implements IControl {
             this.api.getRoute({
                 locations: [locations[i], locations[i + 1]],
                 profile: profile,
-                alternative: doAlternatives
+                alternatives: doAlternatives ? 2 : null;
             }, e => {
                 let routes = [ { 
                     route: e[profile + "0"],

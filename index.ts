@@ -12,6 +12,7 @@ import { GeocodingControl } from "./components/geocoder/GeocoderControl";
 import { BaseLayerControl } from "./components/baselayer-control/BaseLayerControl";
 import BaseLayerImages from "./assets/img/base-layers/*.png";
 import Icons from "./assets/img/icons/*.*";
+import { Data } from "./data";
 
 
 const urlState = UrlHash.read();
@@ -195,6 +196,7 @@ map.on("load", () => {
     }, lowestLabel);
 
     const nodesColor = "#ccad00";
+    const schoolRoutesColor = "#1da1f2";
 
     map.addLayer({
         "id": "cycle-node-network-case",
@@ -354,6 +356,53 @@ map.on("load", () => {
             ]
         ]
     });
+
+    var data = new Data();
+
+    map.addSource("school-routes", {
+        type: "geojson",
+        data: data.schoolRoutes()
+    });
+
+    // map.addLayer({
+    //     "id": "school-routes-case",
+    //     "type": "line",
+    //     "source": "school-routes",
+    //     "layout": {
+    //         "line-join": "round",
+    //         "line-cap": "round"
+    //     },
+    //     "paint": {
+    //         "line-color": "#fff",
+    //         "line-gap-width": [
+    //             "interpolate", ["linear"], ["zoom"],
+    //             10, 3,
+    //             12, 3,
+    //             16, 3
+    //         ],
+    //         "line-width": 2
+    //     }
+    // }, lowestLabel);
+
+
+    map.addLayer({
+        "id": "school-routes",
+        "type": "line",
+        "source": "school-routes",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "paint": {
+            "line-color": schoolRoutesColor,
+            "line-width": [
+                "interpolate", ["linear"], ["zoom"],
+                10, 6,
+                12, 6,
+                16, 6
+            ]
+        }
+    }, lowestRoad);
 
     baseLayerControl.on("toggle", (on) => {
         if (on) {
