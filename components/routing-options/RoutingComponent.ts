@@ -36,6 +36,7 @@ export class RoutingComponent implements IControl {
     private snapPoint?: NearestPointOnLine;
     private markerId = 0;
     private route = 0;
+    private routeSequence = 0;
 
     constructor(api: RoutingApi, options?: {
         geocoder: GeocodingControl,
@@ -615,6 +616,9 @@ export class RoutingComponent implements IControl {
         if (this.locations.length <= 1) return;
         if (this.profile < 0) return;
 
+        this.routeSequence++;
+        var sequenceNumber = this.routeSequence;
+
         const locations: { lng: number, lat: number }[] = [];
         this.locations.forEach(l => {
             if (l.isEmpty()) {
@@ -645,6 +649,12 @@ export class RoutingComponent implements IControl {
 
                 console.log(`Route result ${i}`);
                 console.log(e);
+
+                console.log(`Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`);
+                if (this.routeSequence != sequenceNumber) {
+                    console.log(`Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`);
+                    return;
+                }
 
                 let routes = [];
                 if (e[profile + "0"]) {
