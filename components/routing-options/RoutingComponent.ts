@@ -37,6 +37,7 @@ export class RoutingComponent implements IControl {
     private markerId = 0;
     private route = 0;
     private routeSequence = 0;
+    private latestSearchResults: { location: number, results: { description: string, location: { lng: number; lat: number } }[] };
 
     constructor(api: RoutingApi, options?: {
         geocoder: GeocodingControl,
@@ -75,6 +76,7 @@ export class RoutingComponent implements IControl {
         this.ui.on("remove", (idx) => this._geocoder_remove(idx));
         this.ui.on("profile", (p) => this._selectProfile(p));
         this.ui.on("route", (r) => this._activateRoute(r));
+        this.ui.on("geocoded", (r) => this._acceptSearchResult(r));
 
         // always add 2 locations to start.
         this.ui.addLocation({
@@ -459,6 +461,75 @@ export class RoutingComponent implements IControl {
         this._hideShowAlternate(this.locations.length <= 2);
     }
 
+    setLocation(i: number, l: mapboxgl.LngLat, name?: string) {
+        // make sure the location exists, or is empty.
+        while (i >= this.locations.length) {
+            this.locations.push(new RoutingLocation(-this.locations.length, false));
+        }
+        const index = i;
+
+        // determine type.
+        let type: "via" | "user" | "end" | "start" = "via";
+        if (index === 0) {
+            type = "start";
+        } else if (index == this.locations.length -1) {
+            type = "end";
+        }
+
+        // add marker for location if it doesn't exist yet.
+        let location = this.locations[index];
+        if (location.isEmpty()) {
+            location = this._createMarkerRoutingLocation(l, type, name);
+            this.locations[index] = location;
+        } else {
+            this._updateLocationLocation(index, l);
+            this._updateLocationName(index, name);
+        }
+
+        // make sure route recalculates.
+        if (index > 0) this.routes[index - 1] = null;
+        this.routes[index] = null;
+
+        // update ui.
+        if (this.ui.count() > index) {
+            this.ui.updateLocation(index, { type: type, value: name });
+        } else {
+            this.ui.addLocation({ type: type, value: name });
+        }
+        if (this.locations.length > 2) {
+            const previousLocation = this.locations[this.locations.length - 2];
+            this.ui.updateLocation(this.locations.length - 2, { type: "via", value: previousLocation.name });
+            previousLocation.updateMarkerType("via");
+            //this._updateMarkerType(previousLocation.getMarker(), "via");
+        }
+
+        // trigger reverse geocode if needed.
+        if (!name) {
+            const lngLat = LngLat.convert(l);
+            this.geocoder.reverseGeocode(lngLat, results => {
+                if (results?.length) {
+                    this._updateLocationName(index, results[0]);
+                }
+            });
+        }
+
+        // report on new location.
+        this.events.trigger("location", {
+            component: this,
+            location: location.getLngLat(),
+            id: location.id
+        });
+        this.events.trigger("state", {
+            state: this._getState()
+        });
+
+        // calculate if locations.
+        if (this.locations.length > 1) {
+            this._calculateRoute();
+        }
+        this._hideShowAlternate(this.locations.length <= 2);
+    }
+
     private _updateLocationName(idx: number, name: string): void {
         this.locations[idx].name = name;
         this.ui.updateLocationName(idx, name);
@@ -658,25 +729,27 @@ export class RoutingComponent implements IControl {
 
                 let routes = [];
                 if (e[profile + "0"]) {
-                    routes.push({ 
+                    routes.push({
                         route: e[profile + "0"],
-                        description: "Snelste route" });
+                        description: "Snelste route"
+                    });
 
                     for (var a = 1; a <= 3; a++) {
                         var altnerative = e[profile + `${a}`];
                         if (altnerative) {
-                            routes.push( { 
+                            routes.push({
                                 route: altnerative,
                                 description: `Alternatief ${a}`
                             });
                         }
                     }
                 } else {
-                    routes.push({ 
+                    routes.push({
                         route: e,
-                        description: "Snelste route" });
+                        description: "Snelste route"
+                    });
                 }
-                
+
                 this.routes[i] = {
                     routes: routes
                 };
@@ -1164,31 +1237,29 @@ export class RoutingComponent implements IControl {
     private _geocoder_search(idx: number): void {
         const searchString = this.ui.getLocationValue(idx);
 
+        if (!searchString || searchString.length == 0) {
+            this.latestSearchResults = { location: idx, results: [] };
+            this.ui.updateSearchResults([], "");
+        }
+
         this.geocoder.geocode(searchString, (result) => {
             if (result.length == 0) return;
 
-            console.log(result);
-
-            if (idx < this.locations.length) {
-                if ((idx - this.locations.length) > 1) throw Error("Geocoder can only append locations.");
-
-                this.addLocation(result[0].location, searchString);
-            } else {
-                this._updateLocationLocation(idx, result[0].location);
-            }
-
-            // trigger event.
-            this.events.trigger("location", {
-                component: this,
-                id: idx,
-                location: result[0].location
-            });
-            this.events.trigger("state", {
-                state: this._getState()
-            });
-
-            // recalculate routes.
-            this._calculateRoute();
+            this.latestSearchResults = { location: idx, results: result };
+            this.ui.updateSearchResults(result, searchString);
         });
+    }
+
+
+    private _acceptSearchResult(idx: number): void {
+        const result = this.latestSearchResults.results[idx];
+        const index = this.latestSearchResults.location;
+
+        console.log("Accepted " + this.latestSearchResults.results[idx].description + " for route " + index);
+        console.log(this.locations);
+        this.setLocation(index, result.location, result.description);
+
+        this.latestSearchResults = { location: idx, results: [] };
+        this.ui.updateSearchResults([], "");
     }
 }

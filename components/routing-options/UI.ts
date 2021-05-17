@@ -12,8 +12,8 @@ export class UI {
     private routeElements: HTMLElement[] = [];
 
     private searchResultsElement: HTMLElement;
-    private searchResultElements: HTMLElement[] = [];
 
+    private geocodedEvent: (idx: number) => void;
     private searchEvent: (idx: number) => void;
     private removeEvent: (idx: number) => void;
     private profileEvent: (profile: number) => void;
@@ -86,12 +86,14 @@ export class UI {
         // searchDetailsContainer.innerHTML = searchDetails;
         // element.append(searchDetailsContainer);
 
-        this.updateSearchResults([ "Zand 25", "Sept 42", "Lange weg 29"], "Zand");
+        //this.updateSearchResults([ "Zand 25", "Sept 42", "Lange weg 29"], "Zand");
 
     }
 
-    on(event: "search" | "remove" | "profile" | "route", handler: (idx: number) => void): void {
-        if (event == "search") {
+    on(event: "geocoded" | "search" | "remove" | "profile" | "route", handler: (idx: number) => void): void {
+        if (event == "geocoded") {
+            this.geocodedEvent = handler;
+        } else if (event == "search") {
             this.searchEvent = handler;
         } else if (event == "remove") {
             this.removeEvent = handler;
@@ -234,7 +236,7 @@ export class UI {
         });
     }
 
-    updateSearchResults(searchResults: string[], searchString: string) {
+    updateSearchResults(searchResults: {description: string, location: { lng: number; lat: number }}[], searchString: string) {
         if (!this.searchResultsElement) {
             const searchResultsElement = document.createElement("div");
             searchResultsElement.className = "container";
@@ -242,8 +244,19 @@ export class UI {
             this.searchResultsElement = searchResultsElement;
         }
 
-        searchResults.forEach((r) => {
-            this._buildSearchResult(this.searchResultsElement, r, searchString);
+        this.searchResultsElement.innerHTML = "";
+
+        if (searchResults.length > 0) {
+            this._hideRoutesDetails();
+        } else {
+            this._showRoutesDetails();
+        }
+
+        searchResults.forEach((r, i) => {
+            this._buildSearchResult(this.searchResultsElement, r.description, searchString, 
+                () => {
+                    this.geocodedEvent(i);
+                });
         });
     }
 
@@ -261,6 +274,21 @@ export class UI {
         }
         this.selectProfile(i);
     }
+
+    private _hideRoutesDetails() {
+        if (!this.routeDetailsElement) return;
+        
+        if (this.routeDetailsElement.parentElement) {
+            this.element.removeChild(this.routeDetailsElement);
+        }
+    }
+
+    private _showRoutesDetails() {
+        if (!this.routeDetailsElement) return;
+
+        this.element.append(this.routeDetailsElement);
+    }
+
 
     private static _buildLocationContent(container: HTMLElement, location: UILocation, 
         menu: boolean, search: () => void, remove?: () => void, ): HTMLInputElement {
@@ -283,11 +311,9 @@ export class UI {
         const input = document.createElement("input");
         input.type = "text";
         input.className = "form-control border-0";
-        // input.oninput = (e) => {
-        //     console.log("input");
-        //     console.log(e);
-        //     search();
-        // };
+        input.oninput = (e) => {
+            search();
+        };
         input.onkeydown = (e) => {
             if (e.key === "Enter") {
                 search();
@@ -394,20 +420,30 @@ export class UI {
         return `${h} uur, ${m}`;
     }
 
-    private _buildSearchResult(element: HTMLElement, result: string, searchString: string): void {
+    private _buildSearchResult(element: HTMLElement, result: string, searchString: string,
+        select: () => void): void {
 
         const rowElement = document.createElement("div");
         rowElement.className = "search-result row my-1";
+        // rowElement.addEventListener("click", () => {
+        //     select();
+        // });
         element.append(rowElement);
 
         const iconElement = document.createElement("div");
         iconElement.className = "col-2 pl-4 py-2";
         iconElement.innerHTML = ComponentHtml["markerGrey"];
+        iconElement.addEventListener("click", () => {
+            select();
+        });
         rowElement.append(iconElement);
 
         const resultElement = document.createElement("div");
         resultElement.className = "col-10 py-2 p-0";
         resultElement.innerHTML = result;
+        resultElement.addEventListener("click", () => {
+            select();
+        });
         rowElement.append(resultElement);
     }
 }
