@@ -11,6 +11,9 @@ export class UI {
     private routeDetailsElement: HTMLElement;
     private routeElements: HTMLElement[] = [];
 
+    private searchResultsElement: HTMLElement;
+    private searchResultElements: HTMLElement[] = [];
+
     private searchEvent: (idx: number) => void;
     private removeEvent: (idx: number) => void;
     private profileEvent: (profile: number) => void;
@@ -76,6 +79,15 @@ export class UI {
         // const routeDetails = ComponentHtml["routeDetails"];
         // routesContainer.innerHTML = routeDetails;
         // element.append(routesContainer);
+
+        // const searchDetailsContainer = document.createElement("div");
+        // searchDetailsContainer.className = "search-details";
+        // const searchDetails = ComponentHtml["searchResults"];
+        // searchDetailsContainer.innerHTML = searchDetails;
+        // element.append(searchDetailsContainer);
+
+        this.updateSearchResults([ "Zand 25", "Sept 42", "Lange weg 29"], "Zand");
+
     }
 
     on(event: "search" | "remove" | "profile" | "route", handler: (idx: number) => void): void {
@@ -219,6 +231,19 @@ export class UI {
             } else {
                 p.element.className = "btn btn-profile border-0";
             }
+        });
+    }
+
+    updateSearchResults(searchResults: string[], searchString: string) {
+        if (!this.searchResultsElement) {
+            const searchResultsElement = document.createElement("div");
+            searchResultsElement.className = "container";
+            this.element.append(searchResultsElement);
+            this.searchResultsElement = searchResultsElement;
+        }
+
+        searchResults.forEach((r) => {
+            this._buildSearchResult(this.searchResultsElement, r, searchString);
         });
     }
 
@@ -367,5 +392,22 @@ export class UI {
         const h = Math.floor(time / 3600);
         const m = Math.floor((time % 3600) / 60);
         return `${h} uur, ${m}`;
+    }
+
+    private _buildSearchResult(element: HTMLElement, result: string, searchString: string): void {
+
+        const rowElement = document.createElement("div");
+        rowElement.className = "search-result row my-1";
+        element.append(rowElement);
+
+        const iconElement = document.createElement("div");
+        iconElement.className = "col-2 pl-4 py-2";
+        iconElement.innerHTML = ComponentHtml["markerGrey"];
+        rowElement.append(iconElement);
+
+        const resultElement = document.createElement("div");
+        resultElement.className = "col-10 py-2 p-0";
+        resultElement.innerHTML = result;
+        rowElement.append(resultElement);
     }
 }

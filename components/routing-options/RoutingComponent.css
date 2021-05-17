@@ -169,5 +169,12 @@
 
 .route-detail:hover {
     background-color: #9fd7f9;
-    border-left: 4px #0d8bd9 solid;
+}
+
+.search-result:hover {
+    background-color: #9fd7f9;
+}
+
+.search-result img {
+    height: 20px;
 }
