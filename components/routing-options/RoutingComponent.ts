@@ -667,7 +667,7 @@ export class RoutingComponent implements IControl {
                         if (altnerative) {
                             routes.push( { 
                                 route: altnerative,
-                                description: `Altneratief ${a}`
+                                description: `Alternatief ${a}`
                             });
                         }
                     }
