@@ -1115,6 +1115,32 @@ export class RoutingComponent implements IControl {
         if (typeof (this.snapPoint) !== "undefined") {
             return;
         }
+
+        const boxSize = 10;
+        const features = this.map.queryRenderedFeatures(
+            [[e.point.x - boxSize, e.point.y - boxSize],
+            [e.point.x + boxSize, e.point.y + boxSize]], {
+            layers: ["route-alternate"],
+        });
+
+        if (features.length > 0) {
+            console.log(features.length);
+
+            let route = -1;
+            features.forEach(f => {
+                if (f.geometry.type == "LineString") {
+                    if (f.properties && typeof (f.properties["_route-index"]) != "undefined") { 
+                        route = Number(f.properties["_route-index"]);
+                    }
+                }
+            });
+            if (route >=0) {
+                this._activateRoute(route);
+                this.ui.selectRoute(route);
+            }
+            return;
+        }
+
         this.addLocation(e.lngLat, "");
     }
 
@@ -1209,25 +1235,25 @@ export class RoutingComponent implements IControl {
     }
 
     private _mapMouseUp(e: MapMouseEvent) {
-        if (!this._dragging) return;
+        if (this._dragging) {
+            if (typeof (this.snapPoint) === "undefined") {
+                throw Error("Snappoint not set but dragging.");
+            }
 
-        if (typeof (this.snapPoint) === "undefined") {
-            throw Error("Snappoint not set but dragging.");
+            const routeIndex: number = this.snapPoint.properties["_route-index"];
+            this.insertLocation(routeIndex + 1, e.lngLat);
+            const snapSource: GeoJSONSource = this.map.getSource("route-snap") as GeoJSONSource;
+            const empty: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
+                type: "FeatureCollection",
+                features: []
+            };
+            snapSource.setData(empty);
+            this.snapPoint = undefined;
+
+            this._dragging = false;
+            this.map.dragPan.enable();
+        } else {
         }
-
-        const routeIndex: number = this.snapPoint.properties["_route-index"];
-        this.insertLocation(routeIndex + 1, e.lngLat);
-        const snapSource: GeoJSONSource = this.map.getSource("route-snap") as GeoJSONSource;
-        const empty: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
-            type: "FeatureCollection",
-            features: []
-        };
-        snapSource.setData(empty);
-        this.snapPoint = undefined;
-
-        this._dragging = false;
-        this.map.dragPan.enable();
-        return;
     }
 
     private _geocoder_remove(idx: number): void {
