@@ -56,7 +56,8 @@ if (urlState.host === "staging") {
 
 const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
 const rc = new RoutingComponent(ra, {
-    geocoder: new GeocodingControl("OZUCIh4RNx38vXF8gF4H"),
+    // geocoder: new GeocodingControl("OZUCIh4RNx38vXF8gF4H"), // maptiler,
+    geocoder: new GeocodingControl("dcec93be31054bc5a260386c0d84be98"),
     profiles: [ {
         id: "bicycle.commute",
         description: "Functioneel fietsen",

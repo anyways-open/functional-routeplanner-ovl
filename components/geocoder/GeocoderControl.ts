@@ -1,4 +1,5 @@
 import { call } from "when/node";
+import * as opencage from "opencage-api-client";
 
 export class GeocodingControl {
 
@@ -11,56 +12,42 @@ export class GeocodingControl {
     reverseGeocode(l: { lng: number; lat: number}, callback: (results: string[]) => void): void {
         if (!l) return callback([ "Invalid location." ]);
         
-        const xhr = new XMLHttpRequest(); 
-        xhr.open("GET", `https://api.maptiler.com/geocoding/${l.lng},${l.lat}.json?key=${this.apiKey}`);
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
+        opencage
+            .geocode({ q: `${l.lat},${l.lng}`, key: this.apiKey})
+            .then((data) => {
+                console.log('reverse geocode  -------------------------');
+                console.log(data.results[0]);
 
-                if (response.features && response.features.length) {
-                    return callback([ response.features[0]["place_name"] ]);
-                }
-            }
-            else {
-                console.log("reverseGeocode failed: " + xhr.status);
-            }
-        };
-        xhr.send();
+                return callback([ data.results[0].formatted ]);
+            })
+            .catch((error) => {
+              console.log('error', error.message);
+            });
     }
 
     geocode(searchString: string, callback: (results: { 
             description: string,
             location: { lng: number; lat: number}
         }[]) => void) {
-        const xhr = new XMLHttpRequest(); 
-        xhr.open("GET", `https://api.maptiler.com/geocoding/${searchString}.json?key=${this.apiKey}`);
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
+        
+        opencage
+            .geocode({ q: searchString, key: this.apiKey })
+            .then((data) => {
+                console.log('reverse geocode  -------------------------');
+                console.log(data.results[0]);
 
-                if (response.features && response.features.length) {
-                    const results = [];
-                    response.features.forEach(f => {
-                        const p = f.geometry;
-                        if (p.type != "Point") {
-                            return;
-                        }
-                        results.push({
-                            description: f.place_name,
-                            location: {
-                                lng: p.coordinates[0],
-                                lat: p.coordinates[1]
-                            }
-                        });
+                const results = [];
+                data.results.forEach(r => {
+                    results.push({
+                        description: r.formatted,
+                        location: r.geometry
                     });
-                    
-                    callback(results);
-                }
-            }
-            else {
-                console.log("geocode failed: " + xhr.status);
-            }
-        };
-        xhr.send();
+                });
+                
+                callback(results);
+            })
+            .catch((error) => {
+              console.log('error', error.message);
+            });
     }
 }
