@@ -390,7 +390,7 @@ map.on("load", () => {
         "id": "school-routes",
         "type": "line",
         "source": "school-routes",
-        "minzoom": 13,
+        "minzoom": 13.5,
         "layout": {
             "line-join": "round",
             "line-cap": "round"
@@ -400,11 +400,43 @@ map.on("load", () => {
             "line-width": [
                 "interpolate", ["linear"], ["zoom"],
                 10, 6,
-                12, 6,
-                16, 6
+                13, 6,
+                16, 12
             ]
-        }
-    }, lowestRoad);
+        },
+        "filter": [
+                "in",
+                "SRK",
+                1,
+                4,
+                9
+            ]
+    }, lowestSymbol);
+
+    map.addLayer({
+        "id": "school-routes-unsafe",
+        "type": "line",
+        "source": "school-routes",
+        "minzoom": 13.5,
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "paint": {
+            "line-color": "#FF0000",
+            "line-width": [
+                "interpolate", ["linear"], ["zoom"],
+                10, 6,
+                12, 10,
+                16, 12
+            ]
+        },
+        "filter": [
+                "in",
+                "SRK",
+                2
+            ]
+    }, lowestSymbol);
 
     baseLayerControl.on("toggle", (on) => {
         if (on) {
