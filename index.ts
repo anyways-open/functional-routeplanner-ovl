@@ -510,7 +510,7 @@ const layerControl = new LayerControl([{
         "<img src=\"" + Icons["network"].svg + "\" />" +
         "</span>" +
       "<span>" +
-            "Fietsknoopunten Gent" +
+            "Fietsknooppunten Gent" +
         "</span>";
     },
     visible: true
@@ -523,7 +523,7 @@ const layerControl = new LayerControl([{
         "<img src=\"" + Icons["highway"].svg + "\" />" +
         "</span>" +
       "<span>" +
-            "Fietsnelwegen" +
+            "Fietssnelwegen" +
         "</span>";
     },
     visible: true
