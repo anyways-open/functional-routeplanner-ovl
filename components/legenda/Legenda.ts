@@ -6,9 +6,11 @@ export class LegendaControl {
     map: Map;
     element: HTMLElement;
     legendaDiv: HTMLElement;
+    closeButton: HTMLElement;
 
     constructor() { 
 
+        
     }
 
     onAdd(map: mapboxgl.Map): HTMLElement {
@@ -22,6 +24,13 @@ export class LegendaControl {
         this.legendaDiv.className = "legenda";
         this.legendaDiv.style.setProperty("display", "none");
         this.legendaDiv.innerHTML  = ComponentHtml["Legenda"];
+
+        this.closeButton = document.createElement("div");
+        this.closeButton.className = "btn-close";
+        this.closeButton.innerHTML = ComponentHtml["closeImg"];
+        this.closeButton.addEventListener("click", () => { this.hide();});
+        this.legendaDiv.appendChild(this.closeButton);
+
         document.body.appendChild(this.legendaDiv);
 
         return this.element;

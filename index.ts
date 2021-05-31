@@ -500,7 +500,7 @@ rc.on("profiles-loaded", () => {
 
 map.addControl(rc, "top-left");
 
-rc.on("legenda", legendaControl.show);
+rc.on("legenda", () => legendaControl.show());
 
 const layerControl = new LayerControl([{
     name: "Node Networks",
