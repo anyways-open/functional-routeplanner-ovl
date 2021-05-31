@@ -500,6 +500,8 @@ rc.on("profiles-loaded", () => {
 
 map.addControl(rc, "top-left");
 
+rc.on("legenda", legendaControl.show);
+
 const layerControl = new LayerControl([{
     name: "Node Networks",
     layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case" ],

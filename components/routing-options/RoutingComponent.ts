@@ -54,7 +54,7 @@ export class RoutingComponent implements IControl {
      * @param name The name.
      * @param callback The callback.
      */
-    on(name: "location" | "location-removed" | "profiles-loaded" | "profile" | "route" | "state",
+    on(name: "location" | "location-removed" | "profiles-loaded" | "profile" | "route" | "state" | "legenda",
         callback: (args: EventBase) => void): void {
         this.events.on(name, callback);
     }
@@ -77,7 +77,7 @@ export class RoutingComponent implements IControl {
         this.ui.on("profile", (p) => this._selectProfile(p));
         this.ui.on("route", (r) => this._activateRoute(r));
         this.ui.on("geocoded", (r) => this._acceptSearchResult(r));
-        this.ui.on("menu", (r) => console.log("asdfasdfsdf "));
+        this.ui.on("menu", (r) => this.events.trigger("legenda"));
 
         // always add 2 locations to start.
         this.ui.addLocation({
