@@ -18,9 +18,13 @@ export class UI {
     private removeEvent: (idx: number) => void;
     private profileEvent: (profile: number) => void;
     private routeEvent: (profile: number) => void;
+    private menuEvent: (i: number) => void;
 
     private profiles: { config: ProfileConfig, element?: HTMLElement }[] = [];
     private profile = 0;
+
+    private uiElement: HTMLElement;
+    private legendaElement: HTMLElement;
 
     constructor(element: HTMLElement, options: {
         profiles: ProfileConfig[],
@@ -33,22 +37,20 @@ export class UI {
     }
 
     build(): void {        
-        const element = document.createElement("div");
-        element.className = "routing-component";
+        this.uiElement = document.createElement("div");
+        this.uiElement.className = "routing-component";
 
-        this.element.append(element);
+        this.element.append(this.uiElement);
         
         const locationsContainer = document.createElement("div");
         locationsContainer.id = "routing-component-locations-container";
         locationsContainer.className = "routing-component-locations container py-2";
-        element.append(locationsContainer);
+        this.uiElement.append(locationsContainer);
         this.locationsContainer = locationsContainer;
 
         const profilesContainer = document.createElement("div");
         profilesContainer.className = "profiles-container"
-        // const profileSelection = ComponentHtml["profileSelection"];
-        // profilesContainer.innerHTML = profileSelection;
-        element.append(profilesContainer);
+        this.uiElement.append(profilesContainer);
 
         const profilesToolbar = document.createElement("div");
         profilesToolbar.className = "btn-toolbar p-1 border-0";
@@ -73,24 +75,9 @@ export class UI {
             p.element = profileButton;
         });
         this.selectProfile(this.profile);
-
-        // const routesContainer = document.createElement("div");
-        // routesContainer.className = "routes-container"
-        // const routeDetails = ComponentHtml["routeDetails"];
-        // routesContainer.innerHTML = routeDetails;
-        // element.append(routesContainer);
-
-        // const searchDetailsContainer = document.createElement("div");
-        // searchDetailsContainer.className = "search-details";
-        // const searchDetails = ComponentHtml["searchResults"];
-        // searchDetailsContainer.innerHTML = searchDetails;
-        // element.append(searchDetailsContainer);
-
-        //this.updateSearchResults([ "Zand 25", "Sept 42", "Lange weg 29"], "Zand");
-
     }
 
-    on(event: "geocoded" | "search" | "remove" | "profile" | "route", handler: (idx: number) => void): void {
+    on(event: "geocoded" | "search" | "remove" | "profile" | "route" | "menu", handler: (idx: number) => void): void {
         if (event == "geocoded") {
             this.geocodedEvent = handler;
         } else if (event == "search") {
@@ -99,6 +86,8 @@ export class UI {
             this.removeEvent = handler;
         } else if (event == "route") {
             this.routeEvent = handler;
+        } else if (event == "menu") {
+            this.menuEvent = handler;
         } else {
             this.profileEvent = handler;
         }
@@ -169,6 +158,8 @@ export class UI {
             this.searchEvent(this.locationElements.findIndex(v => v.root == locationContainer));
         }, () => {
             this.removeEvent(this.locationElements.findIndex(v => v.root == locationContainer));
+        }, () => {
+            this.menuEvent(-1);
         });
         this.locationElements.push({ root: locationContainer, input: i});
     }
@@ -181,6 +172,8 @@ export class UI {
             this.searchEvent(this.locationElements.findIndex(v => v.root == locationContainer));
         }, () => {
             this.removeEvent(this.locationElements.findIndex(v => v.root == locationContainer));
+        }, () => {
+            this.menuEvent(-1);
         });
     }
 
@@ -291,7 +284,7 @@ export class UI {
 
 
     private static _buildLocationContent(container: HTMLElement, location: UILocation, 
-        menu: boolean, search: () => void, remove?: () => void, ): HTMLInputElement {
+        menu: boolean, search: () => void, remove?: () => void, menuAction?: () => void): HTMLInputElement {
         menu ??= false;
 
         // construct icon an add.
@@ -301,6 +294,9 @@ export class UI {
         } else {
             menuIcon.innerHTML = ComponentHtml["menuPlaceholder"];
         }
+        menuIcon.addEventListener("click", () => {
+            menuAction();
+        });
         container.append(menuIcon);
 
         // construct input field and search icon.

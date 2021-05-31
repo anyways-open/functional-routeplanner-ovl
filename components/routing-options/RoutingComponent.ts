@@ -77,6 +77,7 @@ export class RoutingComponent implements IControl {
         this.ui.on("profile", (p) => this._selectProfile(p));
         this.ui.on("route", (r) => this._activateRoute(r));
         this.ui.on("geocoded", (r) => this._acceptSearchResult(r));
+        this.ui.on("menu", (r) => console.log("asdfasdfsdf "));
 
         // always add 2 locations to start.
         this.ui.addLocation({

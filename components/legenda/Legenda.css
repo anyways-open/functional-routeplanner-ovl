@@ -1,0 +1,37 @@
+.legenda {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    width: 350px;
+    z-index: 98390498;
+    background: #1da1f2;
+    color: white;
+    height: 100%;
+    overflow: auto;
+}
+
+.btn-close {
+    right: 0px;
+    position: absolute;
+    margin: 5px;
+}
+
+.top-bar {
+    background: #0d8bd9;
+}
+.disclaimer {
+    position: absolute;
+    bottom: 0px;
+    margin-bottom: 3px;
+}
+
+.legenda a.active, .legenda a.active:hover, .legenda a:hover {
+    background: #1da1f2;
+    border: none;
+}
+
+.legenda .btn {
+    color: white;
+    background: #0d8bd9;
+    width: 130px;
+}

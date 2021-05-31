@@ -13,6 +13,7 @@ import { BaseLayerControl } from "./components/baselayer-control/BaseLayerContro
 import BaseLayerImages from "./assets/img/base-layers/*.png";
 import Icons from "./assets/img/icons/*.*";
 import { Data } from "./data";
+import { LegendaControl } from "./components/legenda/Legenda";
 
 
 const urlState = UrlHash.read();
@@ -105,6 +106,9 @@ const baseLayerControl = new BaseLayerControl({
     }
 });
 map.addControl(baseLayerControl, "bottom-right");
+
+const legendaControl = new LegendaControl();
+map.addControl(legendaControl, "top-left");
 
 map.on("load", () => {
     // geolocationControl.trigger();
@@ -435,6 +439,32 @@ map.on("load", () => {
                 "in",
                 "SRK",
                 2
+            ]
+    }, lowestSymbol);
+
+    map.addLayer({
+        "id": "school-routes-semi",
+        "type": "line",
+        "source": "school-routes",
+        "minzoom": 14,
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "paint": {
+            "line-color": schoolRoutesColor,
+            "line-width": [
+                "interpolate", ["linear"], ["zoom"],
+                10, 6,
+                12, 10,
+                16, 12
+            ],
+            "line-dasharray": [1,1]
+        },
+        "filter": [
+                "in",
+                "SRK",
+                3
             ]
     }, lowestSymbol);
 
