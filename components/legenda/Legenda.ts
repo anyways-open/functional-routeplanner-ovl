@@ -1,5 +1,5 @@
 import { IControl, Map, MapDataEvent } from "mapbox-gl";
-import './*.css';
+import "./*.css";
 import ComponentHtml from "*.html";
 
 export class LegendaControl {
@@ -8,9 +8,9 @@ export class LegendaControl {
     legendaDiv: HTMLElement;
     closeButton: HTMLElement;
 
-    constructor() { 
+    constructor() {
 
-        
+
     }
 
     onAdd(map: mapboxgl.Map): HTMLElement {
@@ -27,7 +27,7 @@ export class LegendaControl {
 
         this.closeButton = document.createElement("div");
         this.closeButton.className = "btn-close";
-        this.closeButton.innerHTML = ComponentHtml["closeImg"];
+        this.closeButton.innerHTML = ComponentHtml["closeImgLegenda"];
         this.closeButton.addEventListener("click", () => { this.hide();});
         this.legendaDiv.appendChild(this.closeButton);
 

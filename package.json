@@ -23,27 +23,28 @@
   "dependencies": {
     "@anyways-open/routing-api": "0.0.11",
     "@anyways-open/url-hash": "0.0.1",
-    "@mapbox/mapbox-gl-geocoder": "^2.0.1",
+    "@mapbox/mapbox-gl-geocoder": "^2.3.0",
     "@turf/nearest-point-on-line": "^6.3.0",
     "@turf/turf": "^5.1.6",
-    "@types/mapbox-gl": "^1.7.0",
-    "@typescript-eslint/eslint-plugin": "^4.14.1",
-    "@typescript-eslint/parser": "^4.14.1",
-    "axios": "^0.20.0",
+    "@types/mapbox-gl": "^1.13.1",
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/parser": "^4.26.0",
+    "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
-    "eslint": "^7.18.0",
-    "jquery": "^3.5.1",
-    "mapbox-gl": "^1.7.0",
+    "eslint": "^7.27.0",
+    "jquery": "^3.6.0",
+    "mapbox-gl": "^1.13.1",
     "opencage-api-client": "^1.0.0",
     "popper.js": "^1.16.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.11.6",
-    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/core": "^7.14.3",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "babel-plugin-transform-html-import-to-string": "^1.0.0",
     "babel-preset-env": "^1.7.0",
-    "cssnano": "^4.1.10",
-    "typescript": "^4.0.3",
-    "parcel": "1.12.3"
+    "cssnano": "^4.1.11",
+    "parcel-bundler": "^1.12.5",
+    "typescript": "^4.3.2"
   },
   "resolutions": {
     "@babel/preset-env": "7.13.8"
