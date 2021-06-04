@@ -13,6 +13,6 @@
         ]
     ],
     "plugins": [
-        ["@babel/plugin-proposal-class-properties", {}, "plugin-1"]
+        ["@babel/plugin-proposal-class-properties", {}, "plugin-proposal-class-properties"]
     ]
 }
