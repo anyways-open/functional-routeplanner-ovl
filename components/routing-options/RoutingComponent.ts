@@ -12,6 +12,7 @@ import { StateEvent } from "./events/StateEvent";
 import { UI } from "./UI";
 import { GeocodingControl } from "../geocoder/GeocoderControl";
 import { ProfileConfig } from "./ProfileConfig";
+var togpx = require('togpx');
 
 export type EventBase = LocationEvent | ProfilesEvent | RouteEvent | StateEvent
 
@@ -76,6 +77,7 @@ export class RoutingComponent implements IControl {
         this.ui.on("remove", (idx) => this._geocoder_remove(idx));
         this.ui.on("profile", (p) => this._selectProfile(p));
         this.ui.on("route", (r) => this._activateRoute(r));
+        this.ui.on("download", (r) => this._downloadRoute(r));
         this.ui.on("geocoded", (r) => this._acceptSearchResult(r));
         this.ui.on("menu", (r) => this.events.trigger("legenda"));
 
@@ -184,6 +186,39 @@ export class RoutingComponent implements IControl {
         }
         this._hideShowAlternate(this.locations.length <= 2);
         this._calculateRoute();
+    }
+
+    private _downloadRoute(idx: number) {
+
+        var features = [];
+        this.routes.forEach((r) => {
+            r.routes[idx].route.features.forEach(f => {
+                features.push(f);
+            });
+        });
+        var geojson = turf.featureCollection(features);
+
+        var gpx = togpx(geojson);
+
+        var data = gpx;
+        var type = ".gpx";
+        var filename = "route.gpx";
+
+        var file = new Blob([data], { type: type });
+        if (window.navigator.msSaveOrOpenBlob) // IE10+
+            window.navigator.msSaveOrOpenBlob(file, filename);
+        else { // Others
+            var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function () {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+        }
     }
 
     private _selectProfile(p: number): void {
@@ -473,7 +508,7 @@ export class RoutingComponent implements IControl {
         let type: "via" | "user" | "end" | "start" = "via";
         if (index === 0) {
             type = "start";
-        } else if (index == this.locations.length -1) {
+        } else if (index == this.locations.length - 1) {
             type = "end";
         }
 
@@ -1130,12 +1165,12 @@ export class RoutingComponent implements IControl {
             let route = -1;
             features.forEach(f => {
                 if (f.geometry.type == "LineString") {
-                    if (f.properties && typeof (f.properties["_route-index"]) != "undefined") { 
+                    if (f.properties && typeof (f.properties["_route-index"]) != "undefined") {
                         route = Number(f.properties["_route-index"]);
                     }
                 }
             });
-            if (route >=0) {
+            if (route >= 0) {
                 this._activateRoute(route);
                 this.ui.selectRoute(route);
             }

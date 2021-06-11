@@ -1,4 +1,5 @@
 import ComponentHtml from "*.html";
+import SvgAssets from "./assets/*.svg";
 import { ProfileConfig } from "./ProfileConfig";
 import { UILocation } from "./UILocation";
 
@@ -16,6 +17,7 @@ export class UI {
     private geocodedEvent: (idx: number) => void;
     private searchEvent: (idx: number) => void;
     private removeEvent: (idx: number) => void;
+    private downloadEvent: (idx: number) => void;
     private profileEvent: (profile: number) => void;
     private routeEvent: (profile: number) => void;
     private menuEvent: (i: number) => void;
@@ -77,7 +79,7 @@ export class UI {
         this.selectProfile(this.profile);
     }
 
-    on(event: "geocoded" | "search" | "remove" | "profile" | "route" | "menu", handler: (idx: number) => void): void {
+    on(event: "geocoded" | "search" | "remove" | "profile" | "route" | "menu" | "download", handler: (idx: number) => void): void {
         if (event == "geocoded") {
             this.geocodedEvent = handler;
         } else if (event == "search") {
@@ -88,6 +90,8 @@ export class UI {
             this.routeEvent = handler;
         } else if (event == "menu") {
             this.menuEvent = handler;
+        } else if (event == "download") {
+            this.downloadEvent = handler;
         } else {
             this.profileEvent = handler;
         }
@@ -115,14 +119,14 @@ export class UI {
         this.routeElements.push(routeDetail);
         routeDetail.addEventListener("click", () => this._selectRoute(i));
 
-        this._buildRouteDetailContent(routeDetail, description, stats, selected);
+        this._buildRouteDetailContent(routeDetail, description, stats, selected, () => this.downloadEvent(i));
     }
 
     updateRoute(idx: number, description: string, stats: { distance: number, time: number }, selected: boolean): void {
         const routeDetail = this.routeElements[idx];
         routeDetail.innerHTML = "";
 
-        this._buildRouteDetailContent(routeDetail, description, stats, selected);
+        this._buildRouteDetailContent(routeDetail, description, stats, selected, () => this.downloadEvent(idx));
     }
 
     removeRoute(idx: number): void {
@@ -363,12 +367,12 @@ export class UI {
     }
 
     private _buildRouteDetailContent(container: HTMLElement, description: string, stats: { distance: number, time: number }, 
-        selected: boolean) {
+        selected: boolean, download: () => void) {
 
         this._routeDetailContentSelect(container, selected);
 
         const descriptionElement = document.createElement("div");
-        descriptionElement.className = "col-6 py-3";
+        descriptionElement.className = "col-4 py-3";
         descriptionElement.innerHTML = description;
         container.append(descriptionElement);
 
@@ -395,6 +399,15 @@ export class UI {
         bicycleIcon.className = "col-2 py-3";
         bicycleIcon.innerHTML = ComponentHtml["routeBicycle"];
         container.append(bicycleIcon);
+
+        // construct icon and add.
+        const gpxIconContainer = document.createElement("div");
+        gpxIconContainer.className = "col-1 py-3";
+        gpxIconContainer.addEventListener("click", () => download());
+        container.append(gpxIconContainer);
+        const gpxIcon = document.createElement("img");
+        gpxIcon.src = SvgAssets["download"];
+        gpxIconContainer.appendChild(gpxIcon);          
     }
 
     private _formatDistance(distance: number) {

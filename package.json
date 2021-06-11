@@ -35,7 +35,8 @@
     "jquery": "^3.6.0",
     "mapbox-gl": "^1.13.1",
     "opencage-api-client": "^1.0.0",
-    "popper.js": "^1.16.1"
+    "popper.js": "^1.16.1",
+    "togpx": "^0.5.4"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",
