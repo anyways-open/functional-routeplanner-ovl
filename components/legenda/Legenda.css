@@ -36,3 +36,7 @@
     background: #0d8bd9;
     width: 130px;
 }
+
+.legenda .disclaimer a {
+    color: white;
+}

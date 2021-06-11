@@ -73,7 +73,7 @@ const rc = new RoutingComponent(ra, {
 
 const osmAttributionControl = new OsmAttributionControl({
     compact: false,
-    customAttribution: "<a href=\"https://www.anyways.eu/cycling-app.html\">ANYWAYS BV</a>"
+    customAttribution: "<a href=\"https://www.anyways.eu/\">ANYWAYS BV</a> | <a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a>"
 });   
 map.addControl(osmAttributionControl);    
 
