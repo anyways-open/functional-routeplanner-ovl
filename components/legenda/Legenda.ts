@@ -46,6 +46,14 @@ export class LegendaControl {
         this.legendaDiv.style.setProperty("display", "none");
     }
 
+    toggle() {
+        if (this.legendaDiv.style.getPropertyValue("display") == "none") {
+            this.show();
+        } else {
+            this.hide();
+        }
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
     onRemove(map: mapboxgl.Map): void {
 

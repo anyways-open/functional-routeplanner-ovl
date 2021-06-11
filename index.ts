@@ -14,6 +14,7 @@ import BaseLayerImages from "./assets/img/base-layers/*.png";
 import Icons from "./assets/img/icons/*.*";
 import { Data } from "./data";
 import { LegendaControl } from "./components/legenda/Legenda";
+import { HelpButton } from "./components/help-button/HelpButton";
 
 
 const urlState = UrlHash.read();
@@ -109,6 +110,10 @@ map.addControl(baseLayerControl, "bottom-right");
 
 const legendaControl = new LegendaControl();
 map.addControl(legendaControl, "top-left");
+
+const helpButton = new HelpButton();
+helpButton.on("open", () => legendaControl.toggle());
+map.addControl(helpButton, "top-right");
 
 map.on("load", () => {
     // geolocationControl.trigger();
