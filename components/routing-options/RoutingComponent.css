@@ -14,14 +14,38 @@
     border-bottom-color: #c2c2c2;
 }
 
+.routing-component-locations img {
+    height: 20px;
+}
+
+.routing-component-add-location {
+    /* font-size: 0.9rem; */
+    padding-left: 40px;
+}
+
+.routing-component-add-location .form-control {
+    /* font-size: 0.9rem; */
+    padding-left: 0px;
+}
+
+.routing-component-add-location .input-group {
+    border-bottom: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: #c2c2c2;
+}
+
+.routing-component-add-location .location-input {
+    margin-left: 0px;
+}
+
+.routing-component-add-location img {
+    height: 18px;
+}
+
 .mapboxgl-ctrl-group .routing-component .button {
     width: initial;
     height: initial;
     padding: initial;
-}
-
-.routing-component-locations img {
-    height: 20px;
 }
 
 .location-input {

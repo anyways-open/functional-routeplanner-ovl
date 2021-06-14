@@ -8,6 +8,7 @@ export class UI {
     private element: HTMLElement;
     private locationsContainer: HTMLElement;
     private locationElements: { root: HTMLElement, input: HTMLInputElement }[] = [];
+    private addLocationContainer: HTMLElement;
 
     private routeDetailsElement: HTMLElement;
     private routeElements: HTMLElement[] = [];
@@ -21,12 +22,12 @@ export class UI {
     private profileEvent: (profile: number) => void;
     private routeEvent: (profile: number) => void;
     private menuEvent: (i: number) => void;
+    private addEvent: (i: number) => void;
 
     private profiles: { config: ProfileConfig, element?: HTMLElement }[] = [];
     private profile = 0;
 
     private uiElement: HTMLElement;
-    private legendaElement: HTMLElement;
 
     constructor(element: HTMLElement, options: {
         profiles: ProfileConfig[],
@@ -46,9 +47,16 @@ export class UI {
         
         const locationsContainer = document.createElement("div");
         locationsContainer.id = "routing-component-locations-container";
-        locationsContainer.className = "routing-component-locations container py-2";
+        locationsContainer.className = "routing-component-locations container pt-2";
         this.uiElement.append(locationsContainer);
         this.locationsContainer = locationsContainer;
+
+        const addLocationContainer = document.createElement("div");
+        addLocationContainer.className = "routing-component-add-location container pb-2";
+        this.uiElement.append(addLocationContainer);
+        this.addLocationContainer = addLocationContainer;
+
+        UI._buildAddLocation(this.addLocationContainer, () => this.addEvent(this.locationElements.length));
 
         const profilesContainer = document.createElement("div");
         profilesContainer.className = "profiles-container"
@@ -79,7 +87,7 @@ export class UI {
         this.selectProfile(this.profile);
     }
 
-    on(event: "geocoded" | "search" | "remove" | "profile" | "route" | "menu" | "download", handler: (idx: number) => void): void {
+    on(event: "geocoded" | "search" | "remove" | "profile" | "route" | "menu" | "download" | "add", handler: (idx: number) => void): void {
         if (event == "geocoded") {
             this.geocodedEvent = handler;
         } else if (event == "search") {
@@ -92,6 +100,8 @@ export class UI {
             this.menuEvent = handler;
         } else if (event == "download") {
             this.downloadEvent = handler;
+        } else if (event == "add") {
+            this.addEvent = handler;
         } else {
             this.profileEvent = handler;
         }
@@ -284,6 +294,36 @@ export class UI {
         if (!this.routeDetailsElement) return;
 
         this.element.append(this.routeDetailsElement);
+    }
+
+    private static _buildAddLocation(container: HTMLElement, addAction: () => void): void {
+
+        // construct icon an add.
+        const toolbarDiv = document.createElement("div");
+        toolbarDiv.className = "btn-toolbar border-0 pb-1";
+        toolbarDiv.addEventListener("click", () => {
+            addAction();
+        });
+        container.append(toolbarDiv);
+
+        const buttonDiv = document.createElement("div");
+        buttonDiv.className = "btn btn-light border-0 pt-2";
+        toolbarDiv.appendChild(buttonDiv);
+
+        const img = document.createElement("img");
+        img.src = SvgAssets["add"];
+        buttonDiv.appendChild(img);
+
+        // construct input field and search icon.
+        const locationInputGroup = document.createElement("div");
+        locationInputGroup.className = "location-input pt-2";
+        toolbarDiv.append(locationInputGroup);
+
+        const addLocationText = document.createElement("div");
+        addLocationText.className = "border-0 text-muted";
+        addLocationText.innerHTML = "Voeg locatie toe."
+        locationInputGroup.append(addLocationText);
+        
     }
 
 

@@ -80,6 +80,7 @@ export class RoutingComponent implements IControl {
         this.ui.on("download", (r) => this._downloadRoute(r));
         this.ui.on("geocoded", (r) => this._acceptSearchResult(r));
         this.ui.on("menu", (r) => this.events.trigger("legenda"));
+        this.ui.on("add", (idx) => this.addEmptyLocation(idx));
 
         // always add 2 locations to start.
         this.ui.addLocation({
@@ -416,6 +417,23 @@ export class RoutingComponent implements IControl {
                 this.ui.updateLocation(0, { type: "user", value: "Huidige locatie" });
             }
         }
+    }
+
+    private addEmptyLocation(index: number): void {
+
+        // add marker for new location.
+        const markerId = this.markerId++;
+        let locationDetails: RoutingLocation = new RoutingLocation(markerId, false);
+
+        // overwrite location.
+        if (index < this.locations.length) {
+            this.locations[index] = locationDetails;
+        } else {
+            this.locations.push(locationDetails);
+        }
+
+        // update ui.
+        this.ui.addLocation({ type: "end" });
     }
 
     /**
