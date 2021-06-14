@@ -15,6 +15,9 @@ import Icons from "./assets/img/icons/*.*";
 import { Data } from "./data";
 import { LegendaControl } from "./components/legenda/Legenda";
 import { HelpButton } from "./components/help-button/HelpButton";
+import { OpenCageDataProvider } from "./components/geocoder/Providers/OpenCageDataProvider";
+import { CrabGeolocationProvider } from "./components/geocoder/Providers/CrabGeolocationProvider";
+import { ChainedProvider } from "./components/geocoder/Providers/ChainedProvider";
 
 
 const urlState = UrlHash.read();
@@ -56,10 +59,11 @@ if (urlState.host === "staging") {
 	routingEndpoint = "http://localhost:5000/"
 }
 
+const geocoder = new ChainedProvider([ new CrabGeolocationProvider(), new OpenCageDataProvider("dcec93be31054bc5a260386c0d84be98") ]);
 const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
 const rc = new RoutingComponent(ra, {
     // geocoder: new GeocodingControl("OZUCIh4RNx38vXF8gF4H"), // maptiler,
-    geocoder: new GeocodingControl("dcec93be31054bc5a260386c0d84be98"),
+    geocoder: new GeocodingControl(geocoder),
     profiles: [ {
         id: "bicycle.commute",
         description: "Functioneel fietsen",
@@ -206,7 +210,7 @@ map.on("load", () => {
     }, lowestLabel);
 
     const nodesColor = "#ccad00";
-    const schoolRoutesColor = "#1da1f2";
+    const schoolRoutesColor = "#00cc00";
 
     map.addLayer({
         "id": "cycle-node-network-case",
@@ -399,10 +403,11 @@ map.on("load", () => {
         "id": "school-routes",
         "type": "line",
         "source": "school-routes",
-        "minzoom": 13.5,
+        "minzoom": 1,
         "layout": {
             "line-join": "round",
-            "line-cap": "round"
+            "line-cap": "round",
+            "visibility": "none"
         },
         "paint": {
             "line-color": schoolRoutesColor,
@@ -413,13 +418,27 @@ map.on("load", () => {
                 16, 12
             ]
         },
-        "filter": [
+        "filter": [ "any", 
+            [
                 "in",
                 "SRK",
                 1,
                 4,
                 9
+            ], 
+            [
+                "in",
+                "SRK_CODE",
+                1,
+                4,
+                9
+            ], 
+            [
+                "in",
+                "ACCESS",
+                "SAFE"
             ]
+        ]
     }, lowestSymbol);
 
     map.addLayer({
@@ -440,11 +459,17 @@ map.on("load", () => {
                 16, 12
             ]
         },
-        "filter": [
+        "filter": [ "any", [
                 "in",
                 "SRK",
                 2
+            ],
+            [
+                "in",
+                "ACCESS",
+                "OCCASIONALLY_UNSAFE"
             ]
+        ]
     }, lowestSymbol);
 
     map.addLayer({
@@ -532,5 +557,18 @@ const layerControl = new LayerControl([{
         "</span>";
     },
     visible: true
+},
+{
+    name: "Schoolroutes",
+    layers: [ "school-routes" ],
+    build: (el, c) => {
+        el.innerHTML = "<span>" +
+        "<img src=\"" + Icons["school"].svg + "\" />" +
+        "</span>" +
+      "<span>" +
+            "Schoolroutes" +
+        "</span>";
+    },
+    visible: false
 }]);
 map.addControl(layerControl, "bottom-right");
