@@ -52,34 +52,34 @@ const map = new Map({
 let routingEndpoint = "https://staging.anyways.eu/routing-api2/";
 //let routingEndpoint = "https://routing.anyways.eu/api/";
 if (urlState.host === "staging") {
-	console.log("Using staging server");
-	routingEndpoint = "https://staging.anyways.eu/routing-api/";
+    console.log("Using staging server");
+    routingEndpoint = "https://staging.anyways.eu/routing-api/";
 } else if (urlState.host === "debug") {
-	console.log("Using localhost server - you might want to disable CORS-rules");
-	routingEndpoint = "http://localhost:5000/"
+    console.log("Using localhost server - you might want to disable CORS-rules");
+    routingEndpoint = "http://localhost:5000/"
 }
 
-const geocoder = new ChainedProvider([ new CrabGeolocationProvider(), new OpenCageDataProvider("dcec93be31054bc5a260386c0d84be98") ]);
+const geocoder = new ChainedProvider([new CrabGeolocationProvider(), new OpenCageDataProvider("dcec93be31054bc5a260386c0d84be98")]);
 const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
 const rc = new RoutingComponent(ra, {
     // geocoder: new GeocodingControl("OZUCIh4RNx38vXF8gF4H"), // maptiler,
     geocoder: new GeocodingControl(geocoder),
-    profiles: [ {
+    profiles: [{
         id: "bicycle.commute",
         description: "Functioneel fietsen",
         image: Icons["bicycle"].svg
-    },{
+    }, {
         id: "bicycle.functional_network",
         description: "Fietsnetwerken",
         image: Icons["network"].svg
-    } ]
+    }]
 });
 
 const osmAttributionControl = new OsmAttributionControl({
     compact: false,
     customAttribution: "<a href=\"https://www.anyways.eu/\">ANYWAYS BV</a> | <a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a>"
-});   
-map.addControl(osmAttributionControl);    
+});
+map.addControl(osmAttributionControl);
 
 const nav = new NavigationControl({
     visualizePitch: true
@@ -96,7 +96,7 @@ const geolocationControl = new GeolocateControl({
 })
 map.addControl(geolocationControl, "top-right");
 
-geolocationControl.on("geolocate", function(data: { coords: { latitude: any; longitude: any; }; }) {
+geolocationControl.on("geolocate", function (data: { coords: { latitude: any; longitude: any; }; }) {
     rc.reportCurrentLocation({
         lat: data.coords.latitude,
         lng: data.coords.longitude
@@ -128,7 +128,17 @@ map.on("load", () => {
         "tileSize": 256,
         "attribution": "AIV"
     });
-    
+
+    map.addSource('gipod', {
+        'type': 'raster',
+        // use the tiles option to specify a WMS tile source URL
+        // https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/
+        'tiles': [
+            'https://geoservices.informatievlaanderen.be/raadpleegdiensten/gipodpubliek/wms?SERVICE=WMS&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=TRUE&STYLES=default&VERSION=1.3.0&LAYERS=WoIcoon&WIDTH=1905&HEIGHT=303&CRS=EPSG:3857&BBOX={bbox-epsg-3857}'
+        ],
+        'tileSize': 256
+    });
+
     function updateMapUrlState() {
         const center = map.getCenter();
         urlState.map = `${map.getZoom().toFixed(2)}/${center.lng.toFixed(5)}/${center.lat.toFixed(5)}`;
@@ -301,7 +311,7 @@ map.on("load", () => {
             ]
         ]
     }, lowestLabel);
-    
+
     map.addLayer({
         "id": "cyclenodes-circles",
         "type": "circle",
@@ -418,21 +428,21 @@ map.on("load", () => {
                 16, 12
             ]
         },
-        "filter": [ "any", 
+        "filter": ["any",
             [
                 "in",
                 "SRK",
                 1,
                 4,
                 9
-            ], 
+            ],
             [
                 "in",
                 "SRK_CODE",
                 1,
                 4,
                 9
-            ], 
+            ],
             [
                 "in",
                 "ACCESS",
@@ -459,11 +469,11 @@ map.on("load", () => {
                 16, 12
             ]
         },
-        "filter": [ "any", [
-                "in",
-                "SRK",
-                2
-            ],
+        "filter": ["any", [
+            "in",
+            "SRK",
+            2
+        ],
             [
                 "in",
                 "ACCESS",
@@ -489,14 +499,26 @@ map.on("load", () => {
                 12, 10,
                 16, 12
             ],
-            "line-dasharray": [1,1]
+            "line-dasharray": [1, 1]
         },
         "filter": [
-                "in",
-                "SRK",
-                3
-            ]
+            "in",
+            "SRK",
+            3
+        ]
     }, lowestSymbol);
+
+    map.addLayer(
+        {
+            'id': 'gipod',
+            'type': 'raster',
+            'source': 'gipod',
+            'paint': {},
+            "layout": {
+                "visibility": "none"
+            },
+        }
+    );
 
     baseLayerControl.on("toggle", (on) => {
         if (on) {
@@ -534,40 +556,53 @@ rc.on("legenda", () => legendaControl.show());
 
 const layerControl = new LayerControl([{
     name: "Node Networks",
-    layers: [ "cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case" ],
+    layers: ["cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case"],
     build: (el, c) => {
         el.innerHTML = "<span>" +
-        "<img src=\"" + Icons["network"].svg + "\" />" +
-        "</span>" +
-      "<span>" +
+            "<img src=\"" + Icons["network"].svg + "\" />" +
+            "</span>" +
+            "<span>" +
             "Fietsknooppunten Gent" +
-        "</span>";
+            "</span>";
     },
     visible: true
 },
 {
     name: "Cycle Highways",
-    layers: [ "cycle-highways-case", "cycle-highways" ],
+    layers: ["cycle-highways-case", "cycle-highways"],
     build: (el, c) => {
         el.innerHTML = "<span>" +
-        "<img src=\"" + Icons["highway"].svg + "\" />" +
-        "</span>" +
-      "<span>" +
+            "<img src=\"" + Icons["highway"].svg + "\" />" +
+            "</span>" +
+            "<span>" +
             "Fietssnelwegen" +
-        "</span>";
+            "</span>";
     },
     visible: true
 },
 {
     name: "Schoolroutes",
-    layers: [ "school-routes" ],
+    layers: ["school-routes"],
     build: (el, c) => {
         el.innerHTML = "<span>" +
-        "<img src=\"" + Icons["school"].svg + "\" />" +
-        "</span>" +
-      "<span>" +
+            "<img src=\"" + Icons["school"].svg + "\" />" +
+            "</span>" +
+            "<span>" +
             "Schoolroutes" +
-        "</span>";
+            "</span>";
+    },
+    visible: false
+},
+{
+    name: "Werken",
+    layers: ["gipod"],
+    build: (el, c) => {
+        el.innerHTML = "<span>" +
+            "<img src=\"" + Icons["road-works"].svg + "\" />" +
+            "</span>" +
+            "<span>" +
+            "Wegenwerken" +
+            "</span>";
     },
     visible: false
 }]);
