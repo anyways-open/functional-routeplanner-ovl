@@ -785,7 +785,7 @@ export class RoutingComponent implements IControl {
                 if (e[profile + "0"]) {
                     routes.push({
                         route: e[profile + "0"],
-                        description: "Snelste route"
+                        description: "Aangeraden route"
                     });
 
                     for (var a = 1; a <= 3; a++) {
@@ -800,7 +800,7 @@ export class RoutingComponent implements IControl {
                 } else {
                     routes.push({
                         route: e,
-                        description: "Snelste route"
+                        description: "Aangeraden route"
                     });
                 }
 

@@ -41,7 +41,7 @@ if (typeof urlState.map !== "undefined") {
 
 const map = new Map({
     container: "map",
-    style: "https://api.maptiler.com/maps/basic/style.json?key=aQMwCJkEBVoDQRMup6IF",
+    style: "https://api.maptiler.com/maps/5ee3edf5-df11-4b36-88c9-f660f7afded9/style.json?key=aQMwCJkEBVoDQRMup6IF",
     center: mapState.center,
     zoom: mapState.zoom,
     preserveDrawingBuffer: true,
@@ -62,7 +62,6 @@ if (urlState.host === "staging") {
 const geocoder = new ChainedProvider([new CrabGeolocationProvider(), new OpenCageDataProvider("dcec93be31054bc5a260386c0d84be98")]);
 const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
 const rc = new RoutingComponent(ra, {
-    // geocoder: new GeocodingControl("OZUCIh4RNx38vXF8gF4H"), // maptiler,
     geocoder: new GeocodingControl(geocoder),
     profiles: [{
         id: "bicycle.commute",
