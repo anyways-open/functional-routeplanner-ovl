@@ -581,7 +581,7 @@ const layerControl = new LayerControl([{
 },
 {
     name: "Schoolroutes",
-    layers: ["school-routes"],
+    layers: ["school-routes", "school-routes-unsafe", "school-routes-semi"],
     build: (el, c) => {
         el.innerHTML = "<span>" +
             "<img src=\"" + Icons["school"].svg + "\" />" +
