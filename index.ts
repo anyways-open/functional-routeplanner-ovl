@@ -128,10 +128,16 @@ map.on("load", () => {
         "attribution": "AIV"
     });
 
-    map.addSource('gipod', {
+    map.addSource('gipod-con', {
         'type': 'raster',
-        // use the tiles option to specify a WMS tile source URL
-        // https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/
+        'tiles': [
+            'https://geoservices.informatievlaanderen.be/raadpleegdiensten/gipodpubliek/wms?SERVICE=WMS&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=TRUE&STYLES=default&VERSION=1.3.0&LAYERS=WoCon&WIDTH=1905&HEIGHT=303&CRS=EPSG:3857&BBOX={bbox-epsg-3857}'
+        ],
+        'tileSize': 256
+    });
+
+    map.addSource('gipod-icon', {
+        'type': 'raster',
         'tiles': [
             'https://geoservices.informatievlaanderen.be/raadpleegdiensten/gipodpubliek/wms?SERVICE=WMS&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=TRUE&STYLES=default&VERSION=1.3.0&LAYERS=WoIcoon&WIDTH=1905&HEIGHT=303&CRS=EPSG:3857&BBOX={bbox-epsg-3857}'
         ],
@@ -509,9 +515,23 @@ map.on("load", () => {
 
     map.addLayer(
         {
-            'id': 'gipod',
+            'id': 'gipod-con',
             'type': 'raster',
-            'source': 'gipod',
+            'source': 'gipod-con',
+            "minzoom": 15,
+            'paint': {},
+            "layout": {
+                "visibility": "none"
+            },
+        }
+    );
+
+    map.addLayer(
+        {
+            'id': 'gipod-icon',
+            'type': 'raster',
+            'source': 'gipod-icon',
+            "minzoom": 15,
             'paint': {},
             "layout": {
                 "visibility": "none"
@@ -557,11 +577,11 @@ const layerControl = new LayerControl([{
     name: "Node Networks",
     layers: ["cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case"],
     build: (el, c) => {
-        el.innerHTML = "<span>" +
+        el.innerHTML = "<div>" +
             "<img src=\"" + Icons["network"].svg + "\" />" +
-            "</span>" +
+            "</div>" +
             "<span>" +
-            "Fietsknooppunten Gent" +
+            "Lokaal Netwerk" +
             "</span>";
     },
     visible: true
@@ -570,9 +590,9 @@ const layerControl = new LayerControl([{
     name: "Cycle Highways",
     layers: ["cycle-highways-case", "cycle-highways"],
     build: (el, c) => {
-        el.innerHTML = "<span>" +
+        el.innerHTML = "<div>" +
             "<img src=\"" + Icons["highway"].svg + "\" />" +
-            "</span>" +
+            "</div>" +
             "<span>" +
             "Fietssnelwegen" +
             "</span>";
@@ -583,9 +603,9 @@ const layerControl = new LayerControl([{
     name: "Schoolroutes",
     layers: ["school-routes", "school-routes-unsafe", "school-routes-semi"],
     build: (el, c) => {
-        el.innerHTML = "<span>" +
+        el.innerHTML = "<div>" +
             "<img src=\"" + Icons["school"].svg + "\" />" +
-            "</span>" +
+            "</div>" +
             "<span>" +
             "Schoolroutes" +
             "</span>";
@@ -594,11 +614,11 @@ const layerControl = new LayerControl([{
 },
 {
     name: "Werken",
-    layers: ["gipod"],
+    layers: ["gipod-con", "gipod-icon"],
     build: (el, c) => {
-        el.innerHTML = "<span>" +
+        el.innerHTML = "<div>" +
             "<img src=\"" + Icons["road-works"].svg + "\" />" +
-            "</span>" +
+            "</div>" +
             "<span>" +
             "Wegenwerken" +
             "</span>";
