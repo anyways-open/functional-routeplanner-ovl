@@ -29,8 +29,6 @@ export class RoutingLocation {
     public updateMarkerType(type: "start" | "via" | "end") {
         const element = this.marker.getElement();
 
-        console.log(`update to ${type}`);
-
         element.innerHTML = "";
         if (type == "end") {
             element.className = "marker-destination mapboxgl-marker";

@@ -623,7 +623,8 @@ export class RoutingComponent implements IControl {
             locationDetails = this._createMarkerRoutingLocation(l, "via", "");
         }
         this.locations.splice(index, 0, locationDetails);
-        this.routes.clearForLocation(index);
+        if (index > 0) this.routes.clearAt(index - 1);
+        this.routes.insert(index, null);
 
         // update ui.
         this.ui.insertLocation(index, { type: "via" });
@@ -644,7 +645,7 @@ export class RoutingComponent implements IControl {
         });
         this.events.trigger("state", {
             state: this._getState()
-        })
+        });
 
         // calculate if locations.
         if (this.locations.length > 1) {
@@ -768,12 +769,8 @@ export class RoutingComponent implements IControl {
                 profile: profile,
                 alternatives: doAlternatives ? 2 : null
             }, e => {
-
-                console.log(`Route result ${i}`);
-                console.log(e);
-
                 if (this.routeSequence != sequenceNumber) {
-                    console.log(`Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`);
+                    console.warn(`Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`);
                     return;
                 }
 
@@ -864,7 +861,6 @@ export class RoutingComponent implements IControl {
         // add alternative route(s).
         for (let a = 0; a < this.routes.alternativeCount(); a++) {
             const routeSegment = this.routes.getAlternativeSegments(a);
-            console.log(routeSegment);
             if (!routeSegment) continue;
 
             const geojson = routeSegment as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
@@ -904,8 +900,6 @@ export class RoutingComponent implements IControl {
             while (1 < this.ui.routeCount()) {
                 this.ui.removeRoute(0);
             }
-
-            console.log(this.ui.routeCount());
             if (this.ui.routeCount() == 1) {
                 this.ui.updateRoute(0, routeDetails[this.route].description, routeDetails[this.route], true);
             } else {
@@ -1182,8 +1176,6 @@ export class RoutingComponent implements IControl {
         });
 
         if (features.length > 0) {
-            console.log(features.length);
-
             let route = -1;
             features.forEach(f => {
                 if (f.geometry.type == "LineString") {
@@ -1238,18 +1230,18 @@ export class RoutingComponent implements IControl {
 
                 features.forEach(f => {
                     if (f.geometry.type == "LineString") {
-                        if (f.properties && typeof (f.properties["_route-index"]) != "undefined") {
+                        if (f.properties && typeof (f.properties["_route-segment-index"]) != "undefined") {
                             const s = turf.nearestPointOnLine(f.geometry, [e.lngLat.lng, e.lngLat.lat]);
                             if (typeof (s) === "undefined") return;
                             if (s.properties.dist) {
                                 if (typeof (snapped) === "undefined") {
                                     snapped = s;
-                                    snapped.properties["_route-index"] = f.properties["_route-index"];
+                                    snapped.properties["_route-segment-index"] = f.properties["_route-segment-index"];
                                 } else {
                                     if (snapped.properties.dist) return;
                                     if (s.properties.dist < snapped.properties.dist) {
                                         snapped = s;
-                                        snapped.properties["_route-index"] = f.properties["_route-index"];
+                                        snapped.properties["_route-segment-index"] = f.properties["_route-segment-index"];
                                     }
                                 }
                             }
@@ -1298,7 +1290,7 @@ export class RoutingComponent implements IControl {
                 throw Error("Snappoint not set but dragging.");
             }
 
-            const routeIndex: number = this.snapPoint.properties["_route-index"];
+            const routeIndex: number = this.snapPoint.properties["_route-segment-index"];
             this.insertLocation(routeIndex + 1, e.lngLat);
             const snapSource: GeoJSONSource = this.map.getSource("route-snap") as GeoJSONSource;
             const empty: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
@@ -1339,8 +1331,6 @@ export class RoutingComponent implements IControl {
         const result = this.latestSearchResults.results[idx];
         const index = this.latestSearchResults.location;
 
-        console.log("Accepted " + this.latestSearchResults.results[idx].description + " for route " + index);
-        console.log(this.locations);
         this.setLocation(index, result.location, result.description);
 
         this.latestSearchResults = { location: idx, results: [] };

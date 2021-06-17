@@ -11,6 +11,16 @@ export class Routes {
         this.alternatives = null;
     }
 
+    clearAt(startLocationIdx: number) {
+        this.alternatives = null;
+
+        if (this.route) {
+            if (this.route.segments.length > startLocationIdx) {
+                this.route.segments[startLocationIdx] = null;
+            }
+        }
+    }
+
     clearForLocation(idx: number) {
         this.alternatives = null;
 
@@ -30,6 +40,10 @@ export class Routes {
         if (this.route) {
             this.route.segments.splice(idx, 1);
         }
+    }
+
+    insert(startLocationIdx: number, route?: GeoJSON.FeatureCollection<GeoJSON.Geometry>): void {
+        this.route.segments.splice(startLocationIdx, 0, route);
     }
 
     set(startLocationIdx: number, route: GeoJSON.FeatureCollection<GeoJSON.Geometry>): void {
