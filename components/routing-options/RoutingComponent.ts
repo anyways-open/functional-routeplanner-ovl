@@ -12,18 +12,20 @@ import { StateEvent } from "./events/StateEvent";
 import { UI } from "./UI";
 import { GeocodingControl } from "../geocoder/GeocoderControl";
 import { ProfileConfig } from "./ProfileConfig";
+import { Routes } from "./Routes";
 var togpx = require('togpx');
 
 export type EventBase = LocationEvent | ProfilesEvent | RouteEvent | StateEvent
 
 export class RoutingComponent implements IControl {
     readonly api: RoutingApi;
-    readonly routes: { // an array of routes along all locations.
-        routes: {
-            route: unknown, // the route or multiple if alternative routes.
-            description: string
-        }[]
-    }[] = [];
+    readonly routes: Routes = new Routes();
+    // readonly routes: { // an array of routes along all locations.
+    //     routes: {
+    //         route: unknown, // the route or multiple if alternative routes.
+    //         description: string
+    //     }[]
+    // }[] = [];
     readonly locations: RoutingLocation[] = [
         new RoutingLocation(-2, false),
         new RoutingLocation(-1, false)];
@@ -142,9 +144,7 @@ export class RoutingComponent implements IControl {
         this.ui.selectProfile(this.profile);
 
         // reset routes and recalculate.
-        for (let i = 0; i < this.routes.length; i++) {
-            this.routes[i] = null;
-        }
+        this.routes.clear();
 
         // parse locations.
         for (let l = 1; l < locs.length; l++) {
@@ -191,11 +191,32 @@ export class RoutingComponent implements IControl {
 
     private _downloadRoute(idx: number) {
 
+        let segments: GeoJSON.FeatureCollection<GeoJSON.Geometry>[];
+        if (idx == 0) {
+            // regular route.
+            segments = this.routes.getSegments();
+        } else {
+            // alternative route.
+            segments = [ this.routes.getAlternativeSegments(idx - 1) ];
+        }
+
+        // convert to a single linestring per segment.
         var features = [];
-        this.routes.forEach((r) => {
-            r.routes[idx].route.features.forEach(f => {
-                features.push(f);
+        segments.forEach((r) => {
+            const coordinates = [];
+            r.features.forEach(f => {
+                if (f.geometry.type == "LineString") {
+                    if (coordinates.length == 0) {
+                        coordinates.push(...f.geometry.coordinates);
+                    } else {
+                        coordinates.push(...f.geometry.coordinates.slice(1));
+                    }
+                } else {
+                    features.push(f);
+                }
             });
+
+            features.push(turf.lineString(coordinates));
         });
         var geojson = turf.featureCollection(features);
 
@@ -227,9 +248,7 @@ export class RoutingComponent implements IControl {
         this.profile = p;
 
         // reset routes and recalculate.
-        for (let i = 0; i < this.routes.length; i++) {
-            this.routes[i] = null;
-        }
+        this.routes.clear();
 
         this.events.trigger("state", {
             state: this._getState()
@@ -331,9 +350,7 @@ export class RoutingComponent implements IControl {
         this.profile = this.profiles.findIndex(p => p.config.id === id);
 
         // reset routes and recalculate.
-        for (let i = 0; i < this.routes.length; i++) {
-            this.routes[i] = null;
-        }
+        this.routes.clear();
         this._calculateRoute();
     }
 
@@ -485,7 +502,6 @@ export class RoutingComponent implements IControl {
             const previousLocation = this.locations[this.locations.length - 2];
             this.ui.updateLocation(this.locations.length - 2, { type: "via", value: previousLocation.name });
             previousLocation.updateMarkerType("via");
-            //this._updateMarkerType(previousLocation.getMarker(), "via");
         }
 
         // trigger reverse geocode if needed.
@@ -541,8 +557,7 @@ export class RoutingComponent implements IControl {
         }
 
         // make sure route recalculates.
-        if (index > 0) this.routes[index - 1] = null;
-        this.routes[index] = null;
+        this.routes.clearForLocation(index);
 
         // update ui.
         if (this.ui.count() > index) {
@@ -554,7 +569,6 @@ export class RoutingComponent implements IControl {
             const previousLocation = this.locations[this.locations.length - 2];
             this.ui.updateLocation(this.locations.length - 2, { type: "via", value: previousLocation.name });
             previousLocation.updateMarkerType("via");
-            //this._updateMarkerType(previousLocation.getMarker(), "via");
         }
 
         // trigger reverse geocode if needed.
@@ -609,8 +623,7 @@ export class RoutingComponent implements IControl {
             locationDetails = this._createMarkerRoutingLocation(l, "via", "");
         }
         this.locations.splice(index, 0, locationDetails);
-        if (index > 0) this.routes[index - 1] = undefined;
-        this.routes.splice(index, 0, undefined);
+        this.routes.clearForLocation(index);
 
         // update ui.
         this.ui.insertLocation(index, { type: "via" });
@@ -664,10 +677,6 @@ export class RoutingComponent implements IControl {
         }
 
         const removed = this.locations[index];
-        if (!removed) {
-            console.log(removed);
-            console.log(this.locations);
-        }
         const removedLocation = removed.getLngLat();
 
         // remove marker from map.           
@@ -703,16 +712,7 @@ export class RoutingComponent implements IControl {
         }
 
         // remove route with this location as target.
-        if (index > 0 && index - 1 < this.routes.length) {
-            this.routes[index - 1] = null;
-        }
-        // remove route with this location as origin.
-        if (index < this.routes.length) {
-            this.routes[index] = null;
-        }
-        if (index < this.routes.length) {
-            this.routes.splice(index);
-        }
+        this.routes.removeForLocation(index);
 
         // update map.
         this._updateRoutesLayer();
@@ -729,7 +729,7 @@ export class RoutingComponent implements IControl {
         });
         this.events.trigger("state", {
             state: this._getState()
-        })
+        });
     }
 
     private _updateLocationLocation(i: number, location: { lng: number; lat: number }): void {
@@ -758,10 +758,7 @@ export class RoutingComponent implements IControl {
         const doAlternatives = locations.length == 2;
         for (let i = 0; i < locations.length - 1; i++) {
             // make sure the array has minimum dimensions.
-            while (this.routes.length <= i) {
-                this.routes.push(null);
-            }
-            if (this.routes[i]) continue;
+            if (this.routes.hasRoute(i)) continue;
             if (!locations[i]) continue;
             if (!locations[i + 1]) continue;
 
@@ -775,44 +772,30 @@ export class RoutingComponent implements IControl {
                 console.log(`Route result ${i}`);
                 console.log(e);
 
-                console.log(`Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`);
                 if (this.routeSequence != sequenceNumber) {
                     console.log(`Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`);
                     return;
                 }
 
-                let routes = [];
                 if (e[profile + "0"]) {
-                    routes.push({
-                        route: e[profile + "0"],
-                        description: "Aangeraden route"
-                    });
+                    this.routes.set(i, e[profile + "0"]);
 
                     for (var a = 1; a <= 3; a++) {
-                        var altnerative = e[profile + `${a}`];
-                        if (altnerative) {
-                            routes.push({
-                                route: altnerative,
-                                description: `Alternatief ${a}`
-                            });
+                        var alternative = e[profile + `${a}`];
+                        if (alternative) {
+                            this.routes.setAlternative(a - 1, alternative)
                         }
                     }
                 } else {
-                    routes.push({
-                        route: e,
-                        description: "Aangeraden route"
-                    });
+                    this.routes.set(i, e);
                 }
 
-                this.routes[i] = {
-                    routes: routes
-                };
                 this._updateRoutesLayer();
 
                 this.events.trigger("route", {
                     component: this,
                     index: i,
-                    route: this.routes[i]
+                    route: this.routes.get(i)
                 });
             });
         }
@@ -826,66 +809,92 @@ export class RoutingComponent implements IControl {
 
         // route details, usually just 1, but there could be an alternative route.
         const routeDetails: { distance: number, time: number, description: string }[] = [];
+
+        // add regular route.
+        const routeSegments = this.routes.getSegments();
         let firstLineString: GeoJSON.LineString = null;
+        for (let i = 0; i < routeSegments.length; i++) {
+            const routeSegment = routeSegments[i];
+            if (!routeSegment) continue;
 
-        for (let i = 0; i < this.routes.length; i++) {
-            if (!this.routes[i]) continue;
+            const geojson = routeSegment as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
 
-            const routes = this.routes[i].routes;
+            let routeDetail = { distance: 0, time: 0, description: "Aangeraden route" };
+            if (geojson && geojson.features) {
+                let routeDistance = 0;
+                let routeTime = 0;
 
-            let lastLineString: GeoJSON.LineString = null;
-            routes.forEach((route, r) => {
-                const geojson = route.route as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
-
-                let routeDetail = { distance: 0, time: 0, description: route.description };
-                if (r < routeDetails.length) {
-                    routeDetail = routeDetails[r];
-                } else {
-                    routeDetails.push(routeDetail);
-                }
-
-                if (geojson && geojson.features) {
-                    let routeDistance = 0;
-                    let routeTime = 0;
-
-                    geojson.features.forEach((f) => {
-                        if (f && f.properties) {
-                            if (f.properties.distance) {
-                                routeDistance = parseFloat(f.properties.distance);
-                            }
-                            if (f.properties.time) {
-                                routeTime = parseFloat(f.properties.time);
-                            }
-                            f.properties["_route-segment-index"] = i;
-                            f.properties["_route-index"] = r;
-
-                            if (r == this.route) {
-                                if (f.geometry.type == "LineString") {
-                                    if (!firstLineString) {
-                                        firstLineString = f.geometry as GeoJSON.LineString;
-                                    }
-                                    lastLineString = f.geometry as GeoJSON.LineString;
-                                }
-                            }
+                let lastLineString: GeoJSON.LineString = null;
+                geojson.features.forEach((f) => {
+                    if (f && f.properties) {
+                        if (f.properties.distance) {
+                            routeDistance = parseFloat(f.properties.distance);
                         }
-                    });
-                    routeDetail.distance += routeDistance;
-                    routeDetail.time += routeTime;
+                        if (f.properties.time) {
+                            routeTime = parseFloat(f.properties.time);
+                        }
+                        f.properties["_route-segment-index"] = i;
+                        f.properties["_route-index"] = 0;
 
-                    routesFeatures.features =
-                        routesFeatures.features.concat(geojson.features);
-
-                    if (lastLineString) {
-                        const c = lastLineString.coordinates[lastLineString.coordinates.length - 1];
-                        this._updateLocationLocation(i + 1, { lng: c[0], lat: c[1] });
+                            if (f.geometry.type == "LineString") {
+                                if (!firstLineString) {
+                                    firstLineString = f.geometry as GeoJSON.LineString;
+                                    const c = firstLineString.coordinates[0];
+                                    this._updateLocationLocation(0, { lng: c[0], lat: c[1] });
+                                }
+                                lastLineString = f.geometry as GeoJSON.LineString;
+                            }
                     }
+                });
+                routeDetail.distance += routeDistance;
+                routeDetail.time += routeTime;
+
+                routesFeatures.features =
+                    routesFeatures.features.concat(geojson.features);
+
+                if (lastLineString) {
+                    const c = lastLineString.coordinates[lastLineString.coordinates.length - 1];
+                    this._updateLocationLocation(i + 1, { lng: c[0], lat: c[1] });
                 }
-            });
+            }
+                
+            routeDetails.push(routeDetail);
         }
 
-        if (firstLineString) {
-            const c = firstLineString.coordinates[0];
-            this._updateLocationLocation(0, { lng: c[0], lat: c[1] });
+        // add alternative route(s).
+        for (let a = 0; a < this.routes.alternativeCount(); a++) {
+            const routeSegment = this.routes.getAlternativeSegments(a);
+            console.log(routeSegment);
+            if (!routeSegment) continue;
+
+            const geojson = routeSegment as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
+
+            let routeDetail = { distance: 0, time: 0, description: "Alternative route" };
+            if (geojson && geojson.features) {
+                let routeDistance = 0;
+                let routeTime = 0;
+
+                let lastLineString: GeoJSON.LineString = null;
+                geojson.features.forEach((f) => {
+                    if (f && f.properties) {
+                        if (f.properties.distance) {
+                            routeDistance = parseFloat(f.properties.distance);
+                        }
+                        if (f.properties.time) {
+                            routeTime = parseFloat(f.properties.time);
+                        }
+                        f.properties["_route-segment-index"] = 0;
+                        f.properties["_route-index"] = a + 1;
+                    }
+                });
+                routeDetail.distance += routeDistance;
+                routeDetail.time += routeTime;
+
+                routesFeatures.features =
+                    routesFeatures.features.concat(geojson.features);
+            }
+                
+            routeDetails.push(routeDetail);
         }
 
         const source: GeoJSONSource = this.map.getSource("route") as GeoJSONSource;
@@ -896,6 +905,7 @@ export class RoutingComponent implements IControl {
                 this.ui.removeRoute(0);
             }
 
+            console.log(this.ui.routeCount());
             if (this.ui.routeCount() == 1) {
                 this.ui.updateRoute(0, routeDetails[this.route].description, routeDetails[this.route], true);
             } else {
@@ -1122,13 +1132,7 @@ export class RoutingComponent implements IControl {
             }
 
             // recalculate route with this location as target.
-            if (index > 0 && index - 1 < this.routes.length) {
-                this.routes[index - 1] = null;
-            }
-            // recalculate route with this location as origin.
-            if (index < this.routes.length) {
-                this.routes[index] = null;
-            }
+            this.routes.clearForLocation(index);
 
             // trigger geocode.
             const lngLat = marker.getLngLat();
