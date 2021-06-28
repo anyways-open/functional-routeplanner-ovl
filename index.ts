@@ -213,8 +213,8 @@ map.on("load", () => {
             "all",
             [
                 "==",
-                "cycle_network",
-                "cycle_highway"
+                "cycle_highway",
+                "yes"
             ],
             [
                 "!=",
