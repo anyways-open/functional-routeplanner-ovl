@@ -226,6 +226,7 @@ map.on("load", () => {
 
     const nodesColor = "#ccad00";
     const schoolRoutesColor = "#00cc00";
+    const bffRoutesColor = "#cc0000";
 
     map.addLayer({
         "id": "cycle-node-network-case",
@@ -278,8 +279,8 @@ map.on("load", () => {
             "all",
             [
                 "==",
-                "cycle_network",
-                "cycle_highway"
+                "cycle_highway",
+                "yes"
             ],
             [
                 "!=",
@@ -513,6 +514,40 @@ map.on("load", () => {
         ]
     }, lowestSymbol);
 
+
+
+    map.addSource("bff", {
+        type: "geojson",
+        data: data.bff
+    });
+
+    map.addLayer({
+        "id": "bff",
+        "type": "line",
+        "source": "bff",
+        "minzoom": 11,
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "paint": {
+            "line-color": bffRoutesColor,
+            "line-width": [
+                "interpolate", ["linear"], ["zoom"],
+                10, 1,
+                12, 4,
+                16, 12
+            ],
+            "line-opacity":[
+                "interpolate", ["linear"], ["zoom"],
+                10, 0,
+                12, 0.3,
+                16, 1
+            ]
+        }
+    }, lowestSymbol);
+
+
     map.addLayer(
         {
             'id': 'gipod-con',
@@ -597,6 +632,21 @@ const layerControl = new LayerControl([{
     },
     visible: false,
     enabled: false
+},
+{
+    id: "BF",
+    name: "Bovenlokaal Functioneel Fietsnetwerk",
+    layers: ["bff"],
+    build: (el, c) => {
+        el.innerHTML = "<div>" +
+            "<img src=\"" + Icons["network"].svg + "\" />" +
+            "</div>" +
+            "<span>" +
+            "Functioneel Netwerk" +
+            "</span>";
+    },
+    visible: false,
+    enabled: true
 },
 {
     id: "GP",

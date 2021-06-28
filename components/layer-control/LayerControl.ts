@@ -155,9 +155,6 @@ export class LayerControl implements IControl {
             }
         });
 
-        console.log(layers);
-        console.log(this.layers);
-
         this._buildLayers();
         this.layers.forEach(l => {
             l.config.layers.forEach(lid => {
@@ -184,7 +181,6 @@ export class LayerControl implements IControl {
         let layers: string[] = [];
         this.layers.forEach(l => {
             if (l.enabled != l.config.enabled) {
-                console.log("Enabled differs: " + l.config.id);
                 if (l.enabled) {
                     if (l.visible) {
                         layers.push(`${l.config.id}1`);
