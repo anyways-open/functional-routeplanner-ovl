@@ -516,36 +516,6 @@ map.on("load", () => {
 
 
 
-    // map.addSource("bff", {
-    //     type: "geojson",
-    //     data: data.bff
-    // });
-
-    // map.addLayer({
-    //     "id": "bff",
-    //     "type": "line",
-    //     "source": "bff",
-    //     "minzoom": 11,
-    //     "layout": {
-    //         "line-join": "round",
-    //         "line-cap": "round"
-    //     },
-    //     "paint": {
-    //         "line-color": bffRoutesColor,
-    //         "line-width": [
-    //             "interpolate", ["linear"], ["zoom"],
-    //             10, 1,
-    //             12, 4,
-    //             16, 12
-    //         ],
-    //         "line-opacity":[
-    //             "interpolate", ["linear"], ["zoom"],
-    //             10, 0,
-    //             12, 0.3,
-    //             16, 1
-    //         ]
-    //     }
-    // }, lowestSymbol);
 
 
     map.addLayer(
@@ -573,6 +543,49 @@ map.on("load", () => {
             },
         }
     );
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", "https://static.anyways.eu/data/bff.geojson");
+    xhr.onload = () => {
+        if (xhr.status === 200) {
+            let response = JSON.parse(xhr.responseText);
+
+            map.addSource("bff", {
+                type: "geojson",
+                data: response
+            });
+        
+            map.addLayer({
+                "id": "bff",
+                "type": "line",
+                "source": "bff",
+                "minzoom": 11,
+                "layout": {
+                    "line-join": "round",
+                    "line-cap": "round"
+                },
+                "paint": {
+                    "line-color": bffRoutesColor,
+                    "line-width": [
+                        "interpolate", ["linear"], ["zoom"],
+                        10, 1,
+                        12, 4,
+                        16, 12
+                    ],
+                    "line-opacity":[
+                        "interpolate", ["linear"], ["zoom"],
+                        10, 0,
+                        12, 0.3,
+                        16, 1
+                    ]
+                }
+            }, lowestSymbol);
+        }
+        else {
+            console.log("getProfiles failed: " + xhr.status);
+        }
+    };
+    xhr.send();
 
     baseLayerControl.on("toggle", (on) => {
         if (on) {
@@ -632,6 +645,20 @@ const layerControl = new LayerControl([{
     },
     visible: false,
     enabled: false
+},{
+    id: "BF",
+    name: "Bovenlokaal Functioneel Fietsnetwerk",
+    layers: ["bff"],
+    build: (el, c) => {
+        el.innerHTML = "<div>" +
+            "<img src=\"" + Icons["network"].svg + "\" />" +
+            "</div>" +
+            "<span>" +
+            "Functioneel Netwerk" +
+            "</span>";
+    },
+    visible: false,
+    enabled: true
 },
 {
     id: "GP",

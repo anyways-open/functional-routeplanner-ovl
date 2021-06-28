@@ -66,7 +66,7 @@ export class LayerControl implements IControl {
     private toggleLayer(layerId: string, visible: boolean) {
         const layer = this.map.getLayer(layerId);
 
-        //if (typeof layer == "undefined") return;
+        if (typeof layer == "undefined") return;
 
         if (visible) {
             this.map.setLayoutProperty(layerId, "visibility", "visible");
