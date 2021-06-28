@@ -4,7 +4,6 @@ import { LayerControl } from "./components/layer-control/LayerControl";
 import { OsmAttributionControl } from "./components/osm-attribution-control/OsmAttributionControl";
 import { EventBase, RoutingComponent } from "./components/routing-options/RoutingComponent";
 import "./components/routing-options/RoutingComponent.css";
-import { UrlHash } from "@anyways-open/url-hash";
 import { ProfilesEvent } from "./components/routing-options/events/ProfilesEvent";
 import "bootstrap";
 import { StateEvent } from "./components/routing-options/events/StateEvent";
@@ -18,9 +17,10 @@ import { HelpButton } from "./components/help-button/HelpButton";
 import { OpenCageDataProvider } from "./components/geocoder/Providers/OpenCageDataProvider";
 import { CrabGeolocationProvider } from "./components/geocoder/Providers/CrabGeolocationProvider";
 import { ChainedProvider } from "./components/geocoder/Providers/ChainedProvider";
+import { UrlParamHandler } from "./components/url-hash/URLHashHandler";
 
-
-const urlState = UrlHash.read();
+const urlHasher = new UrlParamHandler();
+const urlState = urlHasher.getState();
 
 // parse the map state.
 const mapState: {
@@ -148,7 +148,7 @@ map.on("load", () => {
         const center = map.getCenter();
         urlState.map = `${map.getZoom().toFixed(2)}/${center.lng.toFixed(5)}/${center.lat.toFixed(5)}`;
 
-        UrlHash.write(urlState);
+        urlHasher.update(urlState);
     }
     if (typeof urlState.map === "undefined") {
         updateMapUrlState();
@@ -550,13 +550,77 @@ map.on("load", () => {
             map.setPaintProperty("cycle-highways-case", "line-color", "#fff");
         }
     });
+
+
+
+const layerControl = new LayerControl([{
+    id: "LN",
+    name: "Lokaal Netwerk",
+    layers: ["cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case"],
+    build: (el, c) => {
+        el.innerHTML = "<div>" +
+            "<img src=\"" + Icons["network"].svg + "\" />" +
+            "</div>" +
+            "<span>" +
+            "Lokaal Netwerk" +
+            "</span>";
+    },
+    visible: true,
+    enabled: true
+},
+{
+    id: "FS",
+    name: "Fietssnelwegen",
+    layers: ["cycle-highways-case", "cycle-highways"],
+    build: (el, c) => {
+        el.innerHTML = "<div>" +
+            "<img src=\"" + Icons["highway"].svg + "\" />" +
+            "</div>" +
+            "<span>" +
+            "Fietssnelwegen" +
+            "</span>";
+    },
+    visible: true,
+    enabled: true
+},
+{
+    id: "SR",
+    name: "Schoolroutes",
+    layers: ["school-routes", "school-routes-unsafe", "school-routes-semi"],
+    build: (el, c) => {
+        el.innerHTML = "<div>" +
+            "<img src=\"" + Icons["school"].svg + "\" />" +
+            "</div>" +
+            "<span>" +
+            "Schoolroutes" +
+            "</span>";
+    },
+    visible: false,
+    enabled: false
+},
+{
+    id: "GP",
+    name: "Wegenwerken",
+    layers: ["gipod-con", "gipod-icon"],
+    build: (el, c) => {
+        el.innerHTML = "<div>" +
+            "<img src=\"" + Icons["road-works"].svg + "\" />" +
+            "</div>" +
+            "<span>" +
+            "Wegenwerken" +
+            "</span>";
+    },
+    visible: false,
+    enabled: true
+}], urlHasher);
+map.addControl(layerControl, "bottom-right");
 });
 
 rc.on("state", (e: EventBase) => {
     const s = e as StateEvent;
 
     urlState.route = s.state;
-    UrlHash.write(urlState);
+    urlHasher.update(urlState);
 });
 
 rc.on("profiles-loaded", () => {
@@ -572,57 +636,3 @@ rc.on("profiles-loaded", () => {
 map.addControl(rc, "top-left");
 
 rc.on("legenda", () => legendaControl.show());
-
-const layerControl = new LayerControl([{
-    name: "Node Networks",
-    layers: ["cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case"],
-    build: (el, c) => {
-        el.innerHTML = "<div>" +
-            "<img src=\"" + Icons["network"].svg + "\" />" +
-            "</div>" +
-            "<span>" +
-            "Lokaal Netwerk" +
-            "</span>";
-    },
-    visible: true
-},
-{
-    name: "Cycle Highways",
-    layers: ["cycle-highways-case", "cycle-highways"],
-    build: (el, c) => {
-        el.innerHTML = "<div>" +
-            "<img src=\"" + Icons["highway"].svg + "\" />" +
-            "</div>" +
-            "<span>" +
-            "Fietssnelwegen" +
-            "</span>";
-    },
-    visible: true
-},
-{
-    name: "Schoolroutes",
-    layers: ["school-routes", "school-routes-unsafe", "school-routes-semi"],
-    build: (el, c) => {
-        el.innerHTML = "<div>" +
-            "<img src=\"" + Icons["school"].svg + "\" />" +
-            "</div>" +
-            "<span>" +
-            "Schoolroutes" +
-            "</span>";
-    },
-    visible: false
-},
-{
-    name: "Werken",
-    layers: ["gipod-con", "gipod-icon"],
-    build: (el, c) => {
-        el.innerHTML = "<div>" +
-            "<img src=\"" + Icons["road-works"].svg + "\" />" +
-            "</div>" +
-            "<span>" +
-            "Wegenwerken" +
-            "</span>";
-    },
-    visible: false
-}]);
-map.addControl(layerControl, "bottom-right");

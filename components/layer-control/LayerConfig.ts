@@ -1,6 +1,8 @@
 export interface LayerConfig {
-    readonly name: string
-    readonly layers: string[]
-    readonly build?: ((element: HTMLElement, config: LayerConfig) => void)
-    visible?: boolean
+    readonly id: string;
+    readonly name: string;
+    readonly layers: string[];
+    readonly build?: ((element: HTMLElement, config: LayerConfig) => void);
+    readonly visible: boolean;
+    readonly enabled: boolean;
 }
