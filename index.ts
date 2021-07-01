@@ -291,6 +291,39 @@ map.on("load", () => {
     }, lowestLabel);
 
     map.addLayer({
+        "id": "cycle-highways-labels",
+        "type": "symbol",
+        "source": "cyclenetworks-tiles",
+        "source-layer": "cyclenetwork",
+        "minzoom": 12.5,
+        "layout": {
+            "text-field": "{ref}",
+            "text-size": 15,
+            "symbol-placement": "line",
+            "symbol-spacing": 100
+        },
+        "paint": {
+            "text-color": "#ff0000",
+            "text-halo-color": "#FFFFFF",
+            "text-halo-width": 1.5,
+            "text-halo-blur": 1
+        },
+        "filter": [
+            "all",
+            [
+                "==",
+                "cycle_highway",
+                "yes"
+            ],
+            [
+                "!=",
+                "state",
+                "proposed"
+            ]
+        ]
+    });
+
+    map.addLayer({
         "id": "cycle-node-network",
         "type": "line",
         "source": "cyclenetworks-tiles",
