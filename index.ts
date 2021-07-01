@@ -10,7 +10,8 @@ import { StateEvent } from "./components/routing-options/events/StateEvent";
 import { GeocodingControl } from "./components/geocoder/GeocoderControl";
 import { BaseLayerControl } from "./components/baselayer-control/BaseLayerControl";
 import BaseLayerImages from "./assets/img/base-layers/*.png";
-import Icons from "./assets/img/icons/*.*";
+import SvgIcons from "./assets/img/icons/*.svg";
+import PngIcons from "./assets/img/icons/*.png";
 import { Data } from "./data";
 import { LegendaControl } from "./components/legenda/Legenda";
 import { HelpButton } from "./components/help-button/HelpButton";
@@ -66,11 +67,11 @@ const rc = new RoutingComponent(ra, {
     profiles: [{
         id: "bicycle.commute",
         description: "Functioneel fietsen",
-        image: Icons["bicycle"].svg
+        image: SvgIcons["bicycle"]
     }, {
         id: "bicycle.functional_network",
         description: "Fietsnetwerken",
-        image: Icons["network"].svg
+        image: SvgIcons["network"]
     }]
 });
 
@@ -421,7 +422,7 @@ map.on("load", () => {
     });
 
     var data = new Data();
-    
+
     map.addSource("school-routes", {
         type: "geojson",
         data: data.schoolRoutes()
@@ -562,7 +563,7 @@ map.on("load", () => {
                 type: "geojson",
                 data: response
             });
-        
+
             map.addLayer({
                 "id": "bff",
                 "type": "line",
@@ -580,7 +581,7 @@ map.on("load", () => {
                         12, 4,
                         16, 12
                     ],
-                    "line-opacity":[
+                    "line-opacity": [
                         "interpolate", ["linear"], ["zoom"],
                         10, 0,
                         12, 0.3,
@@ -594,6 +595,101 @@ map.on("load", () => {
         }
     };
     xhr.send();
+
+    map.loadImage(PngIcons["bicycle-shop-32"], (e, i) => {
+        if (e) throw e;
+
+        map.addImage('bicycle-shop', i);
+
+        map.addLayer({
+            "id": "bicycle-shops-back",
+            "type": "circle",
+            "source": "openmaptiles",
+            "source-layer": "poi",
+            "minzoom": 15,
+            "paint": {
+                "circle-translate": [0,-10],
+                "circle-radius": 14,
+                "circle-color": "#FFF",
+                "circle-opacity": 0.5,
+                "circle-stroke-color": "#FFF",
+                "circle-stroke-width": 5,
+                "circle-stroke-opacity": 0.1,
+            },
+            "filter": [
+                "all",
+                ["==", "$type", "Point"],
+                ["in", "class", "bicycle"]
+            ]
+        });
+
+        map.addLayer({
+            "id": "bicycle-shops",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "poi",
+            "minzoom": 15,
+            "paint": {
+                "text-color": "#1da1f2",
+                "text-halo-color": "#FFF",
+                "text-halo-width": 1
+            },
+            "layout": {
+                "icon-image": "bicycle-shop",
+                "icon-anchor": "bottom",
+                "icon-size": 0.75,
+                "text-field": [ "format", ["get", "name"], { "font-scale": 0.8 } ],
+                "text-anchor": "top" 
+            },
+            "filter": [
+                "all",
+                ["==", "$type", "Point"],
+                ["in", "class", "bicycle"]
+            ]
+        });
+    });
+
+
+    map.loadImage(PngIcons["bicycle-parking-16"], (e, i) => {
+        if (e) throw e;
+
+        map.addImage('bicycle-parking', i);
+
+        map.addLayer({
+            "id": "bicycle-parkings-back",
+            "type": "circle",
+            "source": "openmaptiles",
+            "source-layer": "poi",
+            "minzoom": 15,
+            "paint": {
+                "circle-radius": 10,
+                "circle-color": "#FFF",
+                "circle-opacity": 0.7
+            },
+            "filter": [
+                "all",
+                ["==", "$type", "Point"],
+                ["in", "class", "bicycle_parking"]
+            ]
+        });
+
+        map.addLayer({
+            "id": "bicycle-parkings",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "poi",
+            "minzoom": 15,
+            "layout": {
+                "icon-image": "bicycle-parking",
+                "icon-size": 1
+            },
+            "filter": [
+                "all",
+                ["==", "$type", "Point"],
+                ["in", "class", "bicycle_parking"]
+            ]
+        });
+    });
 
     baseLayerControl.on("toggle", (on) => {
         if (on) {
@@ -609,81 +705,81 @@ map.on("load", () => {
 
 
 
-const layerControl = new LayerControl([{
-    id: "LN",
-    name: "Lokaal Netwerk",
-    layers: ["cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case"],
-    build: (el, c) => {
-        el.innerHTML = "<div>" +
-            "<img src=\"" + Icons["network"].svg + "\" />" +
-            "</div>" +
-            "<span>" +
-            "Lokaal Netwerk" +
-            "</span>";
+    const layerControl = new LayerControl([{
+        id: "LN",
+        name: "Lokaal Netwerk",
+        layers: ["cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case"],
+        build: (el, c) => {
+            el.innerHTML = "<div>" +
+                "<img src=\"" + SvgIcons["network"] + "\" />" +
+                "</div>" +
+                "<span>" +
+                "Lokaal Netwerk" +
+                "</span>";
+        },
+        visible: true,
+        enabled: true
     },
-    visible: true,
-    enabled: true
-},
-{
-    id: "FS",
-    name: "Fietssnelwegen",
-    layers: ["cycle-highways-case", "cycle-highways"],
-    build: (el, c) => {
-        el.innerHTML = "<div>" +
-            "<img src=\"" + Icons["highway"].svg + "\" />" +
-            "</div>" +
-            "<span>" +
-            "Fietssnelwegen" +
-            "</span>";
+    {
+        id: "FS",
+        name: "Fietssnelwegen",
+        layers: ["cycle-highways-case", "cycle-highways"],
+        build: (el, c) => {
+            el.innerHTML = "<div>" +
+                "<img src=\"" + SvgIcons["highway"] + "\" />" +
+                "</div>" +
+                "<span>" +
+                "Fietssnelwegen" +
+                "</span>";
+        },
+        visible: true,
+        enabled: true
     },
-    visible: true,
-    enabled: true
-},
-{
-    id: "SR",
-    name: "Schoolroutes",
-    layers: ["school-routes", "school-routes-unsafe", "school-routes-semi"],
-    build: (el, c) => {
-        el.innerHTML = "<div>" +
-            "<img src=\"" + Icons["school"].svg + "\" />" +
-            "</div>" +
-            "<span>" +
-            "Schoolroutes" +
-            "</span>";
+    {
+        id: "SR",
+        name: "Schoolroutes",
+        layers: ["school-routes", "school-routes-unsafe", "school-routes-semi"],
+        build: (el, c) => {
+            el.innerHTML = "<div>" +
+                "<img src=\"" + SvgIcons["school"] + "\" />" +
+                "</div>" +
+                "<span>" +
+                "Schoolroutes" +
+                "</span>";
+        },
+        visible: false,
+        enabled: false
+    }, {
+        id: "BF",
+        name: "Bovenlokaal Functioneel Fietsnetwerk",
+        layers: ["bff"],
+        build: (el, c) => {
+            el.innerHTML = "<div>" +
+                "<img src=\"" + SvgIcons["network"] + "\" />" +
+                "</div>" +
+                "<span>" +
+                "Functioneel Netwerk" +
+                "</span>";
+        },
+        visible: false,
+        enabled: true
     },
-    visible: false,
-    enabled: false
-},{
-    id: "BF",
-    name: "Bovenlokaal Functioneel Fietsnetwerk",
-    layers: ["bff"],
-    build: (el, c) => {
-        el.innerHTML = "<div>" +
-            "<img src=\"" + Icons["network"].svg + "\" />" +
-            "</div>" +
-            "<span>" +
-            "Functioneel Netwerk" +
-            "</span>";
-    },
-    visible: false,
-    enabled: true
-},
-{
-    id: "GP",
-    name: "Wegenwerken",
-    layers: ["gipod-con", "gipod-icon"],
-    build: (el, c) => {
-        el.innerHTML = "<div>" +
-            "<img src=\"" + Icons["road-works"].svg + "\" />" +
-            "</div>" +
-            "<span>" +
-            "Wegenwerken" +
-            "</span>";
-    },
-    visible: false,
-    enabled: true
-}], urlHasher);
-map.addControl(layerControl, "bottom-right");
+    {
+        id: "GP",
+        name: "Wegenwerken",
+        layers: ["gipod-con", "gipod-icon"],
+        build: (el, c) => {
+            el.innerHTML = "<div>" +
+                "<img src=\"" + SvgIcons["road-works"] + "\" />" +
+                "</div>" +
+                "<span>" +
+                "Wegenwerken" +
+                "</span>";
+        },
+        visible: false,
+        enabled: true
+    }], urlHasher);
+    map.addControl(layerControl, "bottom-right");
 });
 
 rc.on("state", (e: EventBase) => {

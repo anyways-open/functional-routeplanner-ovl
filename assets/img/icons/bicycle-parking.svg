@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   viewBox="0 0 72.054581 72.383751"
+   x="0px"
+   y="0px"
+   version="1.1"
+   id="svg909"
+   width="72.054581"
+   height="72.383751">
+  <metadata
+     id="metadata915">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Wayfinding</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs913" />
+  <title
+     id="title899">Wayfinding</title>
+  <path
+     d="M 0,41.200148 V 0.01014793 c 13.66,0 20.39,-0.14 23.21,0.62 4.55,1.18999997 8.31,5.29999997 8.31,12.00000007 0,14.92 -15.08,13 -23.21,13 v 15.57 z M 8.31,7.0201479 V 18.650148 c 6.69,0 14.65,1 14.65,-5.87 0,-6.8700001 -7.82,-5.8100001 -14.68,-5.8100001 z"
+     id="path901" />
+  <path
+     d="m 71.78,59.410148 a 10.69,10.69 0 0 0 -13.48,-8 l -4.24,-9.11 a 4,4 0 0 0 -5.34,-2 l -2.35,1.05 a 1.36,1.36 0 1 0 1.11,2.48 l 2.35,-1.05 a 1.33,1.33 0 0 1 1.75,0.67 l 2.42,5.27 -14.23,2 a 1.08,1.08 0 0 0 -0.52,0.24 l -3.19,2.77 a 10.68,10.68 0 1 0 3.25,8.71 h 4.54 a 1,1 0 0 0 0.71,-0.29 l 10.72,-10.73 0.53,1.14 a 10.69,10.69 0 1 0 16,6.86 z m -37,-1.93 a 7.25,7.25 0 0 1 1.1,3 h -4.5 z m -6.08,11.26 a 7.3,7.3 0 1 1 4.82,-12.77 l -5.43,4.71 a 1,1 0 0 0 0.66,1.75 h 7.18 a 7.3,7.3 0 0 1 -7.23,6.31 z m 10.64,-8.3 a 10.61,10.61 0 0 0 -1.94,-5.19 l 2.14,-1.85 2.86,7 z m 4.9,-0.78 -2.89,-7.13 11.65,-1.64 z m 18.65,9.17 a 7.3,7.3 0 0 1 -5.68,-13.15 l 2.79,6.29 a 1.36,1.36 0 0 0 2.48,-1.11 l -2.78,-6.27 h 0.07 a 7.3,7.3 0 0 1 3.13,14.26 z"
+     id="path903" />
+</svg>
