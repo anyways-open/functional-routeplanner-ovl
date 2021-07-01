@@ -388,32 +388,11 @@ map.on("load", () => {
     });
 
     var data = new Data();
-
+    
     map.addSource("school-routes", {
         type: "geojson",
         data: data.schoolRoutes()
     });
-
-    // map.addLayer({
-    //     "id": "school-routes-case",
-    //     "type": "line",
-    //     "source": "school-routes",
-    //     "layout": {
-    //         "line-join": "round",
-    //         "line-cap": "round"
-    //     },
-    //     "paint": {
-    //         "line-color": "#fff",
-    //         "line-gap-width": [
-    //             "interpolate", ["linear"], ["zoom"],
-    //             10, 3,
-    //             12, 3,
-    //             16, 3
-    //         ],
-    //         "line-width": 2
-    //     }
-    // }, lowestLabel);
-
 
     map.addLayer({
         "id": "school-routes",
@@ -513,10 +492,6 @@ map.on("load", () => {
             3
         ]
     }, lowestSymbol);
-
-
-
-
 
     map.addLayer(
         {

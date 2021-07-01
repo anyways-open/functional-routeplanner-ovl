@@ -143,13 +143,13 @@ export class RoutingComponent implements IControl {
         this.profile = this.profiles.findIndex(p => p.config.id == locs[0]);
         this.ui.selectProfile(this.profile);
 
-        // reset routes and recalculate.
+        // reset routes causing recalculate later.
         this.routes.clear();
 
         // parse locations.
         for (let l = 1; l < locs.length; l++) {
             const d = locs[l].split("/");
-            if (d.length != 3) return;
+            if (d.length != 3) continue;
 
             const loc = {
                 lng: parseFloat(d[1]),
@@ -157,6 +157,7 @@ export class RoutingComponent implements IControl {
             };
 
             const name = unescape(d[0]);
+
             const index = l - 1;
             let markerDetails: RoutingLocation = null;
             let type: "via" | "user" | "end" | "start" | "empty" = "empty";
