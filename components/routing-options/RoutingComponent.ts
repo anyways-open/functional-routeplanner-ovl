@@ -40,7 +40,7 @@ export class RoutingComponent implements IControl {
     private markerId = 0;
     private route = 0;
     private routeSequence = 0;
-    private latestSearchResults: { location: number, results: { description: string, location: { lng: number; lat: number } }[] };
+    private latestSearchResults: { location: number, results: { description: string, type: string, location: { lng: number; lat: number } }[] };
 
     constructor(api: RoutingApi, options?: {
         geocoder: GeocodingControl,
@@ -1319,11 +1319,12 @@ export class RoutingComponent implements IControl {
             this.ui.updateSearchResults([], "");
         }
 
-        this.geocoder.geocode(searchString, (result) => {
-            if (result.length == 0) return;
+        const mapCenter = this.map.getCenter();
+        this.geocoder.geocode({ string: searchString, location: { lon: mapCenter.lng, lat: mapCenter.lat} }, (results) => {
+            if (results.length == 0) return;
 
-            this.latestSearchResults = { location: idx, results: result };
-            this.ui.updateSearchResults(result, searchString);
+            this.latestSearchResults = { location: idx, results: results };
+            this.ui.updateSearchResults(results, searchString);
         });
     }
 

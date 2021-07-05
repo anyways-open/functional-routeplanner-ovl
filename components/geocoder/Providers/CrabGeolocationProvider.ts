@@ -1,3 +1,5 @@
+import { IForwardQuery } from "../IForwardQuery";
+import { IForwardResult } from "./IForwardResult";
 import { IProvider } from "./IProvider";
 
 export class CrabGeolocationProvider implements IProvider {
@@ -7,21 +9,38 @@ export class CrabGeolocationProvider implements IProvider {
         
     }
 
-    forward(query: string, callback: (results: { description: string; location: { lng: number; lat: number; }; }[]) => void): void {
+    name: string = "crab";
+
+    forward(query: IForwardQuery, callback: (results: IForwardResult[]) => void): void {
         const xhr = new XMLHttpRequest(); 
-        xhr.open("GET", `${this,this.apiRoot}/Location?q=${query}&c=5`);
+        xhr.open("GET", `${this,this.apiRoot}/Location?q=${query.string}&c=5`);
         xhr.onload = () => {
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
                 if (response.LocationResult) {
                     const results = [];
+
                     response.LocationResult.forEach(l => {
+                        let score = 50;
+                        let type = "commune";
+                        if (l.LocationType == "crab_straat") {
+                            type = "street";
+                            score = 70;
+                        } else if (l.LocationType.startsWith("crab_huisnummer")) {
+                            type = "address";
+                            score = 90;
+                        }
+
                         results.push({
                             description: l.FormattedAddress,
                             location: {
                                 lng: l.Location.Lon_WGS84,
                                 lat: l.Location.Lat_WGS84
-                            }
+                            },
+                            type: type,
+                            score: score,
+                            provider: this.name,
+                            raw: l
                         });
                     });
                     

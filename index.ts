@@ -19,6 +19,7 @@ import { OpenCageDataProvider } from "./components/geocoder/Providers/OpenCageDa
 import { CrabGeolocationProvider } from "./components/geocoder/Providers/CrabGeolocationProvider";
 import { ChainedProvider } from "./components/geocoder/Providers/ChainedProvider";
 import { UrlParamHandler } from "./components/url-hash/URLHashHandler";
+import { triangleGrid } from "@turf/turf";
 
 const urlHasher = new UrlParamHandler();
 const urlState = urlHasher.getState();
@@ -60,7 +61,27 @@ if (urlState.host === "staging") {
     routingEndpoint = "http://localhost:5000/"
 }
 
-const geocoder = new ChainedProvider([new CrabGeolocationProvider(), new OpenCageDataProvider("dcec93be31054bc5a260386c0d84be98")]);
+const geocoder = new ChainedProvider([ {
+        provider: new CrabGeolocationProvider(),
+        chainForward: (_, current) => {
+            const results = [];
+            let next = current.length == 0;
+            current.forEach(x => {
+                if (x.type == "commune") {
+                    next = true;
+                    return;
+                };
+
+                results.push(x);
+            });
+            return { next: next, results: results };
+        }
+    },
+    {
+        provider: new OpenCageDataProvider("dcec93be31054bc5a260386c0d84be98", {
+            language: "nl"
+        })
+    }]);
 const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
 const rc = new RoutingComponent(ra, {
     geocoder: new GeocodingControl(geocoder),

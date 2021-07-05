@@ -1,14 +1,18 @@
+import { IForwardQuery } from "../IForwardQuery";
+import { IForwardResult } from "./IForwardResult";
+
 export interface IProvider {
+    /**
+     * The name.
+     */
+    name: string,
 
     /**
      * Does a forward geocoding query.
      * @param query The search string.
      * @param callback The callback with the results.
      */
-    forward(query: string, callback: (results: { 
-        description: string,
-        location: { lng: number; lat: number}
-    }[]) => void): void;
+    forward(query: IForwardQuery, callback: (results: IForwardResult[]) => void): void;
 
     /**
      * Does a backard geocoding query.

@@ -1,5 +1,6 @@
 import ComponentHtml from "*.html";
 import SvgAssets from "./assets/*.svg";
+import GlobalSvgIconAssets from "../../assets/img/icons/*.svg";
 import { ProfileConfig } from "./ProfileConfig";
 import { UILocation } from "./UILocation";
 
@@ -243,7 +244,7 @@ export class UI {
         });
     }
 
-    updateSearchResults(searchResults: {description: string, location: { lng: number; lat: number }}[], searchString: string) {
+    updateSearchResults(searchResults: {description: string, type: string, location: { lng: number; lat: number }}[], searchString: string) {
         if (!this.searchResultsElement) {
             const searchResultsElement = document.createElement("div");
             searchResultsElement.className = "container";
@@ -259,8 +260,10 @@ export class UI {
             this._showRoutesDetails();
         }
 
+        console.log("updateSearchResults");
+        console.log(searchResults);
         searchResults.forEach((r, i) => {
-            this._buildSearchResult(this.searchResultsElement, r.description, searchString, 
+            this._buildSearchResult(this.searchResultsElement, r, searchString, 
                 () => {
                     this.geocodedEvent(i);
                 });
@@ -469,7 +472,7 @@ export class UI {
         return `${h} uur, ${m}`;
     }
 
-    private _buildSearchResult(element: HTMLElement, result: string, searchString: string,
+    private _buildSearchResult(element: HTMLElement, result: {description: string, type: string, location: { lng: number; lat: number }}, searchString: string,
         select: () => void): void {
 
         const rowElement = document.createElement("div");
@@ -479,17 +482,51 @@ export class UI {
         // });
         element.append(rowElement);
 
+        const iconImgElement = document.createElement("img");
+        iconImgElement.src = GlobalSvgIconAssets["marker-grey"];
+
         const iconElement = document.createElement("div");
         iconElement.className = "col-2 pl-4 py-2";
-        iconElement.innerHTML = ComponentHtml["markerGrey"];
+
+        console.log(result);
+        switch(result.type){
+            case "address":
+                iconImgElement.src = GlobalSvgIconAssets["house"];
+                break;
+            case "building":
+                iconImgElement.src = GlobalSvgIconAssets["building"];
+                break;
+            case "shop":
+            case "retail":
+                iconImgElement.src = GlobalSvgIconAssets["shop"];
+                break;
+            case "railway":
+                iconImgElement.src = GlobalSvgIconAssets["train"];
+                break;
+            case "bus_stop":
+                iconImgElement.src = GlobalSvgIconAssets["bus"];
+                break;
+            case "road":
+            case "street":
+                iconImgElement.src = GlobalSvgIconAssets["road"];
+                break;
+            case "city":
+            case "village":
+            case "neighbourhood":
+                iconImgElement.src = GlobalSvgIconAssets["city"];
+                break;
+        }
+
         iconElement.addEventListener("click", () => {
             select();
         });
+        iconElement.appendChild(iconImgElement);
+
         rowElement.append(iconElement);
 
         const resultElement = document.createElement("div");
         resultElement.className = "col-10 py-2 p-0";
-        resultElement.innerHTML = result;
+        resultElement.innerHTML = result.description;
         resultElement.addEventListener("click", () => {
             select();
         });
