@@ -737,6 +737,14 @@ export class RoutingComponent implements IControl {
     private _updateLocationLocation(i: number, location: { lng: number; lat: number }): void {
         const loc = this.locations[i];
         loc.setLngLat(location);
+
+        // trigger reverse geocoding.
+        const lngLat = LngLat.convert(location);
+        this.geocoder.reverseGeocode(lngLat, results => {
+            if (results?.length) {
+                this._updateLocationName(i, results[0].description);
+            }
+        });
     }
 
     private _calculateRoute(): void {
