@@ -1,6 +1,8 @@
 import { IForwardQuery } from "../IForwardQuery";
 import { IForwardResult } from "./IForwardResult";
 import { IProvider } from "./IProvider";
+import { IReverseResult } from "./IReverseResult";
+import * as turf from "@turf/turf";
 
 export class CrabGeolocationProvider implements IProvider {
     private apiRoot: string = "https://loc.geopunt.be/geolocation/";
@@ -54,8 +56,8 @@ export class CrabGeolocationProvider implements IProvider {
         xhr.send();
     }
 
-    reverse(l: { lng: number; lat: number; }, callback: (results: string[]) => void): void {
-        if (!l) return callback([ "Invalid location." ]);
+    reverse(l: { lng: number; lat: number; }, callback: (results: IReverseResult[]) => void): void {
+        if (!l) return callback([]);
         
         const xhr = new XMLHttpRequest(); 
         xhr.open("GET", `${this,this.apiRoot}/Location?q=${l.lat},${l.lng}&c=1`););
@@ -64,9 +66,16 @@ export class CrabGeolocationProvider implements IProvider {
                 const response = JSON.parse(xhr.responseText);
 
                 if (response.LocationResult) {
-                    const results = [];
-                    response.LocationResult.forEach(l => {
-                        results.push(l.FormattedAddress);
+                    const results: IReverseResult[] = [];
+                    response.LocationResult.forEach(lr => {
+                        results.push({ 
+                            description: lr.FormattedAddress,
+                            location: {
+                                lng: lr.Location.Lon_WGS84,
+                                lat: lr.Location.Lat_WGS84
+                            },
+                            distance: turf.distance([ l.lng, l.lat ], [ lr.Location.Lon_WGS84, lr.Location.Lat_WGS84 ]) * 1000
+                        });
                     });
                     
                     callback(results);

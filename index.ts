@@ -20,6 +20,8 @@ import { CrabGeolocationProvider } from "./components/geocoder/Providers/CrabGeo
 import { ChainedProvider } from "./components/geocoder/Providers/ChainedProvider";
 import { UrlParamHandler } from "./components/url-hash/URLHashHandler";
 import { triangleGrid } from "@turf/turf";
+import * as turf from "@turf/turf";
+
 
 const urlHasher = new UrlParamHandler();
 const urlState = urlHasher.getState();
@@ -61,6 +63,7 @@ if (urlState.host === "staging") {
     routingEndpoint = "http://localhost:5000/"
 }
 
+const maxReverseDistance = 100;
 const geocoder = new ChainedProvider([ {
         provider: new CrabGeolocationProvider(),
         chainForward: (_, current) => {
@@ -75,13 +78,28 @@ const geocoder = new ChainedProvider([ {
                 results.push(x);
             });
             return { next: next, results: results };
+        },
+        chainReverse: (l, _, current) => {
+            let next = current.length == 0;
+            if (current.length > 0) {
+                const dist = turf.distance([l.lng, l.lat], [current[0].location.lng, current[0].location.lat]) * 1000;
+                
+                if (dist > maxReverseDistance) {
+                    next = true;
+                    current = [];
+                }
+            }
+            return { next: next, results: current };
         }
     },
     {
         provider: new OpenCageDataProvider("dcec93be31054bc5a260386c0d84be98", {
             language: "nl"
         })
-    }]);
+    }], {
+        maxResults: 5,
+        maxReverseDistance: maxReverseDistance
+    });
 const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
 const rc = new RoutingComponent(ra, {
     geocoder: new GeocodingControl(geocoder),

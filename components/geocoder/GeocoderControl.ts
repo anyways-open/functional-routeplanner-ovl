@@ -1,6 +1,7 @@
 import { IForwardQuery } from "./IForwardQuery";
 import { IForwardResult } from "./IForwardResult";
 import { IProvider } from "./Providers/IProvider";
+import { IReverseResult } from "./Providers/IReverseResult";
 
 export class GeocodingControl {
 
@@ -10,7 +11,7 @@ export class GeocodingControl {
         this.provider = provider;
     }
 
-    reverseGeocode(l: { lng: number; lat: number}, callback: (results: string[]) => void): void {
+    reverseGeocode(l: { lng: number; lat: number}, callback: (results: IReverseResult[]) => void): void {
         this.provider.reverse(l, callback);
     }
 

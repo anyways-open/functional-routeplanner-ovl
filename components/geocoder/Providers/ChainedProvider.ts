@@ -2,14 +2,19 @@ import { IChangedProviderSettings } from "./IChainedProviderSettings";
 import { IForwardQuery } from "../IForwardQuery";
 import { IForwardResult } from "./IForwardResult";
 import { IProvider } from "./IProvider";
+import * as turf from "@turf/turf";
+import { IReverseResult } from "./IReverseResult";
 
 export class ChainedProvider implements IProvider {
     private providers: IChangedProviderSettings[] = [];
-    private settings: { maxResults: number };
+    private settings: { 
+        maxResults: number,
+        maxReverseDistance: number
+    };
 
-    constructor(providers: IChangedProviderSettings[], settings?: { maxResults: number }) {
+    constructor(providers: IChangedProviderSettings[], settings?: { maxResults: number, maxReverseDistance: number }) {
         this.providers = providers;
-        this.settings =  settings ?? { maxResults: 10 };
+        this.settings =  settings ?? { maxResults: 10, maxReverseDistance: 50 };
     }
 
     name: string = this.providers.map(x => x.provider.name).join(",");
@@ -48,30 +53,59 @@ export class ChainedProvider implements IProvider {
                     results = results.slice(0, this.settings.maxResults);
                 }
                     
-                results.sort(x => x.score);
-                console.log(results);
+                results.sort((x, y) => {
+                    if (x.score < y.score) return -1;
+                    return 1;
+                });
                 callback(results);
             }
         });
     }
 
-    reverse(l: { lng: number; lat: number; }, callback: (results: string[]) => void): void {
-        this.reverseWith(0, l, callback);
+    reverse(l: { lng: number; lat: number; }, callback: (results: IReverseResult[]) => void): void {
+        this.reverseWith(0, [], l, callback);
     }
 
-    private reverseWith(p: number, l: { lng: number; lat: number; }, callback: (results: string[]) => void): void {
+    private reverseWith(p: number, previousResults: IForwardResult[], l: { lng: number; lat: number; }, callback: (results: IReverseResult[]) => void): void {
         const provider = this.providers[p];
 
-        provider.provider.reverse(l, result => {
-            if (result && result.length > 0) {
-                callback(result);
-            } else {
-                // move to next provider.
-                if (p == this.providers.length) {
-                    callback([]);
+        let chain = provider.chainReverse;
+        if (!chain) {
+            chain = (l: { lng: number; lat: number; }, previousResults: IReverseResult[], results: IReverseResult[]) => {
+                if (results && results.length > 0) {
+                    return { next: false, results: results };
                 } else {
-                    this.reverseWith(p + 1, l, callback);
+                    // move to next provider.
+                    if (p == this.providers.length) {
+                        return { next: false, results: [] };
+                    } else {
+                        return { next: true, results: [] };
+                    }
                 }
+            };
+        }
+
+        provider.provider.reverse(l, results => {
+            const chained = chain(l, previousResults, results);
+            if (chained.next && p < this.providers.length - 1) {
+                this.reverseWith(p + 1, chained.results, l, callback);
+            } else {
+                let results = chained.results;
+                if (results.length > this.settings.maxResults) {
+                    results = results.slice(0, this.settings.maxResults);
+                }
+                    
+                results.sort((x, y) => {
+                    if (x.distance > y.distance) return -1;
+                    return 1;
+                });
+
+                for (let i = 0; i < results.length; i++) {
+                    if (results[i].distance > this.settings.maxReverseDistance) {
+                        results[i].description = `${results[i].location.lng},${results[i].location.lat}`;
+                    }
+                }
+                callback(results);
             }
         });
     }

@@ -1,3 +1,5 @@
+import * as turf from "@turf/turf";
+
 export class Routes {
     route?: { // the main route
         segments: GeoJSON.FeatureCollection<GeoJSON.Geometry>[]
@@ -90,6 +92,7 @@ export class Routes {
     }
 
     getSegments(): GeoJSON.FeatureCollection<GeoJSON.Geometry>[] {
+        if (!this.route) return turf.featureCollection([]);
         return this.route.segments;
     }
 

@@ -510,7 +510,7 @@ export class RoutingComponent implements IControl {
             const lngLat = LngLat.convert(l);
             this.geocoder.reverseGeocode(lngLat, results => {
                 if (results?.length) {
-                    this._updateLocationName(index, results[0]);
+                    this._updateLocationName(index, results[0].description);
                 }
             });
         }
@@ -577,7 +577,7 @@ export class RoutingComponent implements IControl {
             const lngLat = LngLat.convert(l);
             this.geocoder.reverseGeocode(lngLat, results => {
                 if (results?.length) {
-                    this._updateLocationName(index, results[0]);
+                    this._updateLocationName(index, results[0].description);
                 }
             });
         }
@@ -634,7 +634,7 @@ export class RoutingComponent implements IControl {
         const lngLat = LngLat.convert(l);
         this.geocoder.reverseGeocode(lngLat, results => {
             if (results?.length) {
-                this._updateLocationName(index, results[0]);
+                this._updateLocationName(index, results[0].description);
             }
         });
 
@@ -1133,7 +1133,7 @@ export class RoutingComponent implements IControl {
             const lngLat = marker.getLngLat();
             this.geocoder.reverseGeocode(lngLat, results => {
                 if (results?.length) {
-                    this._updateLocationName(index, results[0]);
+                    this._updateLocationName(index, results[0].description);
                 }
             });
 

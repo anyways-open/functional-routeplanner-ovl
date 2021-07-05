@@ -1,5 +1,6 @@
 import { IForwardQuery } from "../IForwardQuery";
 import { IForwardResult } from "./IForwardResult";
+import { IReverseResult } from "./IReverseResult";
 
 export interface IProvider {
     /**
@@ -19,5 +20,5 @@ export interface IProvider {
      * @param l The location.
      * @param callback The callback with the results.
      */
-    reverse(l: { lng: number; lat: number}, callback: (results: string[]) => void): void;
+    reverse(l: { lng: number; lat: number}, callback: (results: IReverseResult[]) => void): void;
 }

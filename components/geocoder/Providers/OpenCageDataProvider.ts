@@ -2,6 +2,8 @@ import * as opencage from "opencage-api-client";
 import { IForwardQuery } from "../IForwardQuery";
 import { IForwardResult } from "./IForwardResult";
 import { IProvider } from "./IProvider";
+import { IReverseResult } from "./IReverseResult";
+import * as turf from "@turf/turf";
 
 export class OpenCageDataProvider implements IProvider {
     private apiKey: string;
@@ -94,13 +96,17 @@ export class OpenCageDataProvider implements IProvider {
             });
     }
 
-    reverse(l: { lng: number; lat: number; }, callback: (results: string[]) => void): void {
-        if (!l) return callback([ "Invalid location." ]);
+    reverse(l: { lng: number; lat: number; }, callback: (results: IReverseResult[]) => void): void {
+        if (!l) return callback([]);
         
         opencage
             .geocode({ q: `${l.lat},${l.lng}`, key: this.apiKey})
             .then((data) => {
-                return callback([ data.results[0].formatted ]);
+                return callback([{
+                    description: data.results[0].formatted,
+                    location: data.results[0].geometry,
+                    distance: turf.distance([ l.lng, l.lat ], [ data.results[0].geometry.lng, data.results[0].geometry.lat ]) * 1000
+                 }]);
             })
             .catch((error) => {
               console.log('error', error.message);
