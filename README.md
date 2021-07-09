@@ -1,6 +1,6 @@
 # Cycling Routeplanner :bicyclist: :bicyclist: :bicyclist:
 
-[[staging](https://github.com/anyways-open/functional-routeplanner-ovl/actions/workflows/staging.yml/badge.svg)](https://github.com/anyways-open/functional-routeplanner-ovl/actions/workflows/staging.yml)  
+[![staging](https://github.com/anyways-open/functional-routeplanner-ovl/actions/workflows/staging.yml/badge.svg)](https://github.com/anyways-open/functional-routeplanner-ovl/actions/workflows/staging.yml)
 
 This is cycling route planner built for the province of East-Flanders, Belgium. It can be customized using URL parameters and uses the ANYWAYS route planning [API](https://docs.anyways.eu/routing-api/) to handle:
 
