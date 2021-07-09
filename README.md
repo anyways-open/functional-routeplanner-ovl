@@ -25,7 +25,7 @@ The url parameters are part of the URL hash, example:
 - `layers`: The layers that should be visible/hidden/available with a number where:
   - `0`: Layer is hidden and not available for the user.
   - `1`: Layer is turned on and available for the user.
-  - `2`: Layer is turned off and available for the user.
+  - `2`: Layer is turned off and available for the user.  
   `layers=LN2|GP0|SR1`.
   - `LN`: Local Network (Lokaal Netwerk).
   - `FS`: Cycle Highways (Fietssnelwegen).
