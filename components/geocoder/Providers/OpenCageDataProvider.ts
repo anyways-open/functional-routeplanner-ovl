@@ -38,7 +38,6 @@ export class OpenCageDataProvider implements IProvider {
             .geocode(opencageQuery)
             .then((data) => {
                 if (this.requestId != requestId) {
-                    console.log("another geocoding request was done, ignore this result"):
                     return;
                 }
                 const results = [];
@@ -79,9 +78,6 @@ export class OpenCageDataProvider implements IProvider {
                         const existing = results[i];
 
                         if (existing.score < result.score) {
-                            console.log("replaced");
-                            console.log(existing);
-                            console.log(result);
                             results[i] = result;
                         }
                     } else {
@@ -109,7 +105,7 @@ export class OpenCageDataProvider implements IProvider {
                  }]);
             })
             .catch((error) => {
-              console.log('error', error.message);
+              console.error(error);
             });
     }
 }

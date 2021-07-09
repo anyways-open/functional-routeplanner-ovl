@@ -260,8 +260,6 @@ export class UI {
             this._showRoutesDetails();
         }
 
-        console.log("updateSearchResults");
-        console.log(searchResults);
         searchResults.forEach((r, i) => {
             this._buildSearchResult(this.searchResultsElement, r, searchString, 
                 () => {
@@ -488,7 +486,6 @@ export class UI {
         const iconElement = document.createElement("div");
         iconElement.className = "col-2 pl-4 py-2";
 
-        console.log(result);
         switch(result.type){
             case "address":
                 iconImgElement.src = GlobalSvgIconAssets["house"];

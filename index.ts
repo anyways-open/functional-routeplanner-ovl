@@ -77,6 +77,13 @@ const geocoder = new ChainedProvider([ {
 
                 results.push(x);
             });
+                    
+            results.sort((x, y) => {
+                if (x.score < y.score) return -1;
+                return 1;
+            });
+            console.log(results);
+
             return { next: next, results: results };
         },
         chainReverse: (l, _, current) => {

@@ -36,7 +36,7 @@ export class ChainedProvider implements IProvider {
 
                 let chained =  previousResults.concat(results);
                 chained.sort((x, y) => {
-                    if (x.score < y.score) return -1;
+                    if (x.score > y.score) return -1;
                     return 1;
                 });
                 return { next: false, results: chained};
@@ -54,7 +54,7 @@ export class ChainedProvider implements IProvider {
                 }
                     
                 results.sort((x, y) => {
-                    if (x.score < y.score) return -1;
+                    if (x.score > y.score) return -1;
                     return 1;
                 });
                 callback(results);
