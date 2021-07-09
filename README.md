@@ -20,4 +20,4 @@ The url parameters are part of the URL hash, example:
 
 `https://staging.anyways.eu/ovl/#map=13.07/3.68746/51.11665&route=bicycle.commute,3.6657184%2C51.1303597/3.66490/51.13139,Witakker%2015%2C%209940%20Evergem/3.65866/51.10168&layers=FS2`
 
-- __map__: Configures the map view.
+- __map__: Configures the map view with `{zoom}/{longitude}/{latitude}`.
