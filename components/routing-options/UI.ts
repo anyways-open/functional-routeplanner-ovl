@@ -53,7 +53,7 @@ export class UI {
         this.locationsContainer = locationsContainer;
 
         const addLocationContainer = document.createElement("div");
-        addLocationContainer.className = "routing-component-add-location container pb-2";
+        addLocationContainer.className = "routing-component-add-location container pb-2 pl-2";
         this.uiElement.append(addLocationContainer);
         this.addLocationContainer = addLocationContainer;
 
@@ -317,7 +317,7 @@ export class UI {
 
         // construct input field and search icon.
         const locationInputGroup = document.createElement("div");
-        locationInputGroup.className = "location-input pt-2";
+        locationInputGroup.className = "location-input pt-2 pl-2";
         toolbarDiv.append(locationInputGroup);
 
         const addLocationText = document.createElement("div");
@@ -332,17 +332,28 @@ export class UI {
         menu: boolean, search: () => void, remove?: () => void, menuAction?: () => void): HTMLInputElement {
         menu ??= false;
 
+        // // construct icon an add.
+        // const menuIcon = document.createElement("div");
+        // if (menu) {
+        //     menuIcon.innerHTML = ComponentHtml["menuButton"];
+        // } else {
+        //     menuIcon.innerHTML = ComponentHtml["menuPlaceholder"];
+        // }
+        // menuIcon.addEventListener("click", () => {
+        //     menuAction();
+        // });
+        // container.append(menuIcon);
+
         // construct icon an add.
-        const menuIcon = document.createElement("div");
-        if (menu) {
-            menuIcon.innerHTML = ComponentHtml["menuButton"];
+        const locationIcon = document.createElement("div");
+        if (location.type == "user") {
+            locationIcon.innerHTML = ComponentHtml["locationDot"];
+        } else if (location.type == "via" || location.type == "start") {
+            locationIcon.innerHTML = ComponentHtml["locationVia"];
         } else {
-            menuIcon.innerHTML = ComponentHtml["menuPlaceholder"];
+            locationIcon.innerHTML = ComponentHtml["locationMarker"];
         }
-        menuIcon.addEventListener("click", () => {
-            menuAction();
-        });
-        container.append(menuIcon);
+        container.append(locationIcon);
 
         // construct input field and search icon.
         const locationInputGroup = document.createElement("div");
@@ -384,17 +395,6 @@ export class UI {
         closeButton.addEventListener("click", () => {
             remove();
         });
-
-        // construct icon an add.
-        const locationIcon = document.createElement("div");
-        if (location.type == "user") {
-            locationIcon.innerHTML = ComponentHtml["locationDot"];
-        } else if (location.type == "via" || location.type == "start") {
-            locationIcon.innerHTML = ComponentHtml["locationVia"];
-        } else {
-            locationIcon.innerHTML = ComponentHtml["locationMarker"];
-        }
-        container.append(locationIcon);
 
         return input;
     }
