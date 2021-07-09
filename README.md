@@ -20,4 +20,15 @@ The url parameters are part of the URL hash, example:
 
 `https://staging.anyways.eu/ovl/#map=13.07/3.68746/51.11665&route=bicycle.commute,3.6657184%2C51.1303597/3.66490/51.13139,Witakker%2015%2C%209940%20Evergem/3.65866/51.10168&layers=FS2`
 
-- `map`: Configures the map view with `{zoom}/{longitude}/{latitude}`.
+- `map`: The map view with `{zoom}/{longitude}/{latitude}`.
+- `route`: The route with the selected profile and the locations `{profile},{point1}/{longitude}/{latitude},{point2}/{longitude}/{latitude}`.
+- `layers`: The layers that should be visible/hidden/available with a number where:
+  - `0`: Layer is hidden and not available for the user.
+  - `1`: Layer is turned on and available for the user.
+  - `2`: Layer is turned off and available for the user.
+  `layers=LN2|GP0|SR1`.
+  - `LN`: Local Network (Lokaal Netwerk).
+  - `FS`: Cycle Highways (Fietssnelwegen).
+  - `BF`: Functional Network (Bovenlokaal Functioneel Netwerk).
+  - `GP`: Road Works (GIPOD).
+  - `SR`: School routes.
