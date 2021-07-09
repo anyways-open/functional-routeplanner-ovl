@@ -12,7 +12,7 @@ This is cycling route planner built for the province of East-Flanders, Belgium. 
 
 ## Screenshots
 
-<img src="https://github.com/anyways-open/cycling-routeplanner/raw/master/docs/screenshots/screenshot01.png" width="600"/>
+<img src="https://github.com/anyways-open/functional-routeplanner-ovl/raw/master/docs/screenshots/screenshot01.png" width="600"/>
 
 ## URL parameter customizations
 
