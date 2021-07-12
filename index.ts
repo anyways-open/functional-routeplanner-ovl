@@ -109,7 +109,17 @@ const geocoder = new ChainedProvider([ {
     });
 const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
 const rc = new RoutingComponent(ra, {
-    geocoder: new GeocodingControl(geocoder),
+    geocoder: new GeocodingControl(geocoder, {
+        forwardPreprocessor: (q) => {
+            if (q && q.string && q.string.toLowerCase().startsWith("station")) {
+                q = {
+                    string: q.string.substring(7),
+                    location: q.location
+                };
+            }
+            return q;
+        }
+    }),
     profiles: [{
         id: "bicycle.commute",
         description: "Functioneel fietsen",
