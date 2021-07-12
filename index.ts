@@ -178,7 +178,7 @@ function initialize(style: any) {
     map.addControl(helpButton, "top-right");
 
     map.on("load", () => {
-        // geolocationControl.trigger();
+    //     // geolocationControl.trigger();
 
         map.addSource("aiv", {
             "type": "raster",

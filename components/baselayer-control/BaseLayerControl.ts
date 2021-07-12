@@ -5,6 +5,8 @@ export class BaseLayerControl implements IControl {
     readonly _imagerySourceName: string;
     readonly _imageryImage: string;
     readonly _mapImage: string;
+    readonly _layerColors: any = {};
+    _layerColorsInitialized: boolean = false;
 
     private toggleEvent: (on: boolean) => void;
 
@@ -171,7 +173,7 @@ export class BaseLayerControl implements IControl {
                     layer.layout = {};
                 }
                 if (visible) {
-                    this._map.setPaintProperty(layer.id, "line-color", "#fff");
+                    this._map.setPaintProperty(layer.id, "line-color", this._layerColors[layer.id]);
                 } else {
                     this._map.setPaintProperty(layer.id, "line-color", "#000");
                 }
@@ -235,7 +237,16 @@ export class BaseLayerControl implements IControl {
             if (layer.type === "background") {
                 this._backgroundLayer = layer;
             }
+
+            if (!this._layerColorsInitialized) {
+                if (layer.type === "line" &&
+                    layer["source-layer"] === "transportation") {
+                        
+                    this._layerColors[layer.id] = this._map.getPaintProperty(layer.id, "line-color");
+                }
+            }
         }
+        this._layerColorsInitialized = true;
 
         if (this._active) {
             this.activateImagery();
