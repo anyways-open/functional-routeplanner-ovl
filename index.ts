@@ -134,16 +134,16 @@ function initialize(style: any) {
     //     }]
     // });
 
-    const osmAttributionControl = new OsmAttributionControl({
-        compact: true,
-        customAttribution: "<a href=\"https://www.anyways.eu/\">ANYWAYS BV</a> | <a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a>"
-    });
-    map.addControl(osmAttributionControl);
+    // const osmAttributionControl = new OsmAttributionControl({
+    //     compact: true,
+    //     customAttribution: "<a href=\"https://www.anyways.eu/\">ANYWAYS BV</a> | <a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a>"
+    // });
+    // map.addControl(osmAttributionControl);
 
-    const nav = new NavigationControl({
-        visualizePitch: true
-    });
-    map.addControl(nav, "top-right");
+    // const nav = new NavigationControl({
+    //     visualizePitch: true
+    // });
+    // map.addControl(nav, "top-right");
 
     // const geolocationControl = new GeolocateControl({
     //     positionOptions: {

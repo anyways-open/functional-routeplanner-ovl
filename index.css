@@ -100,11 +100,11 @@ body {
 }
 
 #map {
-    height: calc(100vh - 190px);
+    height: 100px;
 }
 
 .details-container {
-    height: 200px;
+    height: calc(100vh - 90px);
     background: #1da1f2;
     position: absolute;
     left: 0px;
@@ -112,7 +112,6 @@ body {
     bottom: 0px;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
-    box-shadow: ;
 }
 
 .mapboxgl-ctrl-bottom-right {
@@ -178,4 +177,31 @@ body {
     position: absolute;
     bottom: 0px;
     color: white;
+}
+
+.search-results {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    color: white;
+}
+
+.search-results-list {
+    margin-top: 8px;
+    background: white;
+    border-radius: 10px;
+    padding: 4px;
+    color: black;
+}
+
+.search-results-list img {
+    height: 20px;
+}
+
+.search-results-list .row {
+    margin: 0;
+}
+
+.search-results-list .row:not(:last-child) {
+    border-bottom: lightgray solid 1px;
 }

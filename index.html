@@ -20,32 +20,26 @@
             <div id="search-initial" class="search-control">
                 <div class="input-group search-field">
                     <div type="button" class="btn btn-light border-0" style="width: 49px;">
-                        <img src="./assets/img/icons/marker.svg" style="height: 25px;" />
+                        <img src="./assets/img/icons/search.svg" style="height: 25px;" />
                     </div>
-                    <input type="text" class="form-control border-0" placeholder="Waar naartoe?"
-                        aria-label="Waar naartoe?" aria-describedby="btnGroupAddon">
-                    <div type="button" class="btn btn-light border-0"><img src="./assets/img/icons/search.svg" /></div>
+                    <input type="text" class="form-control border-0" value="Station Gent-Dampoort"
+                        placeholder="Waar naartoe?" aria-label="Waar naartoe?" aria-describedby="btnGroupAddon">
+                    <div type="button" class="btn btn-light border-0"><img src="./assets/img/icons/close.svg" /></div>
                 </div>
             </div>
 
-            <div id=profile-selection" class="data-container btn-toolbar p-1 border-0" role="toolbar"
-                aria-label="Toolbar with button groups">
-                <div class="profile-btn-group btn-group" role="group" aria-label="First group">
-                    <div type="button" class="btn btn-profile active border-0">
-                        <span>
-                            <img src="./assets/img/icons/bicycle.svg" />
-                        </span>
-                        <span>
-                            Functioneel fietsen
-                        </span>
-                    </div>
-                    <div type="button" class="btn btn-profile border-0">
-                        <span>
-                            <img src="./assets/img/icons/network.svg" />
-                        </span>
-                        <span>
-                            Fietsnetwerken
-                        </span>
+            <div id="search-results" class="data-container btn-toolbar p-1 border-0">
+                <div class="search-results">
+                    Results
+                    <div class="search-results-list">
+                        <div class="search-result row my-1">
+                            <div class="col-2 py-2"><img src="./assets/img/icons/train.svg"></div>
+                            <div class="col-10 py-2 p-0">Gent-Dampoort</div>
+                        </div>
+                        <div class="search-result row my-1">
+                            <div class="col-2 py-2"><img src="./assets/img/icons/city.svg"></div>
+                            <div class="col-10 py-2 p-0">Dampoort, Gent, Oost-Vlaanderen, België</div>
+                        </div>
                     </div>
                 </div>
             </div>
