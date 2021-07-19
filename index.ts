@@ -2,8 +2,8 @@ import { Map, LngLatLike, GeolocateControl, NavigationControl } from "mapbox-gl"
 import { Profile, RoutingApi } from "@anyways-open/routing-api";
 import { LayerControl } from "./components/layer-control/LayerControl";
 import { OsmAttributionControl } from "./components/osm-attribution-control/OsmAttributionControl";
-import { EventBase, RoutingComponent } from "./components/routing-options/RoutingComponent";
-import "./components/routing-options/RoutingComponent.css";
+//import { EventBase, RoutingComponent } from "./components/routing-options/RoutingComponent";
+//import "./components/routing-options/RoutingComponent.css";
 import { ProfilesEvent } from "./components/routing-options/events/ProfilesEvent";
 import "bootstrap";
 import { StateEvent } from "./components/routing-options/events/StateEvent";
@@ -21,6 +21,7 @@ import { ChainedProvider } from "./components/geocoder/Providers/ChainedProvider
 import { UrlParamHandler } from "./components/url-hash/URLHashHandler";
 import { triangleGrid } from "@turf/turf";
 import * as turf from "@turf/turf";
+import { MobileControl } from "./components/mobile-control/MobileControl";
 
 
 const urlHasher = new UrlParamHandler();
@@ -109,32 +110,32 @@ function initialize(style: any) {
         maxResults: 5,
         maxReverseDistance: maxReverseDistance
     });
-    const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
-    const rc = new RoutingComponent(ra, {
-        geocoder: new GeocodingControl(geocoder, {
-            forwardPreprocessor: (q) => {
-                if (q && q.string && q.string.toLowerCase().startsWith("station")) {
-                    q = {
-                        string: q.string.substring(7),
-                        location: q.location
-                    };
-                }
-                return q;
-            }
-        }),
-        profiles: [{
-            id: "bicycle.commute",
-            description: "Functioneel fietsen",
-            image: SvgIcons["bicycle"]
-        }, {
-            id: "bicycle.functional_network",
-            description: "Fietsnetwerken",
-            image: SvgIcons["network"]
-        }]
-    });
+    // const ra = new RoutingApi(routingEndpoint, "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz");
+    // const rc = new RoutingComponent(ra, {
+    //     geocoder: new GeocodingControl(geocoder, {
+    //         forwardPreprocessor: (q) => {
+    //             if (q && q.string && q.string.toLowerCase().startsWith("station")) {
+    //                 q = {
+    //                     string: q.string.substring(7),
+    //                     location: q.location
+    //                 };
+    //             }
+    //             return q;
+    //         }
+    //     }),
+    //     profiles: [{
+    //         id: "bicycle.commute",
+    //         description: "Functioneel fietsen",
+    //         image: SvgIcons["bicycle"]
+    //     }, {
+    //         id: "bicycle.functional_network",
+    //         description: "Fietsnetwerken",
+    //         image: SvgIcons["network"]
+    //     }]
+    // });
 
     const osmAttributionControl = new OsmAttributionControl({
-        compact: false,
+        compact: true,
         customAttribution: "<a href=\"https://www.anyways.eu/\">ANYWAYS BV</a> | <a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a>"
     });
     map.addControl(osmAttributionControl);
@@ -144,38 +145,41 @@ function initialize(style: any) {
     });
     map.addControl(nav, "top-right");
 
-    const geolocationControl = new GeolocateControl({
-        positionOptions: {
-            enableHighAccuracy: true
-        },
-        showAccuracyCircle: true,
-        showUserLocation: true,
-        trackUserLocation: false
-    })
-    map.addControl(geolocationControl, "top-right");
+    // const geolocationControl = new GeolocateControl({
+    //     positionOptions: {
+    //         enableHighAccuracy: true
+    //     },
+    //     showAccuracyCircle: true,
+    //     showUserLocation: true,
+    //     trackUserLocation: false
+    // })
+    // map.addControl(geolocationControl, "top-right");
 
-    geolocationControl.on("geolocate", function (data: { coords: { latitude: any; longitude: any; }; }) {
-        rc.reportCurrentLocation({
-            lat: data.coords.latitude,
-            lng: data.coords.longitude
-        });
-    });
+    // geolocationControl.on("geolocate", function (data: { coords: { latitude: any; longitude: any; }; }) {
+    //     rc.reportCurrentLocation({
+    //         lat: data.coords.latitude,
+    //         lng: data.coords.longitude
+    //     });
+    // });
 
-    const baseLayerControl = new BaseLayerControl({
-        source: "aiv",
-        images: {
-            map: BaseLayerImages["map"],
-            imagery: BaseLayerImages["sattelite"],
-        }
-    });
-    map.addControl(baseLayerControl, "bottom-right");
+    // const baseLayerControl = new BaseLayerControl({
+    //     source: "aiv",
+    //     images: {
+    //         map: BaseLayerImages["map"],
+    //         imagery: BaseLayerImages["sattelite"],
+    //     }
+    // });
+    // map.addControl(baseLayerControl, "bottom-right");
 
-    const legendaControl = new LegendaControl();
-    map.addControl(legendaControl, "top-left");
+    // const legendaControl = new LegendaControl();
+    // map.addControl(legendaControl, "top-left");
 
-    const helpButton = new HelpButton();
-    helpButton.on("open", () => legendaControl.toggle());
-    map.addControl(helpButton, "top-right");
+    // const helpButton = new HelpButton();
+    // helpButton.on("open", () => legendaControl.toggle());
+    // map.addControl(helpButton, "top-right");
+
+    // const mobileControl = new MobileControl();
+    // map.addControl(mobileControl);
 
     map.on("load", () => {
     //     // geolocationControl.trigger();
@@ -749,117 +753,117 @@ function initialize(style: any) {
             });
         });
 
-        baseLayerControl.on("toggle", (on) => {
-            if (on) {
-                map.setPaintProperty("cycle-node-network-case", "line-color", "#000");
-                map.setPaintProperty("cyclenodes-circles-center", "circle-color", "#000");
-                map.setPaintProperty("cycle-highways-case", "line-color", "#000");
-            } else {
-                map.setPaintProperty("cycle-node-network-case", "line-color", "#fff");
-                map.setPaintProperty("cyclenodes-circles-center", "circle-color", "#fff");
-                map.setPaintProperty("cycle-highways-case", "line-color", "#fff");
-            }
-        });
+        // baseLayerControl.on("toggle", (on) => {
+        //     if (on) {
+        //         map.setPaintProperty("cycle-node-network-case", "line-color", "#000");
+        //         map.setPaintProperty("cyclenodes-circles-center", "circle-color", "#000");
+        //         map.setPaintProperty("cycle-highways-case", "line-color", "#000");
+        //     } else {
+        //         map.setPaintProperty("cycle-node-network-case", "line-color", "#fff");
+        //         map.setPaintProperty("cyclenodes-circles-center", "circle-color", "#fff");
+        //         map.setPaintProperty("cycle-highways-case", "line-color", "#fff");
+        //     }
+        // });
 
 
 
-        const layerControl = new LayerControl([{
-            id: "LN",
-            name: "Lokaal Netwerk",
-            layers: ["cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case"],
-            build: (el, c) => {
-                el.innerHTML = "<div>" +
-                    "<img src=\"" + SvgIcons["network"] + "\" />" +
-                    "</div>" +
-                    "<span>" +
-                    "Lokaal Netwerk" +
-                    "</span>";
-            },
-            visible: true,
-            enabled: true
-        },
-        {
-            id: "FS",
-            name: "Fietssnelwegen",
-            layers: ["cycle-highways-case", "cycle-highways"],
-            build: (el, c) => {
-                el.innerHTML = "<div>" +
-                    "<img src=\"" + SvgIcons["highway"] + "\" />" +
-                    "</div>" +
-                    "<span>" +
-                    "Fietssnelwegen" +
-                    "</span>";
-            },
-            visible: true,
-            enabled: true
-        },
-        {
-            id: "SR",
-            name: "Schoolroutes",
-            layers: ["school-routes", "school-routes-unsafe", "school-routes-semi"],
-            build: (el, c) => {
-                el.innerHTML = "<div>" +
-                    "<img src=\"" + SvgIcons["school"] + "\" />" +
-                    "</div>" +
-                    "<span>" +
-                    "Schoolroutes" +
-                    "</span>";
-            },
-            visible: false,
-            enabled: false
-        }, {
-            id: "BF",
-            name: "Bovenlokaal Functioneel Fietsnetwerk",
-            layers: ["bff"],
-            build: (el, c) => {
-                el.innerHTML = "<div>" +
-                    "<img src=\"" + SvgIcons["network"] + "\" />" +
-                    "</div>" +
-                    "<span>" +
-                    "Functioneel Netwerk" +
-                    "</span>";
-            },
-            visible: false,
-            enabled: true
-        },
-        {
-            id: "GP",
-            name: "Wegenwerken",
-            layers: ["gipod-con", "gipod-icon"],
-            build: (el, c) => {
-                el.innerHTML = "<div>" +
-                    "<img src=\"" + SvgIcons["road-works"] + "\" />" +
-                    "</div>" +
-                    "<span>" +
-                    "Wegenwerken" +
-                    "</span>";
-            },
-            visible: false,
-            enabled: true
-        }], urlHasher);
-        map.addControl(layerControl, "bottom-right");
+        // const layerControl = new LayerControl([{
+        //     id: "LN",
+        //     name: "Lokaal Netwerk",
+        //     layers: ["cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case"],
+        //     build: (el, c) => {
+        //         el.innerHTML = "<div>" +
+        //             "<img src=\"" + SvgIcons["network"] + "\" />" +
+        //             "</div>" +
+        //             "<span>" +
+        //             "Lokaal Netwerk" +
+        //             "</span>";
+        //     },
+        //     visible: true,
+        //     enabled: true
+        // },
+        // {
+        //     id: "FS",
+        //     name: "Fietssnelwegen",
+        //     layers: ["cycle-highways-case", "cycle-highways"],
+        //     build: (el, c) => {
+        //         el.innerHTML = "<div>" +
+        //             "<img src=\"" + SvgIcons["highway"] + "\" />" +
+        //             "</div>" +
+        //             "<span>" +
+        //             "Fietssnelwegen" +
+        //             "</span>";
+        //     },
+        //     visible: true,
+        //     enabled: true
+        // },
+        // {
+        //     id: "SR",
+        //     name: "Schoolroutes",
+        //     layers: ["school-routes", "school-routes-unsafe", "school-routes-semi"],
+        //     build: (el, c) => {
+        //         el.innerHTML = "<div>" +
+        //             "<img src=\"" + SvgIcons["school"] + "\" />" +
+        //             "</div>" +
+        //             "<span>" +
+        //             "Schoolroutes" +
+        //             "</span>";
+        //     },
+        //     visible: false,
+        //     enabled: false
+        // }, {
+        //     id: "BF",
+        //     name: "Bovenlokaal Functioneel Fietsnetwerk",
+        //     layers: ["bff"],
+        //     build: (el, c) => {
+        //         el.innerHTML = "<div>" +
+        //             "<img src=\"" + SvgIcons["network"] + "\" />" +
+        //             "</div>" +
+        //             "<span>" +
+        //             "Functioneel Netwerk" +
+        //             "</span>";
+        //     },
+        //     visible: false,
+        //     enabled: true
+        // },
+        // {
+        //     id: "GP",
+        //     name: "Wegenwerken",
+        //     layers: ["gipod-con", "gipod-icon"],
+        //     build: (el, c) => {
+        //         el.innerHTML = "<div>" +
+        //             "<img src=\"" + SvgIcons["road-works"] + "\" />" +
+        //             "</div>" +
+        //             "<span>" +
+        //             "Wegenwerken" +
+        //             "</span>";
+        //     },
+        //     visible: false,
+        //     enabled: true
+        // }], urlHasher);
+        // map.addControl(layerControl, "bottom-right");
     });
 
-    rc.on("state", (e: EventBase) => {
-        const s = e as StateEvent;
+    // rc.on("state", (e: EventBase) => {
+    //     const s = e as StateEvent;
 
-        urlState.route = s.state;
-        urlHasher.update(urlState);
-    });
+    //     urlState.route = s.state;
+    //     urlHasher.update(urlState);
+    // });
 
-    rc.on("profiles-loaded", () => {
-        if (typeof urlState.route !== "undefined") {
-            rc.setFromState(urlState.route);
-        }
+    // rc.on("profiles-loaded", () => {
+    //     if (typeof urlState.route !== "undefined") {
+    //         rc.setFromState(urlState.route);
+    //     }
 
-        if (!rc.hasProfileSet()) {
-            rc.setProfile("bicycle.commute");
-        }
-    });
+    //     if (!rc.hasProfileSet()) {
+    //         rc.setProfile("bicycle.commute");
+    //     }
+    // });
 
-    map.addControl(rc, "top-left");
+    // map.addControl(rc, "top-left");
 
-    rc.on("legenda", () => legendaControl.show());
+    // rc.on("legenda", () => legendaControl.show());
 };
 
 
@@ -871,7 +875,6 @@ xhr.onload = () => {
     if (xhr.status === 200) {
         const response = JSON.parse(xhr.responseText);
 
-        console.log(xhr.responseText);
         response.sources.openmaptiles.url = "https://tiles.anyways.eu/data/v3.json";
         initialize(response);
     }

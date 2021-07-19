@@ -13,7 +13,46 @@
 </head>
 
 <body>
-    <div id="map"></div>
+    <div class="full">
+        <div id="map"></div>
+
+        <div id="details-container" class="details-container">
+            <div id="search-initial" class="search-control">
+                <div class="input-group search-field">
+                    <div type="button" class="btn btn-light border-0" style="width: 49px;">
+                        <img src="./assets/img/icons/marker.svg" style="height: 25px;" />
+                    </div>
+                    <input type="text" class="form-control border-0" placeholder="Waar naartoe?"
+                        aria-label="Waar naartoe?" aria-describedby="btnGroupAddon">
+                    <div type="button" class="btn btn-light border-0"><img src="./assets/img/icons/search.svg" /></div>
+                </div>
+            </div>
+
+            <div id=profile-selection" class="data-container btn-toolbar p-1 border-0" role="toolbar"
+                aria-label="Toolbar with button groups">
+                <div class="profile-btn-group btn-group" role="group" aria-label="First group">
+                    <div type="button" class="btn btn-profile active border-0">
+                        <span>
+                            <img src="./assets/img/icons/bicycle.svg" />
+                        </span>
+                        <span>
+                            Functioneel fietsen
+                        </span>
+                    </div>
+                    <div type="button" class="btn btn-profile border-0">
+                        <span>
+                            <img src="./assets/img/icons/network.svg" />
+                        </span>
+                        <span>
+                            Fietsnetwerken
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <script src="./index.ts"></script>
 </body>
 
