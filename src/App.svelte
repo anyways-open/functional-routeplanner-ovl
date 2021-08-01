@@ -1,5 +1,4 @@
 <script lang="ts">
-	import WhereTo from "./components/data/views/WhereTo.svelte";
 	import Map from "./components/map/Map.svelte";
 	import { OpenCageDataProvider } from "./apis/geocoder/Providers/OpenCageDataProvider";
 	import { CrabGeolocationProvider } from "./apis/geocoder/Providers/CrabGeolocationProvider";
@@ -9,6 +8,10 @@
 	import { Geocoder } from "./apis/geocoder/Geocoder";
 	import SearchResultRow from "./components/data/search/SearchResultRow.svelte";
 	import SearchResultsTable from "./components/data/search/SearchResultsTable.svelte";
+	import RouteFromTo from "./components/data/routes/RouteFromTo.svelte";
+	import Profiles from "./components/data/Profiles.svelte";
+	import RouteList from "./components/data/routes/RouteList.svelte";
+	import SearchField from "./components/data/search/SearchField.svelte";
 
 	const maxReverseDistance = 100;
 	const geocoderProvider = new ChainedProvider(
@@ -84,32 +87,51 @@
 	const heightCollapsed = 25;
 	let height: number = heightCollapsed;
 
-	let showSearchTable: boolean = false;
+	const VIEW_START = "START";
+	const VIEW_SEARCH = "SEARCH";
+	const VIEW_ROUTES = "ROUTES";
+
+	let view: string = VIEW_START;
 
 	let searchResults: SearchResult[] = [];
 
-	let destination: string = "";
+	let profile: string = "bicycle";
+	let origin: {
+		description: string, 
+		location: { lng: number; lat: number }
+	} = {
+		description: "Huidige Locatie",
+		location: { lng: 4.80187, lat: 51.26799}
+	};
+	let destination: {
+		description: string, 
+		location: { lng: number; lat: number }
+	};
+
+	let routes: any[] = [{},{}];
 
 	function onWhereToFocus(): void {
 		height = expandedHeight;
+
+		view = VIEW_SEARCH;
 	}
 	function onWhereToInput(value: CustomEvent<string>): void {
-
-		showSearchTable = true;
 		const searchString: string = value.detail;
 		if (!searchString || searchString.length == 0) {
 			searchResults = [];
 			return;
-        }
+		}
 
 		// TODO: include current map center.
-        geocoder.geocode({ string: searchString}, (results) => {
+		geocoder.geocode({ string: searchString }, (results) => {
 			searchResults = results;
-        });
+		});
 	}
 
 	function onSelect(e: CustomEvent<SearchResult>): void {
-		destination = e.detail.description;
+		destination = e.detail;
+
+		view = VIEW_ROUTES;
 	}
 </script>
 
@@ -118,11 +140,37 @@
 		<Map />
 	</div>
 
-	<div class="data" style="height: {height}%">
-		<WhereTo value={destination} on:focus={onWhereToFocus} on:input={onWhereToInput} />
+	<div class="data container p-2" style="height: {height}%">
+		{#if view === VIEW_START || view === VIEW_SEARCH}
+		<div class="row m-3">
+			<SearchField
+				value=""
+				on:focus={onWhereToFocus}
+				on:input={onWhereToInput}
+			/>
+		</div>
+		{/if}
 
-		{#if showSearchTable}
-		<SearchResultsTable searchResults={searchResults} on:select={onSelect}/>
+		{#if view === VIEW_ROUTES}
+		<div class="row mx-3 mb-3">
+			<RouteFromTo from="Huidige Locatie" to={destination.description}/>
+		</div>
+		{/if}
+
+		{#if view === VIEW_START || view === VIEW_ROUTES}
+		<div class="row m-3">
+			<Profiles bind:profile={profile}/>
+		</div>
+		{/if}
+
+		{#if view === VIEW_ROUTES}
+		<div class="row m-3">
+			<RouteList routes={routes} />
+		</div>
+		{/if}
+
+		{#if view === VIEW_SEARCH}
+			<SearchResultsTable {searchResults} on:select={onSelect} />
 		{/if}
 	</div>
 </div>

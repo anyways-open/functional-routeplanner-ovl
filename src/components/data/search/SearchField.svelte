@@ -37,13 +37,10 @@
 <style>
     .search-control {
         background: white;
-        position: absolute;
-        left: 20px;
-        top: -10px;
-        right: 20px;
         border-radius: 10px;
         padding: 5px;
         box-shadow: 2px 2px 5px;
+        margin-top: -30px;
     }
 
     img {

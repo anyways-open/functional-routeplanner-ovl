@@ -1,10 +1,19 @@
 <script lang="ts">
-    
+    export let profile: string = "bicycle";
+
+    function onClickBicycle(): void {
+        profile = "bicycle";
+    }
+
+    function onClickBicycleNetworks(): void {
+        profile = "bicycle.networks";
+    }
+
 </script>
 
-<div class="profile-selection btn-toolbar p-1 border-0" role="toolbar">
-    <div class="profile-btn-group btn-group" role="group">
-        <div type="button" class="btn btn-profile active border-0">
+<div>
+    <div class="profile-btn-group btn-group">
+        <div type="button" class="btn btn-profile {profile == "bicycle" ? "active" : ""} border-0" on:click={onClickBicycle}>
             <span>
                 <img src="assets/icons/bicycle.svg" alt="Snelste Route" />
             </span>
@@ -12,7 +21,7 @@
                 Functioneel fietsen
             </span>
         </div>
-        <div type="button" class="btn btn-profile border-0">
+        <div type="button" class="btn btn-profile {profile == "bicycle.networks" ? "active" : ""} border-0" on:click={onClickBicycleNetworks}>
             <span>
                 <img src="assets/icons/network.svg" alt="Fietsnetwerken Route"/>
             </span>
@@ -24,21 +33,10 @@
 </div>
 
 <style>
-    .profile-selection {
-        position: absolute;
-        top: 50px;
-        left: 20px;
-        right: 20px;
-        color: white;
-    }
-
     .profile-btn-group {
-        position: absolute;
-        left: 20px;
-        right: 20px;
-        height: 90px;
         background: #0d8bd9;
         border-radius: 10px;
+        width: 100%;
         padding: 4px;
     }
 
@@ -47,8 +45,17 @@
         color: #fff;
         width: 50%;
         height: 100%;
-        border-radius: 10px;
         padding-top: 20px;
+    }
+
+    .btn:first-child {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+
+    .btn:last-child {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
     }
 
     .btn-profile img {

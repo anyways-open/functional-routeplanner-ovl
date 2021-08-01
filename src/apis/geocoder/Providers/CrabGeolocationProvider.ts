@@ -60,7 +60,7 @@ export class CrabGeolocationProvider implements IProvider {
         if (!l) return callback([]);
         
         const xhr = new XMLHttpRequest(); 
-        xhr.open("GET", `${this,this.apiRoot}/Location?q=${l.lat},${l.lng}&c=1`););
+        xhr.open("GET", `${this,this.apiRoot}/Location?q=${l.lat},${l.lng}&c=1`);
         xhr.onload = () => {
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
