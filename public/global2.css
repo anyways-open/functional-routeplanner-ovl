@@ -1,0 +1,38 @@
+.mapboxgl-ctrl-bottom-right {
+    bottom: 20px;
+}
+
+.btn {
+    font-size: unset;
+}
+
+
+.input {
+    font-size: unset;
+}
+
+.form-control {
+    font-size: unset;
+}
+
+.form-control:focus{
+    border-color: #cccccc;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    text-shadow: unset;
+}
+
+.form-control:-moz-focusring {
+    color: unset;
+    text-shadow: unset;
+}
+
+.btn-light {
+    background-color: unset;
+}
+
+.btn:hover {
+    color:initial;
+    background-color: initial;
+    border-color: initial;
+}
