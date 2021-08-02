@@ -14,7 +14,7 @@
 	import { RoutingApi, Profile } from "@anyways-open/routing-api";
 	import NetworksLayer from "./components/map/layers/NetworksLayer.svelte";
 	import RoutesLayer from "./components/map/layers/RoutesLayer.svelte";
-import LocationsLayer from "./components/map/layers/LocationsLayer.svelte";
+	import LocationsLayer from "./components/map/layers/LocationsLayer.svelte";
 
 	const maxReverseDistance = 100;
 	const geocoderProvider = new ChainedProvider(
@@ -152,7 +152,10 @@ import LocationsLayer from "./components/map/layers/LocationsLayer.svelte";
 	let routeSequence: number = 0;
 
 	function getRoutes() {
-		if (typeof origin === "undefined" || typeof destination === "undefined") {
+		if (
+			typeof origin === "undefined" ||
+			typeof destination === "undefined"
+		) {
 			return;
 		}
 		var sequenceNumber = routeSequence;
@@ -172,26 +175,26 @@ import LocationsLayer from "./components/map/layers/LocationsLayer.svelte";
 				}
 
 				if (e[profile + "0"]) {
-					const newRoutes: any[] = [{
-						segments: [
-							e[profile + "0"]
-						]
-					}];
+					const newRoutes: any[] = [
+						{
+							segments: [e[profile + "0"]],
+						},
+					];
 
 					for (var a = 1; a <= 3; a++) {
-                        var alternative = e[profile + `${a}`];
-                        if (alternative) {
-							newRoutes.push( { segments: [ alternative ] });
-                        }
-                    }
+						var alternative = e[profile + `${a}`];
+						if (alternative) {
+							newRoutes.push({ segments: [alternative] });
+						}
+					}
 
 					routes = newRoutes;
 				} else {
-					routes = [{
-						segments: [
-							e
-						]
-					}];
+					routes = [
+						{
+							segments: [e],
+						},
+					];
 				}
 			}
 		);
@@ -207,10 +210,10 @@ import LocationsLayer from "./components/map/layers/LocationsLayer.svelte";
 	<div class="map" style="height: calc({100 - height}% + 6px)">
 		<Map>
 			{#if routes.length > 0}
-			<RoutesLayer selected={routeSelected} routes={routes} />
-			<LocationsLayer {origin} destination={destination} routes={routes}/>
+				<RoutesLayer selected={routeSelected} {routes} />
+				<LocationsLayer {origin} {destination} {routes} />
 			{/if}
-			<NetworksLayer/>
+			<NetworksLayer />
 		</Map>
 	</div>
 
