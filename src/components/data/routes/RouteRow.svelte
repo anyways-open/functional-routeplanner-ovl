@@ -1,5 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
+	import * as turf from "@turf/turf";
+    // REMARK: import locally, npm package broken in strict mode.
+    import togpx from "../../../../public/npm/togpx/index";
 
     export let route: {description: string, segments: any[] };
     let routeDetail = { distance: 0, time: 0 };
@@ -54,6 +57,51 @@
         }
     }
 
+    function exportGpx(): void {
+         // convert to a single linestring per segment.
+         var features = [];
+        route.segments.forEach((r) => {
+            const coordinates = [];
+            r.features.forEach(f => {
+                if (f.geometry.type == "LineString") {
+                    if (coordinates.length == 0) {
+                        coordinates.push(...f.geometry.coordinates);
+                    } else {
+                        coordinates.push(...f.geometry.coordinates.slice(1));
+                    }
+                } else {
+                    features.push(f);
+                }
+            });
+
+            features.push(turf.lineString(coordinates));
+        });
+        var geojson = turf.featureCollection(features);
+
+        console.log(togpx);
+        var gpx = togpx(geojson, {});
+
+        var data = gpx;
+        var type = ".gpx";
+        var filename = "route.gpx";
+
+        var file = new Blob([data], { type: type });
+        if (window.navigator.msSaveOrOpenBlob) // IE10+
+            window.navigator.msSaveOrOpenBlob(file, filename);
+        else { // Others
+            var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function () {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+        }
+    }
+
     const dispatch = createEventDispatcher<{ select: any }>();
     function onClick(): void {
         dispatch("select", route);
@@ -67,8 +115,7 @@
             <div><strong>{formatDistance(routeDetail.distance)}</strong></div>
             <div><strong>{formatTime(routeDetail.time)}</strong></div>
         </div>
-        <div class="col-2 py-3"><img src="assets/icons/bicycle.svg" alt="Fiets"></div>
-        <div class="col-1 py-3"><img src="assets/icons/download.svg" alt="Download"></div>
+        <div class="col-3 py-3"><img src="assets/icons/download.svg" alt="Download" on:click="{exportGpx}"></div>
     </div>
 {/if}
 
