@@ -36,3 +36,30 @@
     background-color: initial;
     border-color: initial;
 }
+
+.marker-via-dot {
+    background-color: #fff;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 3px solid #1da1f2;
+    content: '';
+    height: 14px;
+    left: -2px;
+    position: absolute;
+    top: -2px;
+    width: 14px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.marker-destination svg {
+    width: 27px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.marker-destination svg g {
+    fill: #1da1f2;
+}

@@ -6,12 +6,15 @@
 	import * as turf from "@turf/turf";
 	import type { SearchResult } from "./components/data/search/SearchResult";
 	import { Geocoder } from "./apis/geocoder/Geocoder";
-	import SearchResultRow from "./components/data/search/SearchResultRow.svelte";
 	import SearchResultsTable from "./components/data/search/SearchResultsTable.svelte";
 	import RouteFromTo from "./components/data/routes/RouteFromTo.svelte";
 	import Profiles from "./components/data/Profiles.svelte";
 	import RouteList from "./components/data/routes/RouteList.svelte";
 	import SearchField from "./components/data/search/SearchField.svelte";
+	import { RoutingApi, Profile } from "@anyways-open/routing-api";
+	import NetworksLayer from "./components/map/layers/NetworksLayer.svelte";
+	import RoutesLayer from "./components/map/layers/RoutesLayer.svelte";
+import LocationsLayer from "./components/map/layers/LocationsLayer.svelte";
 
 	const maxReverseDistance = 100;
 	const geocoderProvider = new ChainedProvider(
@@ -83,6 +86,12 @@
 		},
 	});
 
+	const routingEndpoint = "https://staging.anyways.eu/routing-api2/";
+	const routingApi = new RoutingApi(
+		routingEndpoint,
+		"Vc32GLKD1wjxyiloWhlcFReFor7aAAOz"
+	);
+
 	const expandedHeight = 75;
 	const heightCollapsed = 25;
 	let height: number = heightCollapsed;
@@ -97,18 +106,16 @@
 
 	let profile: string = "bicycle";
 	let origin: {
-		description: string, 
-		location: { lng: number; lat: number }
+		description: string;
+		location: { lng: number; lat: number };
 	} = {
 		description: "Huidige Locatie",
-		location: { lng: 4.80187, lat: 51.26799}
+		location: { lng: 4.80187, lat: 51.26799 },
 	};
 	let destination: {
-		description: string, 
-		location: { lng: number; lat: number }
+		description: string;
+		location: { lng: number; lat: number };
 	};
-
-	let routes: any[] = [{},{}];
 
 	function onWhereToFocus(): void {
 		height = expandedHeight;
@@ -132,41 +139,111 @@
 		destination = e.detail;
 
 		view = VIEW_ROUTES;
+
+		getRoutes();
+	}
+
+	$: if (typeof profile !== "undefined") {
+		getRoutes();
+	}
+
+	let routes: any[] = [];
+	let routeSelected: number = 1;
+	let routeSequence: number = 0;
+
+	function getRoutes() {
+		if (typeof origin === "undefined" || typeof destination === "undefined") {
+			return;
+		}
+		var sequenceNumber = routeSequence;
+
+		routingApi.getRoute(
+			{
+				locations: [origin.location, destination.location],
+				profile: profile,
+				alternatives: 2,
+			},
+			(e) => {
+				if (routeSequence != sequenceNumber) {
+					console.warn(
+						`Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`
+					);
+					return;
+				}
+
+				if (e[profile + "0"]) {
+					const newRoutes: any[] = [{
+						segments: [
+							e[profile + "0"]
+						]
+					}];
+
+					for (var a = 1; a <= 3; a++) {
+                        var alternative = e[profile + `${a}`];
+                        if (alternative) {
+							newRoutes.push( { segments: [ alternative ] });
+                        }
+                    }
+
+					routes = newRoutes;
+				} else {
+					routes = [{
+						segments: [
+							e
+						]
+					}];
+				}
+			}
+		);
+	}
+
+	console.log("update app");
+	if (typeof origin !== "undefined" && typeof destination !== "undefined") {
+		getRoutes();
 	}
 </script>
 
 <div class="full">
 	<div class="map" style="height: calc({100 - height}% + 6px)">
-		<Map />
+		<Map>
+			{#if routes.length > 0}
+			<RoutesLayer selected={routeSelected} routes={routes} />
+			<LocationsLayer {origin} destination={destination} routes={routes}/>
+			{/if}
+			<NetworksLayer/>
+		</Map>
 	</div>
 
 	<div class="data container p-2" style="height: {height}%">
 		{#if view === VIEW_START || view === VIEW_SEARCH}
-		<div class="row m-3">
-			<SearchField
-				value=""
-				on:focus={onWhereToFocus}
-				on:input={onWhereToInput}
-			/>
-		</div>
+			<div class="row m-3">
+				<SearchField
+					value=""
+					on:focus={onWhereToFocus}
+					on:input={onWhereToInput}
+				/>
+			</div>
 		{/if}
 
 		{#if view === VIEW_ROUTES}
-		<div class="row mx-3 mb-3">
-			<RouteFromTo from="Huidige Locatie" to={destination.description}/>
-		</div>
+			<div class="row mx-3 mb-3">
+				<RouteFromTo
+					from="Huidige Locatie"
+					to={destination.description}
+				/>
+			</div>
 		{/if}
 
 		{#if view === VIEW_START || view === VIEW_ROUTES}
-		<div class="row m-3">
-			<Profiles bind:profile={profile}/>
-		</div>
+			<div class="row m-3">
+				<Profiles bind:profile />
+			</div>
 		{/if}
 
 		{#if view === VIEW_ROUTES}
-		<div class="row m-3">
-			<RouteList routes={routes} />
-		</div>
+			<div class="row m-3">
+				<RouteList {routes} />
+			</div>
 		{/if}
 
 		{#if view === VIEW_SEARCH}

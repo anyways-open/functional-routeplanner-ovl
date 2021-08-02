@@ -25,6 +25,7 @@
     "@tsconfig/svelte": "^2.0.0"
   },
   "dependencies": {
+    "@anyways-open/routing-api": "0.0.11",
     "@turf/turf": "^5.1.6",
     "@types/mapbox-gl": "^1.7.0",
     "opencage-api-client": "^1.0.0",

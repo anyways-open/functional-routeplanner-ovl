@@ -13,8 +13,8 @@
         map = new Map({
             container: "map",
             style: "https://api.maptiler.com/maps/basic/style.json?key=2Piy1GKXoXq0rHzzBVDA",
-            center: [3.954, 51.046],
-            zoom: 8.13,
+            center: [3.728, 51.0536],
+            zoom: 10.75,
             hash: true,
         });
     });
