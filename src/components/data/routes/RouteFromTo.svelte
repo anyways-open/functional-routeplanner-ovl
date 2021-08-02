@@ -1,5 +1,11 @@
 <script lang="ts">
     import RouteFrom from "./RouteFrom.svelte";
+    import { createEventDispatcher } from "svelte";
+
+    const dispatch = createEventDispatcher();
+    function onSwitch(): void {
+        dispatch("switch");
+    }
 
     import RouteTo from "./RouteTo.svelte";
 
@@ -10,7 +16,7 @@
 <div id="route-fromto py-5" class="route-fromto">
     <RouteFrom value={from} />
     <RouteTo value={to} />
-    <div type="button" id="switch-button" class="btn btn-light border-0">
+    <div type="button" id="switch-button" class="btn btn-light border-0" on:click="{onSwitch}">
         <img
             src="assets/icons/updown.svg"
             alt="Verwissel start-and endpoint."

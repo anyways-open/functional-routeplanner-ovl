@@ -8,6 +8,8 @@
     function onSelect(e: CustomEvent<any>): void {
         // dispatch("select", e.detail);
     }
+
+    console.log("updating routes list: " + routes);
 </script>
 
 {#if routes.length > 0}

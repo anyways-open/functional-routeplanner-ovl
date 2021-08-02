@@ -143,13 +143,23 @@
 		getRoutes();
 	}
 
-	$: if (typeof profile !== "undefined") {
+	$: if (typeof profile !== "undefined" &&
+			typeof origin !== "undefined" &&
+			typeof destination !== "undefined") {
 		getRoutes();
 	}
 
 	let routes: any[] = [];
 	let routeSelected: number = 1;
 	let routeSequence: number = 0;
+
+	function onSwitch(): void {
+		const t = origin;
+		origin = destination;
+		destination = t;
+
+		routes = [];
+	}
 
 	function getRoutes() {
 		if (
@@ -189,6 +199,7 @@
 					}
 
 					routes = newRoutes;
+					console.log(routes);
 				} else {
 					routes = [
 						{
@@ -209,10 +220,10 @@
 <div class="full">
 	<div class="map" style="height: calc({100 - height}% + 6px)">
 		<Map>
-			{#if routes.length > 0}
-				<RoutesLayer selected={routeSelected} {routes} />
-				<LocationsLayer {origin} {destination} {routes} />
+			{#if routes.length}
+			<RoutesLayer selected={routeSelected} {routes} />
 			{/if}
+			<LocationsLayer {origin} {destination}/>
 			<NetworksLayer />
 		</Map>
 	</div>
@@ -231,8 +242,9 @@
 		{#if view === VIEW_ROUTES}
 			<div class="row mx-3 mb-3">
 				<RouteFromTo
-					from="Huidige Locatie"
+					from={origin.description}
 					to={destination.description}
+					on:switch={onSwitch}
 				/>
 			</div>
 		{/if}
