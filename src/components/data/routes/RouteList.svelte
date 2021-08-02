@@ -2,14 +2,12 @@
     import { createEventDispatcher } from "svelte";
     import RouteRow from "./RouteRow.svelte";
 
-    export let routes: any[] = [];
+    export let routes: {description: string, segments: any[] }[] = [];
 
     // const dispatch = createEventDispatcher<{ select: SearchResult }>();
     function onSelect(e: CustomEvent<any>): void {
         // dispatch("select", e.detail);
     }
-
-    console.log("updating routes list: " + routes);
 </script>
 
 {#if routes.length > 0}

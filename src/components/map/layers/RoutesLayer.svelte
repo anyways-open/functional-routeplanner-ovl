@@ -158,8 +158,6 @@
                 }
                 source = map.getSource("route") as GeoJSONSource;
 
-                console.log("updating routes");
-
                 const routesFeatures: GeoJSON.FeatureCollection<GeoJSON.Geometry> =
                     {
                         type: "FeatureCollection",

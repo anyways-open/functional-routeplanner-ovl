@@ -149,7 +149,7 @@
 		getRoutes();
 	}
 
-	let routes: any[] = [];
+	let routes: {description: string, segments: any[] }[] = [];
 	let routeSelected: number = 1;
 	let routeSequence: number = 0;
 
@@ -188,22 +188,24 @@
 					const newRoutes: any[] = [
 						{
 							segments: [e[profile + "0"]],
+							description: "Aangeraden route"
 						},
 					];
 
 					for (var a = 1; a <= 3; a++) {
 						var alternative = e[profile + `${a}`];
 						if (alternative) {
-							newRoutes.push({ segments: [alternative] });
+							newRoutes.push({ segments: [alternative],
+							description: "Alternatieve route" });
 						}
 					}
 
 					routes = newRoutes;
-					console.log(routes);
 				} else {
 					routes = [
 						{
 							segments: [e],
+							description: "Aangeraden route"
 						},
 					];
 				}
@@ -211,7 +213,6 @@
 		);
 	}
 
-	console.log("update app");
 	if (typeof origin !== "undefined" && typeof destination !== "undefined") {
 		getRoutes();
 	}
