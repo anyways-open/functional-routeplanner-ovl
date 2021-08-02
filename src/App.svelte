@@ -110,7 +110,7 @@
 		location: { lng: number; lat: number };
 	} = {
 		description: "Huidige Locatie",
-		location: { lng: 4.80187, lat: 51.26799 },
+		location: { lng: 3.7378, lat: 51.0569 },
 	};
 	let destination: {
 		description: string;
@@ -213,6 +213,15 @@
 		);
 	}
 
+	function onDataClick(e: any): void {
+		console.log(e);
+		// if (height === expandedHeight) {
+		// 	height = heightCollapsed;
+		// } else {
+		// 	height = expandedHeight;
+		// }
+	}
+
 	if (typeof origin !== "undefined" && typeof destination !== "undefined") {
 		getRoutes();
 	}
@@ -229,7 +238,7 @@
 		</Map>
 	</div>
 
-	<div class="data container p-2" style="height: {height}%">
+	<div class="data container p-2" style="height: {height}%" on:dragstart="{onDataClick}">
 		{#if view === VIEW_START || view === VIEW_SEARCH}
 			<div class="row m-3">
 				<SearchField
