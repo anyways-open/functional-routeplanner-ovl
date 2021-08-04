@@ -12,6 +12,7 @@
 	import type { LocationData } from "./shared/data/LocationData";
 	import LocationSearch from "./components/data/locations/search/LocationSearch.svelte";
 	import RouteList from "./components/data/routes/RouteList.svelte";
+import type { MapHook } from "./components/map/MapHook";
 
 	const routingEndpoint = "https://staging.anyways.eu/routing-api2/";
 	const routingApi = new RoutingApi(
@@ -37,6 +38,7 @@
 		mapElement = document.getElementById("map");
 	});
 
+	let hook: MapHook;
 	let viewState: { 
 		view: "START" | "SEARCH" | "ROUTES",
 		search?: {
@@ -201,8 +203,6 @@
 			startTouch: e.touches[0].clientY,
 			startHeight: dragState.height
 		};
-		console.log(e.touches[0]);
-		console.log(dragState);
 	}
 
 	function onTouchMove(e: any) {
@@ -212,9 +212,7 @@
 		heights.map = "calc(100% - " + dragState.height + "px + 6px)";
 		dataElement.style.height = heights.data;
 		mapElement.style.height = heights.map;
-
-		console.log(e.touches[0]);
-		console.log(dragState);
+		hook.resize();
 	}
 
 	function onTouchEnd(e: any) {
@@ -224,7 +222,7 @@
 
 <div class="full">
 	<div id="map" class="map" style="height: {heights.map}; min-height: calc(25% + 6px); max-height: calc(75% + 6px);">
-		<Map>
+		<Map bind:hook={hook}>
 			{#if viewState.view === VIEW_ROUTES}
 				<RoutesLayer selected={routeSelected} {routes} />
 			{/if}

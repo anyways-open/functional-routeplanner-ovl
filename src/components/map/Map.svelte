@@ -3,6 +3,10 @@
     import { Map } from "mapbox-gl";
     import "../../../node_modules/mapbox-gl/dist/mapbox-gl.css";
     import { key } from "./map";
+    import { MapHook } from "./MapHook";
+
+    export let hook: MapHook;
+
     let map: Map;
     setContext(key, {
         getMap: () => {
@@ -17,6 +21,11 @@
             zoom: 10.75,
             hash: true,
         });
+
+        hook = new MapHook();
+        hook.resize = () => {
+            map.resize();
+        };
     });
 </script>
 
