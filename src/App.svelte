@@ -262,7 +262,7 @@ import type { MapHook } from "./components/map/MapHook";
 
 		{#if viewState.view === VIEW_ROUTES}
 			<div class="row m-3">
-				<Locations {locations} on:focus={onLocationFocus} />
+				<Locations {locations} on:switch={onSwitch} on:focus={onLocationFocus} />
 			</div>
 			<div class="row m-3">
 				<Profiles bind:profile />

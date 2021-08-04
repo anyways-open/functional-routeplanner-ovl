@@ -2,6 +2,7 @@
     import type { GeoJSONSource, Map } from "mapbox-gl";
     import { getContext } from "svelte";
     import { key } from "../../map/map";
+    import * as turf from "@turf/turf";
 
     export let routes: any[] = [];
     export let selected: number = 0;
@@ -196,6 +197,18 @@
                     }
 
                     source.setData(routesFeatures);
+
+                    const bbox = turf.bbox(routesFeatures);
+                    console.log(bbox);
+
+                    map.fitBounds([[bbox[0], bbox[1]],[bbox[2],bbox[3]]], {
+                        padding: {
+                            left: 20,
+                            right: 20,
+                            top: 20,
+                            bottom: 50
+                        }
+                    });
                 }
             }
         }
