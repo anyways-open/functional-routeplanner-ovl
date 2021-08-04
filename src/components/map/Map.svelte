@@ -15,11 +15,11 @@
     });
     onMount(async () => {
         map = new Map({
-            container: "map",
+            container: "mapbox-gl-container",
             style: "https://api.maptiler.com/maps/basic/style.json?key=2Piy1GKXoXq0rHzzBVDA",
             center: [3.728, 51.0536],
             zoom: 10.75,
-            hash: true,
+            hash: true
         });
 
         hook = new MapHook();
@@ -29,7 +29,7 @@
     });
 </script>
 
-<div id="map" class="h-100 map">
+<div id="mapbox-gl-container" class="h-100 map">
     {#if map}
     <slot></slot>
     {/if}

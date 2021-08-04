@@ -74,22 +74,26 @@ import type { MapHook } from "./components/map/MapHook";
 		viewState = { view: VIEW_ROUTES };
 	}
 
-	$: switch (viewState.view) {
-		case VIEW_SEARCH:
-			dataElement.style.height = "calc(75% + 6px)";
-			mapElement.style.height = "25%";
-			break;
-		case VIEW_ROUTES:
-			if (
-				typeof profile !== "undefined" &&
-				typeof locations[0].location !== "undefined" &&
-				typeof locations[1].location !== "undefined"
-			) {
-				console.log("getroutes");
-				getRoutes();
-			}
-			break;
-	}
+	$: {
+		switch (viewState.view) {
+			case VIEW_SEARCH:
+				dataElement.style.height = "calc(75% + 6px)";
+				mapElement.style.height = "25%";
+				break;
+			case VIEW_ROUTES:
+				if (
+					typeof profile !== "undefined" &&
+					typeof locations[0].location !== "undefined" &&
+					typeof locations[1].location !== "undefined"
+				) {
+					console.log("getroutes");
+					getRoutes();
+				}
+				break;
+		}
+
+		if (typeof hook !== "undefined") hook.resize();
+	};
 
 	let routes: { description: string; segments: any[] }[] = [];
 	let routeSelected: number = 1;
