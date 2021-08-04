@@ -26,6 +26,12 @@
         hook.resize = () => {
             map.resize();
         };
+        hook.flyTo = (center) => {
+            map.flyTo({
+                center: [center.lat, center.lng],
+                minZoom: 15
+            });
+        };
     });
 </script>
 

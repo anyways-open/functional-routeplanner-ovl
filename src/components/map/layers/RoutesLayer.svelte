@@ -199,7 +199,6 @@
                     source.setData(routesFeatures);
 
                     const bbox = turf.bbox(routesFeatures);
-                    console.log(bbox);
 
                     map.fitBounds([[bbox[0], bbox[1]],[bbox[2],bbox[3]]], {
                         padding: {

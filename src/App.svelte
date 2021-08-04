@@ -71,6 +71,8 @@ import type { MapHook } from "./components/map/MapHook";
 			location: e.detail.location,
 		};
 
+		hook.flyTo(e.detail.location);
+
 		viewState = { view: VIEW_ROUTES };
 	}
 
