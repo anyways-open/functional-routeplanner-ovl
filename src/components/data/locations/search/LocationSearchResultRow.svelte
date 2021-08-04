@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import type { SearchResult } from "./SearchResult";
+    import type { SearchResult } from "../locations/search/LocationSearchResult";
 
     export let searchResult: SearchResult;
 

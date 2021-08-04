@@ -45,9 +45,6 @@
     border: 3px solid #1da1f2;
     content: '';
     height: 14px;
-    left: -2px;
-    position: absolute;
-    top: -2px;
     width: 14px;
     box-sizing: border-box;
     cursor: pointer;

@@ -1,90 +1,16 @@
 <script lang="ts">
 	import Map from "./components/map/Map.svelte";
-	import { OpenCageDataProvider } from "./apis/geocoder/Providers/OpenCageDataProvider";
-	import { CrabGeolocationProvider } from "./apis/geocoder/Providers/CrabGeolocationProvider";
-	import { ChainedProvider } from "./apis/geocoder/Providers/ChainedProvider";
-	import * as turf from "@turf/turf";
-	import type { SearchResult } from "./components/data/search/SearchResult";
-	import { Geocoder } from "./apis/geocoder/Geocoder";
-	import SearchResultsTable from "./components/data/search/SearchResultsTable.svelte";
-	import RouteFromTo from "./components/data/routes/RouteFromTo.svelte";
+	import type { LocationSearchResult } from "./components/data/locations/search/LocationSearchResult";
 	import Profiles from "./components/data/Profiles.svelte";
-	import RouteList from "./components/data/routes/RouteList.svelte";
-	import SearchField from "./components/data/search/SearchField.svelte";
 	import { RoutingApi, Profile } from "@anyways-open/routing-api";
 	import NetworksLayer from "./components/map/layers/NetworksLayer.svelte";
 	import RoutesLayer from "./components/map/layers/RoutesLayer.svelte";
 	import LocationsLayer from "./components/map/layers/LocationsLayer.svelte";
-
-	const maxReverseDistance = 100;
-	const geocoderProvider = new ChainedProvider(
-		[
-			{
-				provider: new CrabGeolocationProvider(),
-				chainForward: (_, current) => {
-					const results = [];
-					let next = current.length == 0;
-					current.forEach((x) => {
-						if (x.type == "commune") {
-							next = true;
-							return;
-						}
-
-						results.push(x);
-					});
-
-					results.sort((x, y) => {
-						if (x.score < y.score) return -1;
-						return 1;
-					});
-
-					return { next: next, results: results };
-				},
-				chainReverse: (l, _, current) => {
-					let next = current.length == 0;
-					if (current.length > 0) {
-						const dist =
-							turf.distance(
-								[l.lng, l.lat],
-								[
-									current[0].location.lng,
-									current[0].location.lat,
-								]
-							) * 1000;
-
-						if (dist > maxReverseDistance) {
-							next = true;
-							current = [];
-						}
-					}
-					return { next: next, results: current };
-				},
-			},
-			{
-				provider: new OpenCageDataProvider(
-					"dcec93be31054bc5a260386c0d84be98",
-					{
-						language: "nl",
-					}
-				),
-			},
-		],
-		{
-			maxResults: 5,
-			maxReverseDistance: maxReverseDistance,
-		}
-	);
-	const geocoder = new Geocoder(geocoderProvider, {
-		forwardPreprocessor: (q) => {
-			if (q && q.string && q.string.toLowerCase().startsWith("station")) {
-				q = {
-					string: q.string.substring(7),
-					location: q.location,
-				};
-			}
-			return q;
-		},
-	});
+	import UserLocation from "./components/map/layers/UserLocation.svelte";
+	import Locations from "./components/data/locations/Locations.svelte";
+	import type { LocationData } from "./shared/data/LocationData";
+	import LocationSearch from "./components/data/locations/search/LocationSearch.svelte";
+	import RouteList from "./components/data/routes/RouteList.svelte";
 
 	const routingEndpoint = "https://staging.anyways.eu/routing-api2/";
 	const routingApi = new RoutingApi(
@@ -100,79 +26,80 @@
 	const VIEW_SEARCH = "SEARCH";
 	const VIEW_ROUTES = "ROUTES";
 
-	let view: string = VIEW_START;
-
-	let searchResults: SearchResult[] = [];
+	let viewState: { 
+		view: "START" | "SEARCH" | "ROUTES",
+		search?: {
+			location: number,
+			placeholder: string
+		}
+	} = {
+		view: VIEW_START
+	};
 
 	let profile: string = "bicycle";
-	let origin: {
-		description: string;
-		location: { lng: number; lat: number };
-	} = {
-		description: "Huidige Locatie",
-		location: { lng: 3.7378, lat: 51.0569 },
-	};
-	let destination: {
-		description: string;
-		location: { lng: number; lat: number };
-	};
+	let locations: LocationData[] = [
+		{
+			description: "Huidige Locatie",
+			type: "USER_LOCATION",
+			location: { lng: 3.7378, lat: 51.0569 },
+		},
+		{
+			type: "END",
+		},
+	];
 
-	function onWhereToFocus(): void {
-		height = expandedHeight;
+	function onSelect(e: CustomEvent<LocationSearchResult>): void {
+		if (viewState.view != VIEW_SEARCH) return;
+		if (typeof viewState.search === "undefined") return;
 
-		view = VIEW_SEARCH;
-	}
-	function onWhereToInput(value: CustomEvent<string>): void {
-		const searchString: string = value.detail;
-		if (!searchString || searchString.length == 0) {
-			searchResults = [];
-			return;
-		}
+		locations[viewState.search.location] = {
+			type: locations[viewState.search.location].type,
+			description: e.detail.description,
+			location: e.detail.location,
+		};
 
-		// TODO: include current map center.
-		geocoder.geocode({ string: searchString }, (results) => {
-			searchResults = results;
-		});
+		viewState = { view: VIEW_ROUTES };
 	}
 
-	function onSelect(e: CustomEvent<SearchResult>): void {
-		destination = e.detail;
-
-		view = VIEW_ROUTES;
-
-		getRoutes();
+	$: switch (viewState.view) {
+		case VIEW_SEARCH:
+			height = expandedHeight;
+			break;
+		case VIEW_ROUTES:
+			if (
+				typeof profile !== "undefined" &&
+				typeof locations[0].location !== "undefined" &&
+				typeof locations[1].location !== "undefined"
+			) {
+				console.log("getroutes");
+				getRoutes();
+			}
+			break;
 	}
 
-	$: if (typeof profile !== "undefined" &&
-			typeof origin !== "undefined" &&
-			typeof destination !== "undefined") {
-		getRoutes();
-	}
-
-	let routes: {description: string, segments: any[] }[] = [];
+	let routes: { description: string; segments: any[] }[] = [];
 	let routeSelected: number = 1;
 	let routeSequence: number = 0;
 
 	function onSwitch(): void {
-		const t = origin;
-		origin = destination;
-		destination = t;
+		const t = locations[0];
+		locations[0] = locations[1];
+		locations[1] = t;
 
 		routes = [];
 	}
 
 	function getRoutes() {
-		if (
-			typeof origin === "undefined" ||
-			typeof destination === "undefined"
-		) {
+		if (typeof profile === "undefined" ||
+			typeof locations[0].location === "undefined" ||
+			typeof locations[1].location === "undefined") {
 			return;
 		}
-		var sequenceNumber = routeSequence;
 
+		var sequenceNumber = routeSequence;
 		routingApi.getRoute(
 			{
-				locations: [origin.location, destination.location],
+				locations: [locations[0].location, locations[1].location],
 				profile: profile,
 				alternatives: 2,
 			},
@@ -188,15 +115,17 @@
 					const newRoutes: any[] = [
 						{
 							segments: [e[profile + "0"]],
-							description: "Aangeraden route"
+							description: "Aangeraden route",
 						},
 					];
 
 					for (var a = 1; a <= 3; a++) {
 						var alternative = e[profile + `${a}`];
 						if (alternative) {
-							newRoutes.push({ segments: [alternative],
-							description: "Alternatieve route" });
+							newRoutes.push({
+								segments: [alternative],
+								description: "Alternatieve route",
+							});
 						}
 					}
 
@@ -205,7 +134,7 @@
 					routes = [
 						{
 							segments: [e],
-							description: "Aangeraden route"
+							description: "Aangeraden route",
 						},
 					];
 				}
@@ -222,57 +151,73 @@
 		// }
 	}
 
-	if (typeof origin !== "undefined" && typeof destination !== "undefined") {
+	if (
+		typeof locations[0].location !== "undefined" &&
+		typeof locations[1].location !== "undefined"
+	) {
 		getRoutes();
+	}
+
+	function onLocationFocus(e: CustomEvent<number>): void {
+		let placeholder: string = "Via";
+		if (e.detail === locations.length - 1) {
+			placeholder = "Naar"
+		} else if (e.detail == 0) {
+			placeholder = "Van";
+		}
+
+		viewState = { 
+			view: VIEW_SEARCH,
+			search: {
+				location: e.detail,
+				placeholder: placeholder
+			}
+		};
 	}
 </script>
 
 <div class="full">
 	<div class="map" style="height: calc({100 - height}% + 6px)">
 		<Map>
-			{#if routes.length}
-			<RoutesLayer selected={routeSelected} {routes} />
+			{#if viewState.view === VIEW_ROUTES}
+				<RoutesLayer selected={routeSelected} {routes} />
 			{/if}
-			<LocationsLayer {origin} {destination}/>
+			<LocationsLayer {locations} />
 			<NetworksLayer />
+			<UserLocation />
 		</Map>
 	</div>
 
-	<div class="data container p-2" style="height: {height}%" on:dragstart="{onDataClick}">
-		{#if view === VIEW_START || view === VIEW_SEARCH}
+	<div
+		class="data container p-2"
+		style="height: {height}%"
+		on:dragstart={onDataClick}
+	>
+		{#if viewState.view === VIEW_START}
 			<div class="row m-3">
-				<SearchField
-					value=""
-					on:focus={onWhereToFocus}
-					on:input={onWhereToInput}
-				/>
+				<Locations {locations} on:focus={onLocationFocus} />
 			</div>
-		{/if}
-
-		{#if view === VIEW_ROUTES}
-			<div class="row mx-3 mb-3">
-				<RouteFromTo
-					from={origin.description}
-					to={destination.description}
-					on:switch={onSwitch}
-				/>
-			</div>
-		{/if}
-
-		{#if view === VIEW_START || view === VIEW_ROUTES}
 			<div class="row m-3">
 				<Profiles bind:profile />
 			</div>
 		{/if}
 
-		{#if view === VIEW_ROUTES}
+		{#if viewState.view === VIEW_SEARCH}
 			<div class="row m-3">
-				<RouteList {routes} />
+				<LocationSearch placeholder={viewState.search.placeholder} on:select={onSelect} />
 			</div>
 		{/if}
 
-		{#if view === VIEW_SEARCH}
-			<SearchResultsTable {searchResults} on:select={onSelect} />
+		{#if viewState.view === VIEW_ROUTES}
+			<div class="row m-3">
+				<Locations {locations} on:focus={onLocationFocus} />
+			</div>
+			<div class="row m-3">
+				<Profiles bind:profile />
+			</div>
+			<div class="row m-3">
+				<RouteList {routes} />
+			</div>
 		{/if}
 	</div>
 </div>

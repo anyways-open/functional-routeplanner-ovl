@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
 
+    export let placeholder: string = "";
     export let value: string = "";
 
     const focus = createEventDispatcher();
@@ -23,7 +24,7 @@
         <input
             type="text"
             class="form-control border-0"
-            placeholder="Waar naartoe?"
+            placeholder={placeholder}
             on:focus="{onFocus}"
             on:input="{onInput}"
             value={value}
@@ -39,8 +40,12 @@
         background: white;
         border-radius: 10px;
         padding: 5px;
+        margin-top: -40px;
         box-shadow: 2px 2px 5px;
-        margin-top: -30px;
+    }
+
+    input {
+        padding-left: 0px;
     }
 
     img {
