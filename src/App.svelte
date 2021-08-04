@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import Map from "./components/map/Map.svelte";
 	import type { LocationSearchResult } from "./components/data/locations/search/LocationSearchResult";
 	import Profiles from "./components/data/Profiles.svelte";
@@ -18,13 +19,23 @@
 		"Vc32GLKD1wjxyiloWhlcFReFor7aAAOz"
 	);
 
-	const expandedHeight = 75;
-	const heightCollapsed = 25;
-	let height: number = heightCollapsed;
-
 	const VIEW_START = "START";
 	const VIEW_SEARCH = "SEARCH";
 	const VIEW_ROUTES = "ROUTES";
+
+	let dataElement: HTMLElement;
+	let mapElement: HTMLElement;
+	const heights: {
+		data: string,
+		map: string
+	} = {
+		data: "25%",
+		map: "calc(75% + 6px)"
+	};
+    onMount(async () => {
+		dataElement = document.getElementById("data");
+		mapElement = document.getElementById("map");
+	});
 
 	let viewState: { 
 		view: "START" | "SEARCH" | "ROUTES",
@@ -63,7 +74,8 @@
 
 	$: switch (viewState.view) {
 		case VIEW_SEARCH:
-			height = expandedHeight;
+			dataElement.style.height = "calc(75% + 6px)";
+			mapElement.style.height = "25%";
 			break;
 		case VIEW_ROUTES:
 			if (
@@ -174,10 +186,44 @@
 			}
 		};
 	}
+
+	let dragState: {
+		height?: number,
+		dragging?: {
+			startTouch: number,
+			startHeight: number
+		}
+	} = {};
+
+	function onTouchStart(e: any) {
+		dragState.height = dataElement.clientHeight;
+		dragState.dragging = {
+			startTouch: e.touches[0].clientY,
+			startHeight: dragState.height
+		};
+		console.log(e.touches[0]);
+		console.log(dragState);
+	}
+
+	function onTouchMove(e: any) {
+		dragState.height = dragState.dragging.startHeight - (e.touches[0].clientY - dragState.dragging.startTouch);
+
+		heights.data = dragState.height + "px";
+		heights.map = "calc(100% - " + dragState.height + "px + 6px)";
+		dataElement.style.height = heights.data;
+		mapElement.style.height = heights.map;
+
+		console.log(e.touches[0]);
+		console.log(dragState);
+	}
+
+	function onTouchEnd(e: any) {
+
+	}
 </script>
 
 <div class="full">
-	<div class="map" style="height: calc({100 - height}% + 6px)">
+	<div id="map" class="map" style="height: {heights.map}; min-height: calc(25% + 6px); max-height: calc(75% + 6px);">
 		<Map>
 			{#if viewState.view === VIEW_ROUTES}
 				<RoutesLayer selected={routeSelected} {routes} />
@@ -189,9 +235,13 @@
 	</div>
 
 	<div
+		id="data"
 		class="data container p-2"
-		style="height: {height}%"
+		style="height: {heights.data}; min-height: 25%; max-height: 75%;"
 		on:dragstart={onDataClick}
+		on:touchstart={onTouchStart}
+		on:touchmove={onTouchMove}
+		on:touchend={onTouchEnd}
 	>
 		{#if viewState.view === VIEW_START}
 			<div class="row m-3">
