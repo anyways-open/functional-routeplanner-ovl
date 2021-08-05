@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { GeoJSONSource, Map, Marker } from "mapbox-gl";
+    import { Map, Marker } from "mapbox-gl";
     import { getContext } from "svelte";
-    import type { LocationData } from "../../../shared/data/LocationData";  
-    import { key } from "../../map/map";
-    import * as svgs from "../../svg";
+    import type { Location } from "./Location";  
+    import { key } from "../../../map/map";
+    import * as svgs from "../../../svg";
 
-    export let locations: LocationData[] = [];
+    export let locations: Location[] = [];
     let markers: Marker[] = [];
 
     const { getMap } = getContext(key);
@@ -16,7 +16,7 @@
             if (typeof value.location === "undefined") return;
 
             const element = document.createElement("div");
-            if (value.type === "END") {
+            if (i == locations.length - 1) {
                 element.className = "marker-destination";
                 element.innerHTML = svgs.marker;
             } else {

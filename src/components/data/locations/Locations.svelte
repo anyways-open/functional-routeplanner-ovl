@@ -1,7 +1,10 @@
 <script lang="ts">
     import Location from "./Location.svelte";
     import { createEventDispatcher } from "svelte";
-    import type { LocationData } from "../../../shared/data/LocationData";
+    import type { Location as LocationData } from "../Location";
+
+    export let locations: LocationData[] = [];
+
     const dispatch = createEventDispatcher();
     function onSwitch(): void {
         dispatch("switch");
@@ -21,7 +24,6 @@
         });
     }
 
-    export let locations: LocationData[] = [];
 </script>
 
 <div class="locations-container">
@@ -30,13 +32,15 @@
             {#each locations as location, i}
                 {#if i === 0}
                     <Location
+                        type="START"
                         data={location}
                         placeholder="Van"
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
                     />
-                {:else if i === 1}
+                {:else if i === locations.length - 1}
                     <Location
+                        type="END"
                         data={location}
                         placeholder="Naar"
                         on:focus={() => onFocus(i)}
@@ -44,6 +48,7 @@
                     />
                 {:else}
                     <Location
+                        type="VIA"
                         data={location}
                         placeholder="Via"
                         on:focus={() => onFocus(i)}

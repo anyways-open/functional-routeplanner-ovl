@@ -1,34 +1,36 @@
 <script lang="ts">
-    import type { LocationData } from "../../../shared/data/LocationData";
+    import type { Location as LocationData } from "../Location";
     import { createEventDispatcher } from "svelte";
 
-    const focus = createEventDispatcher();
-    const input = createEventDispatcher<{ input: string }>();
+    // exports.
+    export let data: LocationData;
+    export let placeholder: string = "";
+    export let type: "START" | "VIA" | "END";
 
+    const focus = createEventDispatcher();
     function onFocus(): void {
         focus("focus");
     }
 
+    const input = createEventDispatcher<{ input: string }>();
     function onInput(e: any): void {
         input("input", e.target.value);
     }
 
-    export let data: LocationData;
-    export let placeholder: string = "";
     let value = data.description;
     $: if (typeof data.description === "undefined") {
-        value = ""
+        value = "";
     } else {
         value = data.description;
     }
 </script>
 
 <div class="input-group">
-    {#if data.type == "USER_LOCATION"}
+    {#if data.isUserLocation}
         <div class="marker-via-dot-container">
             <div class="marker-via-dot" />
         </div>
-    {:else}
+    {:else if type == "END"}
         <div type="button" class="btn btn-light border-0" style="width: 49px;">
             <img
                 src="assets/icons/marker.svg"
@@ -36,12 +38,16 @@
                 alt="Map Marker"
             />
         </div>
+    {:else}
+        <div class="marker-via-dot-container">
+            <div class="marker-via-dot" />
+        </div>
     {/if}
     <input
         type="text"
         class="form-control border-0"
-        value={value}
-        placeholder={placeholder}
+        {value}
+        {placeholder}
         on:focus={onFocus}
         on:input={onInput}
     />
