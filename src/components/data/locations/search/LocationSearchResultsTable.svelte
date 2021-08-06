@@ -14,7 +14,9 @@
 {#if searchResults.length > 0}
     <div id="route-results" class="data-container btn-toolbar p-1 border-0">
         <div class="route-results">
-            Results
+            <div class="d-block d-sm-none">
+                Results
+            </div>
             <div class="route-results-list">
                 {#each searchResults as searchResult}
                     <LocationSearchResultRow
@@ -29,11 +31,8 @@
 
 <style>
     .route-results {
-        position: absolute;
-        top: 50px;
-        left: 20px;
-        right: 20px;
         color: white;
+        width: 100%;
     }
 
     .route-results-list {
@@ -42,5 +41,15 @@
         border-radius: 10px;
         padding: 4px;
         color: black;
+    }
+
+    @media (min-width: 576px) { 
+        .route-results-list {
+            margin-top: 0px;
+            background: white;
+            border-radius: unset;
+            padding: 0px;
+            color: black;
+        }
     }
 </style>

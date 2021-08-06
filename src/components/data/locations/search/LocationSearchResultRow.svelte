@@ -64,4 +64,11 @@
     .search-result:hover {
         background-color: #9fd7f9;
     }
+
+    @media (min-width: 576px) { 
+
+        .search-result.row:not(:last-child) {
+            border-bottom: unset;
+        }
+    }
 </style>

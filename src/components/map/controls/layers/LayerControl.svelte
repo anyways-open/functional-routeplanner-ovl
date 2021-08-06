@@ -29,7 +29,10 @@
             const layer = map.getLayer(l);
             const visible = layers[i].visible;
 
-            if (typeof layer == "undefined") return;
+            if (typeof layer == "undefined") {
+                console.warn(`Layer with id: '${l}' not found.`);
+                return;
+            };
 
             if (visible) {
                 map.setLayoutProperty(layer.id, "visibility", "visible");
@@ -62,6 +65,7 @@
         border-radius: 3px;
         width: 120px;
         padding: 2px;
+        display: none;
     }
 
     .layer-control .active {
@@ -90,5 +94,11 @@
 
     .btn:not(.active):hover {
         background-color: rgba(0,0,0,.05);
+    }
+
+    @media (min-width: 576px) {
+        .layer-control {
+            display: block;
+        }
     }
 </style>

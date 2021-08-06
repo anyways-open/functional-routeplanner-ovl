@@ -9,6 +9,11 @@
     import type { Route } from "./Route";
     import type { MapHook } from "./MapHook";
     import { RoutingHook } from "./RoutingHook";
+import { ChainedProvider } from "../../apis/geocoder/Providers/ChainedProvider";
+import { CrabGeolocationProvider } from "../../apis/geocoder/Providers/CrabGeolocationProvider";
+import { OpenCageDataProvider } from "../../apis/geocoder/Providers/OpenCageDataProvider";
+import { Geocoder } from "../../apis/geocoder/Geocoder";
+import LocationSearchResultsTable from "./locations/search/LocationSearchResultsTable.svelte";
 
     // exports
     export let routingHook: RoutingHook = new RoutingHook();
@@ -24,6 +29,84 @@
         routingEndpoint,
         "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz"
     );
+
+    const maxReverseDistance = 100;
+	const geocoderProvider = new ChainedProvider(
+		[
+			{
+				provider: new CrabGeolocationProvider(),
+				chainForward: (_, current) => {
+					const results = [];
+					let next = current.length == 0;
+					current.forEach((x) => {
+						if (x.type == "commune") {
+							next = true;
+							return;
+						}
+
+						results.push(x);
+					});
+
+					results.sort((x, y) => {
+						if (x.score < y.score) return -1;
+						return 1;
+					});
+
+					return { next: next, results: results };
+				},
+				chainReverse: (l, _, current) => {
+					let next = current.length == 0;
+					if (current.length > 0) {
+						const dist =
+							turf.distance(
+								[l.lng, l.lat],
+								[
+									current[0].location.lng,
+									current[0].location.lat,
+								]
+							) * 1000;
+
+						if (dist > maxReverseDistance) {
+							next = true;
+							current = [];
+						}
+					}
+					return { next: next, results: current };
+				},
+			},
+			{
+				provider: new OpenCageDataProvider(
+					"dcec93be31054bc5a260386c0d84be98",
+					{
+						language: "nl",
+					}
+				),
+			},
+		],
+		{
+			maxResults: 5,
+			maxReverseDistance: maxReverseDistance,
+		}
+	);
+	const geocoder = new Geocoder(geocoderProvider, {
+		forwardPreprocessor: (q) => {
+			if (q && q.string && q.string.toLowerCase().startsWith("station")) {
+				q = {
+					string: q.string.substring(7),
+					location: q.location,
+				};
+			}
+			return q;
+		},
+	});
+
+	let searchResults: { 
+        location: number,
+        results: LocationSearchResult[]
+    } = {
+        location: -1,
+        results: []
+    };
 
     const VIEW_START = "START";
     const VIEW_SEARCH = "SEARCH";
@@ -163,24 +246,41 @@
             },
         };
     }
+
+    function onLocationInput(e: CustomEvent<{ i: number; value: string }>): void {
+        const searchString: string = e.detail.value;
+        viewState.search.location = e.detail.i;
+        if (!searchString || searchString.length == 0) {
+            searchResults = { 
+                location: e.detail.i,
+                results: []
+            };
+            return;
+        }
+
+        // TODO: include current map center.
+        geocoder.geocode({ string: searchString }, (results) => {
+            searchResults = { 
+                location: e.detail.i,
+                results: results
+            };
+        });
+    }
 </script>
 
 <div class="outer">
-    {#if viewState.view === VIEW_START}
-        <div class="row">
-            <Locations {locations} on:focus={onLocationFocus} />
+    {#if viewState.view === VIEW_START || viewState.view == VIEW_SEARCH}
+        <div class="row {viewState.view == VIEW_SEARCH ? "d-none d-sm-block" : ""}">
+            <Locations {locations} on:focus={onLocationFocus} on:input={onLocationInput} />
         </div>
-        <div class="row">
+        <div class="row {viewState.view == VIEW_SEARCH ? "d-none d-sm-block" : ""}">
             <Profiles bind:profile />
         </div>
     {/if}
 
     {#if viewState.view === VIEW_SEARCH}
         <div class="row">
-            <LocationSearch
-                placeholder={viewState.search.placeholder}
-                on:select={onSelect}
-            />
+            <LocationSearchResultsTable searchResults={searchResults.results} on:select={onSelect} />
         </div>
     {/if}
 

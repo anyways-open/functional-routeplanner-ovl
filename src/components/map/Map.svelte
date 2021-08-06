@@ -28,7 +28,7 @@
         };
         hook.flyTo = (center) => {
             map.flyTo({
-                center: [center.lat, center.lng],
+                center: [center.lng, center.lat],
                 minZoom: 15
             });
         };
