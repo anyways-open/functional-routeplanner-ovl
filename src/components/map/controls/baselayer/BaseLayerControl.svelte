@@ -18,7 +18,6 @@
     let controlRoot: HTMLElement;
     
     onMount(async () => {
-        console.log(controlRoot);
         manager = new BaseLayerControlManager(controlRoot, map, options);
 
         map.addControl(manager, "bottom-right");

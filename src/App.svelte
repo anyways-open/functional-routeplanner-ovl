@@ -12,7 +12,11 @@
 	import type { RoutingHook } from "./components/data/RoutingHook";
 	import BaseLayerControl from "./components/map/controls/baselayer/BaseLayerControl.svelte";
 	import type { BaseLayerControlOptions } from "./components/map/controls/baselayer/BaseLayerControlOptions";
-import ImageryLayer from "./components/map/layers/ImageryLayer.svelte";
+	import ImageryLayer from "./components/map/layers/ImageryLayer.svelte";
+	import LayerControl from "./components/map/controls/layers/LayerControl.svelte";
+	import type { LayerConfig } from "./components/map/controls/layers/LayerConfig";
+import GipodLayer from "./components/map/layers/GipodLayer.svelte";
+import BffLayer from "./components/map/layers/BffLayer.svelte";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
@@ -38,6 +42,45 @@ import ImageryLayer from "./components/map/layers/ImageryLayer.svelte";
 			map: "assets/img/base-layers/map.png",
 		},
 	};
+	let layers: LayerConfig[] = [{
+            id: "LN",
+            name: "Lokaal Netwerk",
+            layers: ["cycle-node-network", "cyclenodes-circles", "cyclenodes-circles-center", "cyclenodes-labels", "cycle-node-network-case"],
+			logo: "assets/icons/network.svg",
+            visible: true,
+            enabled: true
+        },
+        {
+            id: "FS",
+            name: "Fietssnelwegen",
+            layers: ["cycle-highways-case", "cycle-highways"],
+			logo: "assets/icons/highway.svg",
+            visible: true,
+            enabled: true
+        },
+        {
+            id: "SR",
+            name: "Schoolroutes",
+            layers: ["school-routes", "school-routes-unsafe", "school-routes-semi"],
+			logo: "assets/icons/school.svg",
+            visible: false,
+            enabled: false
+        }, {
+            id: "BF",
+            name: "Functioneel Fietsnetwerk",
+			logo: "assets/icons/network.svg",
+            layers: ["bff"],
+            visible: false,
+            enabled: true
+        },
+        {
+            id: "GP",
+            name: "Wegenwerken",
+            layers: ["gipod-con", "gipod-icon"],
+			logo: "assets/icons/road-works.svg",
+            visible: false,
+            enabled: true
+        }];
 
 	$: if (typeof routingHook !== "undefined") {
 		routingHook.onSearch = () => {
@@ -96,11 +139,14 @@ import ImageryLayer from "./components/map/layers/ImageryLayer.svelte";
 		<Map bind:hook={mapHook}>
 			<RoutesLayer selected={routeSelected} {routes} />
 			<LocationsLayer {locations} />
+			<GipodLayer />
 			<NetworksLayer />
 			<ImageryLayer />
+			<BffLayer />
 			<UserLocation />
 
 			<BaseLayerControl bind:options={baseLayerOptions} />
+			<LayerControl bind:layers={layers}/>
 		</Map>
 	</div>
 
