@@ -11,7 +11,7 @@
 
 </script>
 
-<div>
+<div class="profiles-container">
     <div class="profile-btn-group btn-group">
         <div type="button" class="btn btn-profile {profile == "bicycle" ? "active" : ""} border-0" on:click={onClickBicycle}>
             <span>
@@ -75,4 +75,38 @@
         color: #fff;
         background-color: #1da1f2;
     }
+
+	@media (min-width: 576px) { 
+		.profiles-container {
+            padding: unset;
+		    bottom: unset;
+		}
+
+        .profile-btn-group {
+            background: #0d8bd9;
+            border-radius: 0px;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            width: 100%;
+            padding: 4px;
+        }
+
+        .btn-profile {
+            text-align: center;
+            color: #fff;
+            width: 50%;
+            height: 100%;
+            padding-top: 20px;
+        }
+
+        .btn:first-child {
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .btn:last-child {
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: px;
+        }
+	}
 </style>

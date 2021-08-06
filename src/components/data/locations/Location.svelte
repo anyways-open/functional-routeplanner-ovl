@@ -26,31 +26,38 @@
 </script>
 
 <div class="input-group">
-    {#if data.isUserLocation}
-        <div class="marker-via-dot-container">
-            <div class="marker-via-dot" />
-        </div>
-    {:else if type == "END"}
-        <div type="button" class="btn btn-light border-0" style="width: 49px;">
-            <img
-                src="assets/icons/marker.svg"
-                style="height: 25px;"
-                alt="Map Marker"
-            />
-        </div>
-    {:else}
-        <div class="marker-via-dot-container">
-            <div class="marker-via-dot" />
-        </div>
-    {/if}
-    <input
-        type="text"
-        class="form-control border-0"
-        {value}
-        {placeholder}
-        on:focus={onFocus}
-        on:input={onInput}
-    />
+    <div class="location-img-container">
+        {#if data.isUserLocation}
+            <div class="marker-via-dot-container">
+                <div class="marker-via-dot" />
+            </div>
+        {:else if type == "END"}
+                <img class="marker"
+                    src="assets/icons/marker.svg"
+                    alt="Map Marker"
+                />
+        {:else}
+            <div class="marker-via-dot-container">
+                <div class="marker-via-dot" />
+            </div>
+        {/if}
+    </div>
+    <div class="input-container">
+        <input
+            type="text"
+            class="form-control border-0"
+            {value}
+            {placeholder}
+            on:focus={onFocus}
+            on:input={onInput}
+        />
+        <button type="button" class="btn btn-light border-0">
+            <img src="assets/icons/search.svg" alt="Zoek">
+        </button>
+        <button type="button" class="btn btn-light border-0">
+            <img src="assets/icons/close.svg" alt="Sluit">
+        </button>
+    </div>
 </div>
 
 <style>
@@ -79,9 +86,68 @@
         margin-right: 10px;
     }
 
+    img {
+        height: 20px;
+    }
+
     .marker-via-dot-container {
-        padding-left: 17px;
-        padding-top: 15px;
         width: 49px;
     }
+
+    .btn {
+        display: none;
+    }
+
+
+    .marker {
+            margin-left:4px;
+        }
+
+    .marker-via-dot-container {
+            padding-left: 0px;
+            padding-top: 0px;
+            margin-left:5px;
+            margin-top:3px;
+        }
+
+    .location-img-container {
+            padding:.575rem .78rem;
+            width:49px;
+        }
+        input {
+            height: 32px;
+            flex: 1 1 auto;
+        }
+
+	@media (min-width: 576px) { 
+
+        .btn {
+            display: block;
+        }
+
+        .input-group {
+            background: #fff;
+            border-radius: 0px;
+            height: 39px;
+            border-bottom-style: none;
+            padding-bottom: .25rem;
+        }
+
+        .input-container {
+            display: flex;
+            border-bottom: 1px;
+            border-bottom-style: solid;
+            border-bottom-color: #c2c2c2;
+        }
+        
+		.input-group:first-child {
+            border-top-left-radius: unset;
+            border-top-right-radius: unset;
+        }
+
+        .input-group:last-child {
+            border-bottom-left-radius: unset;
+            border-bottom-right-radius: unset;
+        }
+	}
 </style>

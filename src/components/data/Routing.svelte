@@ -165,36 +165,71 @@
     }
 </script>
 
-{#if viewState.view === VIEW_START}
-    <div class="row m-3">
-        <Locations {locations} on:focus={onLocationFocus} />
-    </div>
-    <div class="row m-3">
-        <Profiles bind:profile />
-    </div>
-{/if}
+<div class="outer">
+    {#if viewState.view === VIEW_START}
+        <div class="row">
+            <Locations {locations} on:focus={onLocationFocus} />
+        </div>
+        <div class="row">
+            <Profiles bind:profile />
+        </div>
+    {/if}
 
-{#if viewState.view === VIEW_SEARCH}
-    <div class="row m-3">
-        <LocationSearch
-            placeholder={viewState.search.placeholder}
-            on:select={onSelect}
-        />
-    </div>
-{/if}
+    {#if viewState.view === VIEW_SEARCH}
+        <div class="row">
+            <LocationSearch
+                placeholder={viewState.search.placeholder}
+                on:select={onSelect}
+            />
+        </div>
+    {/if}
 
-{#if viewState.view === VIEW_ROUTES}
-    <div class="row m-3">
-        <Locations
-            {locations}
-            on:switch={onSwitch}
-            on:focus={onLocationFocus}
-        />
-    </div>
-    <div class="row m-3">
-        <Profiles bind:profile />
-    </div>
-    <div class="row m-3">
-        <RouteList {routes} />
-    </div>
-{/if}
+    {#if viewState.view === VIEW_ROUTES}
+        <div class="row">
+            <Locations
+                {locations}
+                on:switch={onSwitch}
+                on:focus={onLocationFocus}
+            />
+        </div>
+        <div class="row">
+            <Profiles bind:profile />
+        </div>
+        <div class="row">
+            <RouteList {routes} />
+        </div>
+    {/if}
+</div>
+
+<style>
+
+	.outer {
+		background: #1da1f2;
+		border-top-left-radius: 10px;
+		border-top-right-radius: 10px;
+		position: absolute;
+		top: 0px;
+		bottom: 0px;
+		left: 0px;
+		right: 0px;
+        padding: .5rem;
+	}
+
+    .row {
+        margin: 1rem !important;
+    }
+
+	@media (min-width: 576px) { 
+		.outer {
+			background: #ffffff;
+            box-shadow: 3px 3px 2px rgba(0,0,0,.1);
+            border-radius: 4px;
+            padding: unset;
+		    bottom: unset;
+		}
+
+        .row {
+            margin: 0 !important;
+        }
+	}
+</style>

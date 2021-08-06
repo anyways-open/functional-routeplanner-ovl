@@ -28,7 +28,7 @@
 
 <div class="locations-container">
     <div class="locations">
-        <div>
+        <div class="locations-list">
             {#each locations as location, i}
                 {#if i === 0}
                     <Location
@@ -80,10 +80,6 @@
         position: absolute;
         right: 31px;
         top: -2px;
-        border-top-left-radius: 5px;
-        border-bottom-left-radius: 5px;
-        border-top-right-radius: 0px;
-        border-bottom-right-radius: 0px;
         background: #1da1f2;
         padding: 4px;
         z-index: 100;
@@ -92,5 +88,21 @@
     .locations .btn img {
         height: 20px;
         width: 20px;
+    }
+
+    @media (min-width: 576px) { 
+        .locations-container {
+            margin-top: unset;
+            padding: .5rem;
+        }
+
+        .btn {
+            display: none;
+        }
+
+        .locations {
+            box-shadow: none;
+            border-radius: unset;
+        }
     }
 </style>

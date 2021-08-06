@@ -83,7 +83,7 @@
 </script>
 
 <div id="full" class="full">
-	<div id="map" class="map" style="height: {heights.map}; min-height: calc(25% + 6px); max-height: calc(75% + 6px);">
+	<div id="map" class="map" style="height: {heights.map};">
 		<Map bind:hook={mapHook}>
 			<RoutesLayer selected={routeSelected} {routes} />
 			<LocationsLayer {locations} />
@@ -94,8 +94,8 @@
 
 	<div
 		id="data"
-		class="data container p-2"
-		style="height: {heights.data}; min-height: 25%; max-height: 75%;"
+		class="data"
+		style="height: {heights.data};"
 		on:touchstart={onTouchStart}
 		on:touchmove={onTouchMove}
 		on:touchend={onTouchEnd}
@@ -104,20 +104,36 @@
 	</div>
 </div>		
 
+<!-- <div class="d-none d-sm-block">
+	<div class="map-md">
+		<Map bind:hook={mapHook}>
+			<RoutesLayer selected={routeSelected} {routes} />
+			<LocationsLayer {locations} />
+			<NetworksLayer />
+			<UserLocation />
+		</Map>
+	</div>
+</div> -->
+
 <style>
 	.full {
 		position: absolute;
 		top: 0px;
-		bottom: 0px;
+		bottom: 0px; 
 		left: 0px;
 		right: 0px;
+		font: 12px/20px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, Liberation Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+		font-weight: 400;
+		line-height: 1.5;
 	}
 
 	.map {
 		position: absolute;
-		top: 0px;
-		left: 0px;
-		right: 0px;
+		top: 0;
+		bottom: 0;
+		width: 100%;
+		min-height: calc(25% + 6px); 
+		max-height: calc(75% + 6px);
 	}
 
 	.data {
@@ -125,8 +141,31 @@
 		bottom: 0px;
 		left: 0px;
 		right: 0px;
-		background: #1da1f2;
 		border-top-left-radius: 10px;
 		border-top-right-radius: 10px;
+		min-height: 25%; 
+		max-height: 75%;
+	}
+
+	@media (min-width: 576px) { 
+		.map {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			right: 0px;
+			min-height: 100%; 
+			max-height: 100%;
+		}
+
+		.data {
+			position: absolute;
+			left: 10px;
+			top: 20px;
+			border-top-left-radius: 10px;
+			border-top-right-radius: 10px;
+			min-height: 300px; 
+			max-height: 300px;
+			width: 350px;
+		}
 	}
 </style>
