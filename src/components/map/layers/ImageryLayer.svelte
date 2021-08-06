@@ -5,15 +5,31 @@
 
     const { getMap } = getContext(key);
     const map: Map = getMap();
-    
+
     onMount(async () => {
         map.on("load", () => {
             map.addSource("aiv", {
-                "type": "raster",
-                "tiles": ["https://tile.informatievlaanderen.be/ws/raadpleegdiensten/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=omwrgbmrvl&STYLE=&FORMAT=image/png&tileMatrixSet=GoogleMapsVL&tileMatrix={z}&tileRow={y}&tileCol={x}"],
-                "tileSize": 256,
-                "attribution": "AIV"
+                type: "raster",
+                tiles: [
+                    "https://tile.informatievlaanderen.be/ws/raadpleegdiensten/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=omwrgbmrvl&STYLE=&FORMAT=image/png&tileMatrixSet=GoogleMapsVL&tileMatrix={z}&tileRow={y}&tileCol={x}",
+                ],
+                tileSize: 256,
+                attribution: "AIV",
             });
+
+            map.addLayer(
+                {
+                    id: "background-imagery",
+                    type: "raster",
+                    source: "aiv",
+                    minzoom: 0,
+                    maxzoom: 20,
+                    layout: {
+                        visibility: "none",
+                    },
+                },
+                "background"
+            );
         });
     });
 </script>
