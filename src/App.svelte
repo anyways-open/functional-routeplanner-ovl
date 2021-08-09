@@ -17,9 +17,9 @@
 	import type { LayerConfig } from "./components/map/controls/layers/LayerConfig";
 	import BffLayer from "./components/map/layers/BffLayer.svelte";
 	import SchoolRoutes from "./components/map/layers/SchoolRoutes.svelte";
-	import GipodLayer from "./components/map/layers/GIPODLayer.svelte";
 	import type { RoutesLayerHook } from "./components/map/layers/RoutesLayerHook";
-import type { LocationsLayerHook } from "./components/map/layers/locations/LocationsLayerHook";
+	import type { LocationsLayerHook } from "./components/map/layers/locations/LocationsLayerHook";
+import GipodLayer from "./components/map/layers/GipodLayer.svelte";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
