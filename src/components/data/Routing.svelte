@@ -50,15 +50,12 @@
 
             // make sure to remove the routes using this location.
             routes.forEach(route => {
-                console.log(route.segments);
                 if (l > 0) {
                     route.segments[l - 1] = undefined;
                 }
                 if (l < route.segments.length) {
                     route.segments[l] = undefined;
                 }
-                route.segments.splice(l, 1);
-                console.log(route.segments);
             });
 
             locations = [...locations];
@@ -73,7 +70,6 @@
 
             // make sure to remove the routes using this location.
             routes.forEach(route => {
-                console.log(route.segments);
                 if (l > 0) {
                     route.segments[l - 1] = undefined;
                 }
@@ -81,7 +77,6 @@
                     route.segments[l] = undefined;
                 }
                 route.segments.splice(l, 1);
-                console.log(route.segments);
             });
 
             // update locations list.
