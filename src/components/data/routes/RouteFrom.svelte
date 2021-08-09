@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
     export let value: string = "";
 </script>
 
@@ -40,4 +40,4 @@
         box-sizing: border-box;
         cursor: pointer;
     }
-</style>
+</style> -->

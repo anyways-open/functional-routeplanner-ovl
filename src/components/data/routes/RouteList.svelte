@@ -14,7 +14,9 @@
 {#if routes.length > 0}
     <div>
         <div class="route-results">
-            Results
+            <div class="d-block d-sm-none">
+                Results
+            </div>
             <div class="route-results-list">
                 {#each routes as route}
                     <RouteRow {route} on:select={onSelect} />
@@ -37,5 +39,13 @@
         padding: 4px;
         color: black;
         width: 100%;
+    }
+
+    @media (min-width: 576px) { 
+        .route-results-list {
+            margin-top: 0px;
+            border-radius: unset;
+            padding: 0px;
+        }
     }
 </style>
