@@ -122,11 +122,14 @@ import type { LocationsLayerHook } from "./components/map/layers/locations/Locat
 	let profile: string = "bicycle";
 	let locations: Location[] = [
 		{
+			id: 0,
 			description: "Huidige Locatie",
 			isUserLocation: true,
 			location: { lng: 3.7378, lat: 51.0569 },
 		},
-		{},
+		{
+			id: 1
+		}
 	];
 	let routes: Route[] = [];
 

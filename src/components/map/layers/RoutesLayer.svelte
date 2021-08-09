@@ -233,20 +233,20 @@
 
                 const bbox = turf.bbox(routesFeatures);
 
-                map.fitBounds(
-                    [
-                        [bbox[0], bbox[1]],
-                        [bbox[2], bbox[3]],
-                    ],
-                    {
-                        padding: {
-                            left: 20,
-                            right: 20,
-                            top: 20,
-                            bottom: 50,
-                        },
-                    }
-                );
+                // map.fitBounds(
+                //     [
+                //         [bbox[0], bbox[1]],
+                //         [bbox[2], bbox[3]],
+                //     ],
+                //     {
+                //         padding: {
+                //             left: 20,
+                //             right: 20,
+                //             top: 20,
+                //             bottom: 50,
+                //         },
+                //     }
+                // );
             }
         }
     }

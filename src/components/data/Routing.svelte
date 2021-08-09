@@ -15,7 +15,7 @@
     import LocationSearchResultsTable from "./locations/search/LocationSearchResultsTable.svelte";
     import * as turf from "@turf/turf";
     import type { RoutesLayerHook } from "../map/layers/RoutesLayerHook";
-import type { LocationsLayerHook } from "../map/layers/locations/LocationsLayerHook";
+    import type { LocationsLayerHook } from "../map/layers/locations/LocationsLayerHook";
 
     // exports
     export let routingHook: RoutingHook = new RoutingHook();
@@ -26,32 +26,80 @@ import type { LocationsLayerHook } from "../map/layers/locations/LocationsLayerH
     export let routeLayerHook: RoutesLayerHook; // interface to communicate with the routes layer.
     export let locationsLayerHook: LocationsLayerHook; // interface to communicate with the locations component.
 
+    let locationId: number = 0;
+
     locations.forEach((l, i) => {
         if (i === 0) return;
 
         routes.push(undefined);
+
+        if (locationId < l.id) locationId = l.id;
     });
 
     $: if (typeof locationsLayerHook !== "undefined") {
         locationsLayerHook.on("locationupdate", (e) => {
-            const location = locations[e.index];
+            const lid: number = e.id;
+            const l = locations.findIndex(i => {
+                return i.id == lid;
+            });
+            const location = locations[l];
 
             if (typeof location !== "undefined") {
                 location.location = e.location;
             }
 
-            routes[e.index - 1] = undefined;
-            if (e.index < routes.length) {
-                routes[e.index] = undefined;
-            }
+            // make sure to remove the routes using this location.
+            routes.forEach(route => {
+                console.log(route.segments);
+                if (l > 0) {
+                    route.segments[l - 1] = undefined;
+                }
+                if (l < route.segments.length) {
+                    route.segments[l] = undefined;
+                }
+                route.segments.splice(l, 1);
+                console.log(route.segments);
+            });
 
             locations = [...locations];
+            routes = [...routes];
+        });
+
+        locationsLayerHook.on("locationclick", (e) => {
+            const lid: number = e.id;
+            const l = locations.findIndex(i => {
+                return i.id == lid;
+            });
+
+            // make sure to remove the routes using this location.
+            routes.forEach(route => {
+                console.log(route.segments);
+                if (l > 0) {
+                    route.segments[l - 1] = undefined;
+                }
+                if (l < route.segments.length) {
+                    route.segments[l] = undefined;
+                }
+                route.segments.splice(l, 1);
+                console.log(route.segments);
+            });
+
+            // update locations list.
+            if (locations.length == 2) {
+                locations[l].location = undefined;
+            } else {
+                locations.splice(l, 1);
+            }
+            locations = [...locations];
+            routes = [...routes];
         });
     }
 
     $: if (typeof routeLayerHook !== "undefined") {
         routeLayerHook.on("click", (e) => {
+            locationId++;
             const location: Location = {
+                id: locationId,
                 isUserLocation: false,
                 location: e.lngLat,
             };
@@ -344,19 +392,13 @@ import type { LocationsLayerHook } from "../map/layers/locations/LocationsLayerH
             };
         });
     }
-
-    // $: if (typeof routes !== "undefined") {
-    //     if (routes.length > 0 && typeof routes[0] !== "undefined") {
-    //         viewState = { view: VIEW_ROUTES };
-    //     }
-    // }
 </script>
 
 <div class="outer">
     {#if viewState.view === VIEW_START || viewState.view == VIEW_SEARCH}
         <div class="row">
             <Locations
-                {locations}
+                bind:locations
                 on:focus={onLocationFocus}
                 on:input={onLocationInput}
             />
@@ -382,7 +424,7 @@ import type { LocationsLayerHook } from "../map/layers/locations/LocationsLayerH
     {#if viewState.view === VIEW_ROUTES}
         <div class="row">
             <Locations
-                {locations}
+                bind:locations
                 on:switch={onSwitch}
                 on:focus={onLocationFocus}
             />

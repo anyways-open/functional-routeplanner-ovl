@@ -14,20 +14,27 @@
             case "locationupdate":
                 onLocationUpdate = handler;
                 break;
+            case "locationclick":
+                onLocationClick = handler;
+                break;
         }
     };
 
     let onLocationUpdate: (e: any) => void;
-    let markers: Marker[] = [];
+    let onLocationClick: (e: any) => void;
+    let markers: { marker: Marker, id: number }[] = [];
 
     const { getMap } = getContext(key);
     const map: Map = getMap();
 
     $: if (typeof map !== "undefined") {
-        locations.forEach((value, i) => {
-            if (typeof value.location === "undefined") return;
+        markers.forEach(m => {
+            m.marker.remove();
+        });
+        markers = [];
 
-            const markerId = i;
+        locations.forEach((location, i) => {
+            if (typeof location.location === "undefined") return;
 
             const element = document.createElement("div");
             if (i == locations.length - 1) {
@@ -37,10 +44,6 @@
                 element.className = "marker-via";
                 element.innerHTML = svgs.via;
             }
-
-            if (i < markers.length && typeof markers[i] !== "undefined") {
-                markers[i].remove();
-            }
             while (i >= markers.length) {
                 markers.push(undefined);
             }
@@ -49,19 +52,34 @@
                 draggable: true,
                 offset: [0, -4],
             })
-                .setLngLat(value.location)
+                .setLngLat(location.location)
                 .addTo(map);
-            markers[i] = marker;
+            markers[i] = { 
+                marker: marker, 
+                id: location.id 
+            };
 
             // hook drag event.
             marker.on("dragend", () => {
                 if (typeof onLocationUpdate !== "undefined") {
                     onLocationUpdate({
-                        index: markerId,
+                        id: location.id,
                         location: marker.getLngLat()
                     });
                 }
             });
+
+            // add click event.
+            element.addEventListener("click", (e) => {
+                if (typeof onLocationClick !== "undefined") {
+                    onLocationClick({
+                        id: location.id,
+                        location: marker.getLngLat()
+                    });
+                }
+
+                e.stopPropagation();
+            }, true);
         });
     }
 </script>
