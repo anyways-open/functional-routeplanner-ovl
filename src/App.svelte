@@ -19,6 +19,7 @@
 	import SchoolRoutes from "./components/map/layers/SchoolRoutes.svelte";
 	import GipodLayer from "./components/map/layers/GIPODLayer.svelte";
 	import type { RoutesLayerHook } from "./components/map/layers/RoutesLayerHook";
+import type { LocationsLayerHook } from "./components/map/layers/locations/LocationsLayerHook";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
@@ -37,6 +38,7 @@
 	let mapHook: MapHook;
 	let routingHook: RoutingHook;
 	let routingLayerHook: RoutesLayerHook;
+	let locationsLayerHook: LocationsLayerHook;
 
 	let baseLayerOptions: BaseLayerControlOptions = {
 		source: "aiv",
@@ -167,7 +169,7 @@
 	<div id="map" class="map" style="height: {heights.map};">
 		<Map bind:hook={mapHook}>
 			<RoutesLayer {routes} bind:mapHook={mapHook} bind:routeLayerHook={routingLayerHook} />
-			<LocationsLayer {locations} />
+			<LocationsLayer {locations} bind:locationsLayerHook/>
 			<GipodLayer />
 			<NetworksLayer />
 			<ImageryLayer />
@@ -195,6 +197,7 @@
 			bind:routes
 			bind:locations
 			bind:profile
+			bind:locationsLayerHook
 		/>
 	</div>
 </div>

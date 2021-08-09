@@ -15,6 +15,7 @@
     import LocationSearchResultsTable from "./locations/search/LocationSearchResultsTable.svelte";
     import * as turf from "@turf/turf";
     import type { RoutesLayerHook } from "../map/layers/RoutesLayerHook";
+import type { LocationsLayerHook } from "../map/layers/locations/LocationsLayerHook";
 
     // exports
     export let routingHook: RoutingHook = new RoutingHook();
@@ -23,6 +24,7 @@
     export let profile: string; // the profile.
     export let mapHook: MapHook; // interface to communicate with the map.
     export let routeLayerHook: RoutesLayerHook; // interface to communicate with the routes layer.
+    export let locationsLayerHook: LocationsLayerHook; // interface to communicate with the locations component.
 
     locations.forEach((l, i) => {
         if (i === 0) return;
@@ -30,10 +32,24 @@
         routes.push(undefined);
     });
 
-    let clickHooked: boolean = false;
-    $: if (typeof routeLayerHook !== "undefined" && !clickHooked) {
-        clickHooked = true;
+    $: if (typeof locationsLayerHook !== "undefined") {
+        locationsLayerHook.on("locationupdate", (e) => {
+            const location = locations[e.index];
 
+            if (typeof location !== "undefined") {
+                location.location = e.location;
+            }
+
+            routes[e.index - 1] = undefined;
+            if (e.index < routes.length) {
+                routes[e.index] = undefined;
+            }
+
+            locations = [...locations];
+        });
+    }
+
+    $: if (typeof routeLayerHook !== "undefined") {
         routeLayerHook.on("click", (e) => {
             const location: Location = {
                 isUserLocation: false,

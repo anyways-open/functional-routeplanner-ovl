@@ -29,7 +29,7 @@
 
             if (parts.length === 3) {
                 center = [parseFloat(parts[1]), parseFloat(parts[2])];
-                zoom = parseInt(parts[0], 10);
+                zoom = parseFloat(parts[0]);
             }
         }
 
