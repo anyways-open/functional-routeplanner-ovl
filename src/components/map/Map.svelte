@@ -56,6 +56,9 @@
                 minZoom: 15
             });
         };
+        hook.on = (name, handler) => {
+            map.on(name, (e) => handler(e));
+        };
     });
 </script>
 

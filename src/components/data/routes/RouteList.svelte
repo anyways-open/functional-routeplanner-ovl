@@ -1,8 +1,9 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
+    import type { Route } from "../Route";
     import RouteRow from "./RouteRow.svelte";
 
-    export let routes: {description: string, segments: any[] }[] = [];
+    export let routes: Route[] = [];
 
     // const dispatch = createEventDispatcher<{ select: SearchResult }>();
     function onSelect(e: CustomEvent<any>): void {

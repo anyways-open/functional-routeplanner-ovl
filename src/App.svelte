@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { afterUpdate, onMount } from "svelte";
 	import Map from "./components/map/Map.svelte";
 	import NetworksLayer from "./components/map/layers/NetworksLayer.svelte";
 	import RoutesLayer from "./components/map/layers/RoutesLayer.svelte";
@@ -18,11 +18,7 @@
 	import BffLayer from "./components/map/layers/BffLayer.svelte";
 	import SchoolRoutes from "./components/map/layers/SchoolRoutes.svelte";
 	import GipodLayer from "./components/map/layers/GIPODLayer.svelte";
-	import { OpenCageDataProvider } from "./apis/geocoder/Providers/OpenCageDataProvider";
-	import { Geocoder } from "./apis/geocoder/Geocoder";
-	import { ChainedProvider } from "./apis/geocoder/Providers/ChainedProvider";
-	import { CrabGeolocationProvider } from "./apis/geocoder/Providers/CrabGeolocationProvider";
-	import type { LocationSearchResult } from "./components/data/locations/search/LocationSearchResult";
+	import type { RoutesLayerHook } from "./components/map/layers/RoutesLayerHook";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
@@ -40,6 +36,7 @@
 
 	let mapHook: MapHook;
 	let routingHook: RoutingHook;
+	let routingLayerHook: RoutesLayerHook;
 
 	let baseLayerOptions: BaseLayerControlOptions = {
 		source: "aiv",
@@ -112,6 +109,12 @@
 				map: "25%",
 			};
 		};
+		routingHook.onRoutes = () => {
+			heights = {
+				data: "calc(75% + 6px)",
+				map: "25%",
+			};
+		};
 	}
 
 	let profile: string = "bicycle";
@@ -124,7 +127,6 @@
 		{},
 	];
 	let routes: Route[] = [];
-	let routeSelected: number = 0;
 
 	let dragState: {
 		height?: number;
@@ -155,12 +157,16 @@
 	}
 
 	function onTouchEnd(e: any) {}
+
+	afterUpdate(() => {
+		mapHook.resize();
+	});
 </script>
 
 <div id="full" class="full">
 	<div id="map" class="map" style="height: {heights.map};">
 		<Map bind:hook={mapHook}>
-			<RoutesLayer selected={routeSelected} {routes} />
+			<RoutesLayer {routes} bind:mapHook={mapHook} bind:routeLayerHook={routingLayerHook} />
 			<LocationsLayer {locations} />
 			<GipodLayer />
 			<NetworksLayer />
@@ -184,6 +190,7 @@
 	>
 		<Routing
 			bind:routingHook
+			bind:routeLayerHook={routingLayerHook}
 			bind:mapHook
 			bind:routes
 			bind:locations

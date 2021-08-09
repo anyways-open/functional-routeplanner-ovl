@@ -28,6 +28,7 @@
     "@anyways-open/routing-api": "0.0.11",
     "@anyways-open/url-hash": "0.0.1",
     "@turf/turf": "^5.1.6",
+    "@turf/nearest-point-on-line": "^6.3.0",
     "@types/mapbox-gl": "^1.7.0",
     "opencage-api-client": "^1.0.0",
     "bootstrap": "^5.0.2",

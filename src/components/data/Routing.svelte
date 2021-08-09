@@ -13,6 +13,8 @@
     import { OpenCageDataProvider } from "../../apis/geocoder/Providers/OpenCageDataProvider";
     import { Geocoder } from "../../apis/geocoder/Geocoder";
     import LocationSearchResultsTable from "./locations/search/LocationSearchResultsTable.svelte";
+    import * as turf from "@turf/turf";
+    import type { RoutesLayerHook } from "../map/layers/RoutesLayerHook";
 
     // exports
     export let routingHook: RoutingHook = new RoutingHook();
@@ -20,6 +22,44 @@
     export let locations: Location[] = []; // the start, end and via locations.
     export let profile: string; // the profile.
     export let mapHook: MapHook; // interface to communicate with the map.
+    export let routeLayerHook: RoutesLayerHook; // interface to communicate with the routes layer.
+
+    locations.forEach((l, i) => {
+        if (i === 0) return;
+
+        routes.push(undefined);
+    });
+
+    let clickHooked: boolean = false;
+    $: if (typeof routeLayerHook !== "undefined" && !clickHooked) {
+        clickHooked = true;
+
+        routeLayerHook.on("click", (e) => {
+            const location: Location = {
+                isUserLocation: false,
+                location: e.lngLat,
+            };
+
+            if (typeof locations[0].location === "undefined") {
+                locations[0] = location;
+            } else if (typeof locations[1].location === "undefined") {
+                locations[1] = location;
+            } else {
+                locations.push(location);
+            }
+
+            while (routes.length < locations.length - 1) {
+                routes.push(undefined);
+            }
+            routes[locations.length - 2] = undefined;
+
+            locations = [...locations];
+        });
+
+        routeLayerHook.on("selectroute", (e) => {
+            console.log(e);
+        });
+    }
 
     // TODO: move this to general settings files.
     // instantiate the routing api.
@@ -131,8 +171,6 @@
         };
 
         mapHook.flyTo(e.detail.location);
-
-        viewState = { view: VIEW_ROUTES };
     }
 
     $: {
@@ -143,12 +181,8 @@
                 }
                 break;
             case VIEW_ROUTES:
-                if (
-                    typeof profile !== "undefined" &&
-                    typeof locations[0].location !== "undefined" &&
-                    typeof locations[1].location !== "undefined"
-                ) {
-                    getRoutes();
+                if (typeof routingHook.onRoutes !== "undefined") {
+                    routingHook.onRoutes();
                 }
                 break;
         }
@@ -156,7 +190,6 @@
         if (typeof mapHook !== "undefined") mapHook.resize();
     }
 
-    let routeSelected: number = 1;
     let routeSequence: number = 0;
 
     function onSwitch(): void {
@@ -168,65 +201,93 @@
     }
 
     function getRoutes() {
-        if (
-            typeof profile === "undefined" ||
-            typeof locations[0].location === "undefined" ||
-            typeof locations[1].location === "undefined"
-        ) {
-            return;
-        }
+        locations.forEach((_, i) => {
+            if (i === 0) return;
 
-        var sequenceNumber = routeSequence;
-        routingApi.getRoute(
-            {
-                locations: [locations[0].location, locations[1].location],
-                profile: profile,
-                alternatives: 2,
-            },
-            (e) => {
-                if (routeSequence != sequenceNumber) {
-                    console.warn(
-                        `Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`
-                    );
-                    return;
+            const segment = i-1;       
+
+            if (typeof routes[0] !== "undefined" &&
+                routes[0].segments.length > 0 &&
+                typeof routes[0].segments[segment] !== "undefined") {
+
+                // remove alternatives if more than 2 locations.
+                if (segment == 0 && locations.length > 2) {
+                    while (routes.length > 1) {
+                        routes.pop();
+                    }
+                    routes = [...routes];
                 }
 
-                if (e[profile + "0"]) {
-                    const newRoutes: any[] = [
-                        {
-                            segments: [e[profile + "0"]],
-                            description: "Aangeraden route",
-                        },
-                    ];
+                return; // only recalculate when needed.
+            }
 
-                    for (var a = 1; a <= 3; a++) {
-                        var alternative = e[profile + `${a}`];
-                        if (alternative) {
-                            newRoutes.push({
-                                segments: [alternative],
-                                description: "Alternatieve route",
-                            });
-                        }
+            const location1 = locations[segment];
+            const location2 = locations[segment + 1];
+
+            if (
+                typeof profile === "undefined" ||
+                typeof location1.location === "undefined" ||
+                typeof location2.location === "undefined"
+            ) {
+                return;
+            }
+
+            var sequenceNumber = routeSequence;
+            routingApi.getRoute(
+                {
+                    locations: [location1.location, location2.location],
+                    profile: profile,
+                    alternatives: locations.length == 2 ? 2 : 1,
+                },
+                (e) => {
+                    if (routeSequence != sequenceNumber) {
+                        console.warn(
+                            `Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`
+                        );
+                        return;
                     }
 
-                    routes = newRoutes;
-                } else {
-                    routes = [
-                        {
-                            segments: [e],
-                            description: "Aangeraden route",
-                        },
-                    ];
+                    if (e[profile + "0"]) {
+                        // route with alternative, we have only one segment here with a possible altnerative.
+                        const newRoutes: any[] = [
+                            {
+                                segments: [e[profile + "0"]],
+                                description: "Aangeraden route",
+                            },
+                        ];
+
+                        for (var a = 1; a <= 3; a++) {
+                            var alternative = e[profile + `${a}`];
+                            if (alternative) {
+                                newRoutes.push({
+                                    segments: [alternative],
+                                    description: "Alternatieve route",
+                                });
+                            }
+                        }
+
+                        routes = newRoutes;
+                    } else {
+                        // a route that is a missing segment.
+                        routes[0].segments[segment] = e;
+                        routes = [...routes];
+                    }
                 }
-            }
-        );
+            );
+        });
     }
 
-    if (
-        typeof locations[0].location !== "undefined" &&
-        typeof locations[1].location !== "undefined"
-    ) {
-        getRoutes();
+    $: if (typeof locations !== "undefined") {            
+        if (
+                typeof profile === "undefined" ||
+                typeof locations[0].location === "undefined" ||
+                typeof locations[1].location === "undefined"
+            ) {
+            } else {
+                viewState = { view: VIEW_ROUTES };
+
+                getRoutes();
+            }
     }
 
     function onLocationFocus(e: CustomEvent<number>): void {
@@ -267,13 +328,17 @@
             };
         });
     }
+
+    // $: if (typeof routes !== "undefined") {
+    //     if (routes.length > 0 && typeof routes[0] !== "undefined") {
+    //         viewState = { view: VIEW_ROUTES };
+    //     }
+    // }
 </script>
 
 <div class="outer">
     {#if viewState.view === VIEW_START || viewState.view == VIEW_SEARCH}
-        <div
-            class="row"
-        >
+        <div class="row">
             <Locations
                 {locations}
                 on:focus={onLocationFocus}
