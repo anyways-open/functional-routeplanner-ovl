@@ -4,21 +4,55 @@
     import { onMount, getContext } from "svelte";
     import { key } from "../../../map/map";
     import { LayerControlManager } from "./LayerControlManager";
+    import { UrlHashHandler } from "../../../../shared/UrlHashHandler";
 
     // exports.
     export let layers: LayerConfig[] = [];
+    let initialConfig: LayerConfig[] = [];
+    layers.forEach(l => {
+        initialConfig.push(Object.assign({}, l));
+    });
 
     // get map from context.
     const { getMap } = getContext(key);
     const map: Map = getMap();
+    let urlHash = new UrlHashHandler("layers");
 
     // define variables.
     let manager: LayerControlManager;
     let controlRoot: HTMLElement;
     
     onMount(async () => {
-        manager = new LayerControlManager(controlRoot, map, layers);
+        // get url state for layers, if any.
+        const layersState = urlHash.getState();
+        if (typeof layersState !== "undefined") {
+            const layerSettings = layersState.split("|");
 
+            layerSettings.forEach(l => {
+                if (!l) return;
+                if (l.length != 3) return;
+
+                const id = l.substr(0,2);
+
+                const i = layers.findIndex(x => x.id == id);
+                if (i == -1) return;
+
+                const s = Number(l.substr(2,1));
+                if (s == 0) {
+                    layers[i].enabled = false;
+                    layers[i].visible = false;
+                } else if (s == 1) {
+                    layers[i].enabled = true;
+                    layers[i].visible = true;
+                } else if (s == 2) {
+                    layers[i].enabled = true;
+                    layers[i].visible = false;
+                }
+            });
+        }
+
+        // create and add control.
+        manager = new LayerControlManager(controlRoot, map, layers);
         map.addControl(manager, "bottom-right");
     });
 
@@ -40,6 +74,35 @@
                 map.setLayoutProperty(layer.id, "visibility", "none");
             }
         });
+
+        // update url layers hash.
+        let layerSettings: string[] = [];
+        layers.forEach((l, i) => {
+            if (l.enabled != initialConfig[i].enabled) {
+                if (l.enabled) {
+                    if (l.visible) {
+                        layerSettings.push(`${l.id}1`);
+                    } else {
+                        layerSettings.push(`${l.id}2`);
+                    }
+                } else {
+                    layerSettings.push(`${l.id}0`);
+                }
+                return;
+            }
+            if (l.enabled && l.visible != initialConfig[i].visible) {
+                if (l.visible) {
+                    layerSettings.push(`${l.id}1`);
+                } else {
+                    layerSettings.push(`${l.id}2`);
+                }
+            }
+        });
+        if (layerSettings.length == 0) {
+            urlHash.update(undefined);
+        } else {
+            urlHash.update(layerSettings.join("|"));
+        }
 
         layers = [...layers];
     }

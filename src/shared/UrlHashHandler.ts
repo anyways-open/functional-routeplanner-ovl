@@ -11,7 +11,11 @@ export class UrlHashHandler {
     public update(value?: string) {
         const state = UrlHash.read();
 
-        state[this.key] = value;
+        if (typeof value === "undefined") {
+            delete state[this.key];
+        } else {
+            state[this.key] = value;
+        }
 
         UrlHash.write(state);
     }
