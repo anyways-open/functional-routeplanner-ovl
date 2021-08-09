@@ -1,19 +1,19 @@
 <script lang="ts">
-    export let profile: string = "bicycle";
+    export let profile: string = "bicycle.commute";
 
     function onClickBicycle(): void {
-        profile = "bicycle";
+        profile = "bicycle.commute";
     }
 
     function onClickBicycleNetworks(): void {
-        profile = "bicycle.networks";
+        profile = "bicycle.functional_network";
     }
 
 </script>
 
 <div class="profiles-container">
     <div class="profile-btn-group btn-group">
-        <div type="button" class="btn btn-profile {profile == "bicycle" ? "active" : ""} border-0" on:click={onClickBicycle}>
+        <div type="button" class="btn btn-profile {profile == "bicycle.commute" ? "active" : ""} border-0" on:click={onClickBicycle}>
             <span>
                 <img src="assets/icons/bicycle.svg" alt="Snelste Route" />
             </span>
@@ -21,7 +21,7 @@
                 Functioneel fietsen
             </span>
         </div>
-        <div type="button" class="btn btn-profile {profile == "bicycle.networks" ? "active" : ""} border-0" on:click={onClickBicycleNetworks}>
+        <div type="button" class="btn btn-profile {profile == "bicycle.functional_network" ? "active" : ""} border-0" on:click={onClickBicycleNetworks}>
             <span>
                 <img src="assets/icons/network.svg" alt="Fietsnetwerken Route"/>
             </span>

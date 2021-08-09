@@ -84,7 +84,7 @@ import type { LocationsLayerHook } from "./components/map/layers/locations/Locat
 			],
 			logo: "assets/icons/school.svg",
 			visible: false,
-			enabled: true,
+			enabled: false,
 		},
 		{
 			id: "BF",
@@ -119,7 +119,7 @@ import type { LocationsLayerHook } from "./components/map/layers/locations/Locat
 		};
 	}
 
-	let profile: string = "bicycle";
+	let profile: string = "bicycle.commute";
 	let locations: Location[] = [
 		{
 			id: 0,

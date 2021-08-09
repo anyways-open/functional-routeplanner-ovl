@@ -225,6 +225,7 @@
         if (typeof viewState.search === "undefined") return;
 
         locations[viewState.search.location] = {
+            id: locations[viewState.search.location].id,
             description: e.detail.description,
             location: e.detail.location,
         };
@@ -338,7 +339,7 @@
 
     $: if (typeof locations !== "undefined") {            
         if (
-                typeof profile === "undefined" ||
+                
                 typeof locations[0].location === "undefined" ||
                 typeof locations[1].location === "undefined"
             ) {
@@ -347,6 +348,20 @@
 
                 getRoutes();
             }
+    }
+    
+    let lastProfile = profile;
+    $: if (typeof profile !== "undefined" &&
+        lastProfile != profile) {
+
+        routes.forEach(r => {
+            if (typeof r !== "undefined") {
+                r.segments = [];
+            }
+        });
+
+        lastProfile = profile;
+        getRoutes();
     }
 
     function onLocationFocus(e: CustomEvent<number>): void {
