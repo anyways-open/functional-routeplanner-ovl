@@ -6,6 +6,13 @@
     export let data: LocationData;
     export let placeholder: string = "";
     export let type: "START" | "VIA" | "END";
+    export let focused: {
+        hasFocus: boolean;
+        canHaveFocus: boolean;
+    } = {
+        hasFocus: false,
+        canHaveFocus: false,
+    };
 
     const focus = createEventDispatcher();
     function onFocus(): void {
@@ -25,17 +32,23 @@
     }
 </script>
 
-<div class="input-group">
+<div
+    class="input-group {focused.canHaveFocus ?
+        focused.hasFocus
+        ? 'focus'
+        : 'no-focus' : ''} "
+>
     <div class="location-img-container">
         {#if data.isUserLocation}
             <div class="marker-via-dot-container">
                 <div class="marker-via-dot" />
             </div>
         {:else if type == "END"}
-                <img class="marker"
-                    src="assets/icons/marker.svg"
-                    alt="Map Marker"
-                />
+            <img
+                class="marker"
+                src="assets/icons/marker.svg"
+                alt="Map Marker"
+            />
         {:else}
             <div class="marker-via-dot-container">
                 <div class="marker-via-dot" />
@@ -52,10 +65,10 @@
             on:input={onInput}
         />
         <button type="button" class="btn btn-light border-0">
-            <img src="assets/icons/search.svg" alt="Zoek">
+            <img src="assets/icons/search.svg" alt="Zoek" />
         </button>
         <button type="button" class="btn btn-light border-0">
-            <img src="assets/icons/close.svg" alt="Sluit">
+            <img src="assets/icons/close.svg" alt="Sluit" />
         </button>
     </div>
 </div>
@@ -98,29 +111,36 @@
         display: none;
     }
 
-
     .marker {
-            margin-left:4px;
-        }
+        margin-left: 4px;
+    }
 
     .marker-via-dot-container {
-            padding-left: 0px;
-            padding-top: 0px;
-            margin-left:5px;
-            margin-top:3px;
-        }
+        padding-left: 0px;
+        padding-top: 0px;
+        margin-left: 5px;
+        margin-top: 3px;
+    }
 
     .location-img-container {
-            padding:.575rem .78rem;
-            width:49px;
-        }
-        input {
-            height: 32px;
-            flex: 1 1 auto;
-        }
+        padding: 0.575rem 0.78rem;
+        width: 49px;
+    }
 
-	@media (min-width: 576px) { 
+    input {
+        height: 32px;
+        flex: 1 1 auto;
+    }
 
+    .no-focus {
+        display: none;
+    }
+
+    .input-group.focus {
+        border-radius: 10px;
+    }
+
+    @media (min-width: 576px) {
         .btn {
             display: block;
         }
@@ -130,7 +150,7 @@
             border-radius: 0px;
             height: 39px;
             border-bottom-style: none;
-            padding-bottom: .25rem;
+            padding-bottom: 0.25rem;
         }
 
         .input-container {
@@ -139,8 +159,8 @@
             border-bottom-style: solid;
             border-bottom-color: #c2c2c2;
         }
-        
-		.input-group:first-child {
+
+        .input-group:first-child {
             border-top-left-radius: unset;
             border-top-right-radius: unset;
         }
@@ -149,5 +169,9 @@
             border-bottom-left-radius: unset;
             border-bottom-right-radius: unset;
         }
-	}
+
+        .no-focus {
+            display: flex;
+        }
+    }
 </style>

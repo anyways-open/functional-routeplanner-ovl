@@ -4,6 +4,35 @@
     import type { Location as LocationData } from "../Location";
 
     export let locations: LocationData[] = [];
+    let locationsFocus: {
+        hasFocus: boolean;
+        canHaveFocus: boolean;
+    }[] = [];
+    locations.forEach(l => {
+        locationsFocus.push({
+            hasFocus: false,
+            canHaveFocus: false,
+        });
+    });
+
+    let hasFocus: number = -1;
+    $: if (hasFocus == -1) {
+        locationsFocus = [];
+        locations.forEach(l => {
+            locationsFocus.push({
+                hasFocus: false,
+                canHaveFocus: false,
+            });
+        });
+    } else {
+        locationsFocus = [];
+        locations.forEach((l, i) => {
+            locationsFocus.push({
+                hasFocus: i == hasFocus,
+                canHaveFocus: true,
+            });
+        });
+    }
 
     const dispatch = createEventDispatcher();
     function onSwitch(): void {
@@ -12,6 +41,7 @@
 
     const focus = createEventDispatcher<{ focus: number }>();
     function onFocus(i: number) {
+        hasFocus = i;
         focus("focus", i);
     }
 
@@ -26,7 +56,7 @@
 
 </script>
 
-<div class="locations-container">
+<div class="locations-container {hasFocus == -1 ? "" : "focus"} ">
     <div class="locations">
         <div class="locations-list">
             {#each locations as location, i}
@@ -35,6 +65,7 @@
                         type="START"
                         data={location}
                         placeholder="Van"
+                        focused={locationsFocus[i]}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
                     />
@@ -43,6 +74,7 @@
                         type="END"
                         data={location}
                         placeholder="Naar"
+                        focused={locationsFocus[i]}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
                     />
@@ -51,24 +83,31 @@
                         type="VIA"
                         data={location}
                         placeholder="Via"
+                        focused={locationsFocus[i]}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
                     />
                 {/if}
             {/each}
         </div>
+        {#if hasFocus == -1}
         <div type="button" class="btn btn-light border-0" on:click={onSwitch}>
             <img
                 src="assets/icons/updown.svg"
                 alt="Verwissel start-and endpoint."
             />
         </div>
+        {/if}
     </div>
 </div>
 
 <style>
     .locations-container {
         margin-top: -50px;
+    }
+
+    .locations-container.focus {
+        margin-top: -40px;
     }
 
     .locations {
@@ -94,6 +133,10 @@
         .locations-container {
             margin-top: unset;
             padding: .5rem;
+        }
+
+        .locations-container.focus {
+            margin-top: unset;
         }
 
         .btn {
