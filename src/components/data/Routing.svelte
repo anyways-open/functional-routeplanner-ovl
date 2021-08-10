@@ -103,6 +103,7 @@
             const location: Location = {
                 id: locationId,
                 isUserLocation: false,
+                description: `${e.lngLat.lng},${e.lngLat.lat}`,
                 location: e.lngLat,
             };
 
@@ -116,8 +117,14 @@
 
             locations = [...locations];
 
-            console.log("click");
-            console.log(locations);
+            geocoder.reverseGeocode(location.location, (results) => {
+                console.log(results);
+                if (results.length > 0) {
+                    location.description = results[0].description;
+                    locations = [...locations];
+                }
+
+            });
         });
 
         routeLayerHook.on("selectroute", (e) => {
