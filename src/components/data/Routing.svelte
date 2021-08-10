@@ -48,6 +48,16 @@
                 location.location = e.location;
             }
 
+            // location has changed, geocode again.
+            geocoder.reverseGeocode(location.location, (results) => {
+                console.log(results);
+                if (results.length > 0) {
+                    location.description = results[0].description;
+                    locations = [...locations];
+                }
+
+            });
+
             // make sure to remove the routes using this location.
             routes.forEach((route) => {
                 if (l > 0) {
