@@ -139,12 +139,21 @@
 
     $: if (typeof userLocationLayerHook !== "undefined") {
         userLocationLayerHook.on("geolocate", (pos) => {
-            console.log("updated location");
             const l = locations.findIndex((x) => x.isUserLocation);
             if (l >= 0) {
                 const userLocationLocation = locations[l];
                 // TODO: update and recalculate if different.
                 userLocationLocation.location = pos;
+                userLocationLocation.description = `${pos.lng},${pos.lat}`;
+
+                // location has changed, geocode again.
+                geocoder.reverseGeocode(userLocationLocation.location, (results) => {
+                    if (results.length > 0) {
+                        userLocationLocation.description = results[0].description;
+
+                        locations = [...locations];
+                    }
+                });
 
                 // make sure to remove the routes using this location.
                 routes.forEach((route) => {
@@ -163,21 +172,39 @@
 
             // see if the user location can be set.
             if (typeof locations[0].location === "undefined") {
-                locations[0] = {
+                const location = {
                     id: locations[0].id,
-                    description: "Huidige locatie",
+                    description: `${pos.lng},${pos.lat}`,
                     isUserLocation: true,
                     location: pos,
                 };
+                locations[0] = location;
+
+                // location has changed, geocode again.
+                geocoder.reverseGeocode(location.location, (results) => {
+                    if (results.length > 0) {
+                        location.description = results[0].description;
+                        locations = [...locations];
+                    }
+                });
 
                 locations = [...locations];
             } else if (typeof locations[1].location === "undefined") {
-                locations[1] = {
+                const location = {
                     id: locations[1].id,
-                    description: "Huidige locatie",
+                    description: `${pos.lng},${pos.lat}`,
                     isUserLocation: true,
                     location: pos,
                 };
+                locations[1] = location;
+
+                // location has changed, geocode again.
+                geocoder.reverseGeocode(location.location, (results) => {
+                    if (results.length > 0) {
+                        location.description = results[0].description;
+                        locations = [...locations];
+                    }
+                });
 
                 locations = [...locations];
             }
@@ -195,6 +222,7 @@
             if (typeof location !== "undefined") {
                 location.location = e.location;
                 location.isUserLocation = false;
+                location.description = `${e.lngLat.lng},${e.lngLat.lat}`;
             }
 
             // location has changed, geocode again.

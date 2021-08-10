@@ -38,15 +38,17 @@
 </script>
 
 <div
-    class="input-group {focused.canHaveFocus ?
-        focused.hasFocus
-        ? 'focus'
-        : 'no-focus' : ''} "
+    class="input-group {focused.canHaveFocus
+        ? focused.hasFocus
+            ? 'focus'
+            : 'no-focus'
+        : ''} "
 >
     <div class="location-img-container">
         {#if data.isUserLocation}
-            <div class="marker-via-dot-container">
-                <div class="marker-via-dot" />
+            <div class="marker-user-location">
+                <div class="user-location-dot mapboxgl-marker" >
+                </div>
             </div>
         {:else if type == "END"}
             <img
@@ -73,7 +75,7 @@
             <img src="assets/icons/search.svg" alt="Zoek" />
         </button>
         <button type="button" class="btn btn-light border-0">
-            <img src="assets/icons/close.svg" alt="Sluit" on:click="{onClose}" />
+            <img src="assets/icons/close.svg" alt="Sluit" on:click={onClose} />
         </button>
     </div>
 </div>
@@ -119,7 +121,7 @@
         padding: 0;
     }
     .btn:hover {
-        background-color: rgba(0,0,0,.05);
+        background-color: rgba(0, 0, 0, 0.05);
     }
     .btn:focus {
         box-shadow: none;
@@ -152,6 +154,47 @@
 
     .input-group.focus {
         border-radius: 10px;
+    }
+
+    .marker-user-location {
+        padding: 0;
+        width: 20px;
+    }
+
+    .user-location-dot {
+        position: unset;
+        margin-left: 6px;
+        margin-top: 4px;
+        background-color: #1da1f2;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    .user-location-dot::before {
+        background-color: #1da1f2;
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        position: absolute;
+        -webkit-animation: user-location-dot-pulse 2s infinite;
+        -moz-animation: user-location-dot-pulse 2s infinite;
+        -ms-animation: user-location-dot-pulse 2s infinite;
+        animation: user-location-dot-pulse 2s infinite;
+    }
+
+    .user-location-dot::after {
+        border-radius: 50%;
+        border: 2px solid #fff;
+        content: "";
+        height: 14px;
+        left: -2px;
+        position: absolute;
+        top: -2px;
+        width: 14px;
+        box-sizing: border-box;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.35);
     }
 
     @media (min-width: 576px) {
