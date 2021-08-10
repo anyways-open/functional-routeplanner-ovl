@@ -142,7 +142,14 @@
             const l = locations.findIndex((x) => x.isUserLocation);
             if (l >= 0) {
                 const userLocationLocation = locations[l];
-                // TODO: update and recalculate if different.
+                // update and recalculate if different.
+                const distance =turf.distance([userLocationLocation.location.lng, userLocationLocation.location.lat], 
+                    [pos.lng, pos.lat]);
+                if (distance < 0.01) {
+                    return;
+                }
+
+                // location is far enough, update.
                 userLocationLocation.location = pos;
                 userLocationLocation.description = `${pos.lng},${pos.lat}`;
 
