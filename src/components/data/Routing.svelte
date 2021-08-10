@@ -120,14 +120,10 @@
                 return;
             }
 
-            if (l.isUserLocation) {
-                s += `user/`;
+            if (l.description) {
+                s += `${escape(l.description)}/`;
             } else {
-                if (l.description) {
-                    s += `${escape(l.description)}/`;
-                } else {
-                    s += `point/`;
-                }
+                s += `point/`;
             }
 
             const location = l.location;
@@ -146,7 +142,7 @@
                 const l = viewState.search.currentLocation;
                 delete viewState.search.currentLocation;
                 const userLocationLocation = locations[l];
-                
+
                 // update.
                 userLocationLocation.isUserLocation = true;
                 userLocationLocation.location = pos;
@@ -281,7 +277,7 @@
             if (typeof location !== "undefined") {
                 location.location = e.location;
                 location.isUserLocation = false;
-                location.description = `${e.lngLat.lng},${e.lngLat.lat}`;
+                location.description = `${e.location.lng},${e.location.lat}`;
             }
 
             // location has changed, geocode again.
@@ -468,16 +464,16 @@
     let viewState: {
         view: "START" | "SEARCH" | "ROUTES";
         search?: {
-            location: number
-            placeholder: string
-            currentLocation?: number
-        }
+            location: number;
+            placeholder: string;
+            currentLocation?: number;
+        };
     } = {
         view: VIEW_START,
         search: {
             location: -1,
-            placeholder: ""
-        }
+            placeholder: "",
+        },
     };
 
     function onSelect(e: CustomEvent<LocationSearchResult>): void {
@@ -542,6 +538,8 @@
             routes = [...routes];
         }
 
+        routeSequence++;
+        const sequenceNumber = routeSequence;
         locations.forEach((_, i) => {
             if (i === 0) return;
 
@@ -571,7 +569,6 @@
             // a route is expected.
             viewState = { view: VIEW_ROUTES };
 
-            var sequenceNumber = routeSequence;
             routingApi.getRoute(
                 {
                     locations: [location1.location, location2.location],
@@ -581,7 +578,7 @@
                 (e) => {
                     if (routeSequence != sequenceNumber) {
                         console.warn(
-                            `Routing was too slow, number at ${this.routeSequence}, but response has ${sequenceNumber}`
+                            `Routing was too slow, number at ${routeSequence}, but response has ${sequenceNumber}`
                         );
                         return;
                     }
@@ -650,7 +647,7 @@
             view: VIEW_SEARCH,
             search: {
                 location: e.detail,
-                placeholder: placeholder
+                placeholder: placeholder,
             },
         };
     }
@@ -695,21 +692,21 @@
 </script>
 
 <div class="outer">
-        <div class="row">
-            <Locations
-                bind:locations
-                selected={typeof viewState.search !== "undefined" ? viewState.search.location : -1}
-                on:focus={onLocationFocus}
-                on:input={onLocationInput}
-                on:close={onLocationClose}
-                on:add={onLocationAdd}
-            />
-        </div>
-        <div class="row {viewState.view == VIEW_SEARCH
-                ? 'd-none d-sm-block'
-                : ''}">
-            <Profiles bind:profile />
-        </div>
+    <div class="row">
+        <Locations
+            bind:locations
+            selected={typeof viewState.search !== "undefined"
+                ? viewState.search.location
+                : -1}
+            on:focus={onLocationFocus}
+            on:input={onLocationInput}
+            on:close={onLocationClose}
+            on:add={onLocationAdd}
+        />
+    </div>
+    <div class="row {viewState.view == VIEW_SEARCH ? 'd-none d-sm-block' : ''}">
+        <Profiles bind:profile />
+    </div>
 
     {#if viewState.view === VIEW_SEARCH}
         <div class="row">
