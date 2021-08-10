@@ -4,35 +4,7 @@
     import type { Location as LocationData } from "../Location";
 
     export let locations: LocationData[] = [];
-    let locationsFocus: {
-        hasFocus: boolean;
-        canHaveFocus: boolean;
-    }[] = [];
-    locations.forEach((l) => {
-        locationsFocus.push({
-            hasFocus: false,
-            canHaveFocus: false,
-        });
-    });
-
-    let hasFocus: number = -1;
-    $: if (hasFocus == -1) {
-        locationsFocus = [];
-        locations.forEach((l) => {
-            locationsFocus.push({
-                hasFocus: false,
-                canHaveFocus: false,
-            });
-        });
-    } else {
-        locationsFocus = [];
-        locations.forEach((l, i) => {
-            locationsFocus.push({
-                hasFocus: i == hasFocus,
-                canHaveFocus: true,
-            });
-        });
-    }
+    export let selected: number = -1;
 
     const dispatch = createEventDispatcher();
     function onSwitch(): void {
@@ -41,7 +13,7 @@
 
     const focus = createEventDispatcher<{ focus: number }>();
     function onFocus(i: number) {
-        hasFocus = i;
+        selected = i;
         focus("focus", i);
     }
 
@@ -65,7 +37,7 @@
     }
 </script>
 
-<div class="locations-container {hasFocus == -1 ? '' : 'focus'} ">
+<div class="locations-container {selected == -1 ? '' : 'focus'} ">
     <div class="locations">
         <div class="locations-list">
             {#each locations as location, i}
@@ -74,7 +46,7 @@
                         type="START"
                         data={location}
                         placeholder="Van"
-                        focused={locationsFocus[i]}
+                        focused={{ hasFocus: selected == i, canHaveFocus: selected != -1 }}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
                         on:close={() => onClose(i)}
@@ -84,7 +56,7 @@
                         type="END"
                         data={location}
                         placeholder="Naar"
-                        focused={locationsFocus[i]}
+                        focused={{ hasFocus: selected == i, canHaveFocus: selected != -1 }}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
                         on:close={() => onClose(i)}
@@ -94,7 +66,7 @@
                         type="VIA"
                         data={location}
                         placeholder="Via"
-                        focused={locationsFocus[i]}
+                        focused={{ hasFocus: selected == i, canHaveFocus: selected != -1 }}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
                         on:close={() => onClose(i)}
@@ -102,7 +74,7 @@
                 {/if}
             {/each}
         </div>
-        {#if hasFocus == -1}
+        {#if selected == -1}
             <div
                 type="button"
                 class="btn btn-light border-0"

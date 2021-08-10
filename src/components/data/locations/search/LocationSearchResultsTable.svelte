@@ -2,6 +2,7 @@
     import { createEventDispatcher } from "svelte";
     import type { LocationSearchResult } from "./LocationSearchResult";
     import LocationSearchResultRow from "./LocationSearchResultRow.svelte";
+    import LocationSearchUseCurrent from "./LocationSearchUseCurrent.svelte";
 
     export let searchResults: LocationSearchResult[] = [];
 
@@ -9,14 +10,20 @@
     function onSelect(e: CustomEvent<LocationSearchResult>): void {
         dispatch("select", e.detail);
     }
+
+    const useCurrentLocation = createEventDispatcher();
+    function onUseCurrentLocation(): void {
+        useCurrentLocation("usecurrentlocation");
+    }
 </script>
 
-{#if searchResults.length > 0}
-    <div id="route-results" class="data-container btn-toolbar p-1 border-0">
-        <div class="route-results">
-            <div class="d-block d-sm-none">
-                Results
-            </div>
+<div id="route-results" class="data-container btn-toolbar p-1 border-0">
+    <div class="route-results">
+        <div class="route-results-list">
+            <LocationSearchUseCurrent on:click={onUseCurrentLocation}/>
+        </div>
+        {#if searchResults.length > 0}
+            <div class="d-block d-sm-none">Results</div>
             <div class="route-results-list">
                 {#each searchResults as searchResult}
                     <LocationSearchResultRow
@@ -25,9 +32,9 @@
                     />
                 {/each}
             </div>
-        </div>
+        {/if}
     </div>
-{/if}
+</div>
 
 <style>
     .route-results {
@@ -43,7 +50,7 @@
         color: black;
     }
 
-    @media (min-width: 576px) { 
+    @media (min-width: 576px) {
         .route-results-list {
             margin-top: 0px;
             background: white;

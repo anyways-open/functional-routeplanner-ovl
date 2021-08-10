@@ -139,12 +139,60 @@
 
     $: if (typeof userLocationLayerHook !== "undefined") {
         userLocationLayerHook.on("geolocate", (pos) => {
+            if (
+                viewState.view == VIEW_SEARCH &&
+                viewState.search.currentLocation >= 0
+            ) {
+                const l = viewState.search.currentLocation;
+                delete viewState.search.currentLocation;
+                const userLocationLocation = locations[l];
+                
+                // update.
+                userLocationLocation.isUserLocation = true;
+                userLocationLocation.location = pos;
+                userLocationLocation.description = `${pos.lng},${pos.lat}`;
+
+                // location has changed, geocode again.
+                geocoder.reverseGeocode(
+                    userLocationLocation.location,
+                    (results) => {
+                        if (results.length > 0) {
+                            userLocationLocation.description =
+                                results[0].description;
+
+                            locations = [...locations];
+                        }
+                    }
+                );
+
+                // make sure to remove the routes using this location.
+                routes.forEach((route) => {
+                    if (l > 0) {
+                        route.segments[l - 1] = undefined;
+                    }
+                    if (l < route.segments.length) {
+                        route.segments[l] = undefined;
+                    }
+                });
+
+                locations = [...locations];
+                routes = [...routes];
+
+                viewState = { view: VIEW_ROUTES };
+                return;
+            }
+
             const l = locations.findIndex((x) => x.isUserLocation);
             if (l >= 0) {
                 const userLocationLocation = locations[l];
                 // update and recalculate if different.
-                const distance =turf.distance([userLocationLocation.location.lng, userLocationLocation.location.lat], 
-                    [pos.lng, pos.lat]);
+                const distance = turf.distance(
+                    [
+                        userLocationLocation.location.lng,
+                        userLocationLocation.location.lat,
+                    ],
+                    [pos.lng, pos.lat]
+                );
                 if (distance < 0.01) {
                     return;
                 }
@@ -154,13 +202,17 @@
                 userLocationLocation.description = `${pos.lng},${pos.lat}`;
 
                 // location has changed, geocode again.
-                geocoder.reverseGeocode(userLocationLocation.location, (results) => {
-                    if (results.length > 0) {
-                        userLocationLocation.description = results[0].description;
+                geocoder.reverseGeocode(
+                    userLocationLocation.location,
+                    (results) => {
+                        if (results.length > 0) {
+                            userLocationLocation.description =
+                                results[0].description;
 
-                        locations = [...locations];
+                            locations = [...locations];
+                        }
                     }
-                });
+                );
 
                 // make sure to remove the routes using this location.
                 routes.forEach((route) => {
@@ -177,44 +229,44 @@
                 return;
             }
 
-            // see if the user location can be set.
-            if (typeof locations[0].location === "undefined") {
-                const location = {
-                    id: locations[0].id,
-                    description: `${pos.lng},${pos.lat}`,
-                    isUserLocation: true,
-                    location: pos,
-                };
-                locations[0] = location;
+            // // see if the user location can be set.
+            // if (typeof locations[0].location === "undefined") {
+            //     const location = {
+            //         id: locations[0].id,
+            //         description: `${pos.lng},${pos.lat}`,
+            //         isUserLocation: true,
+            //         location: pos,
+            //     };
+            //     locations[0] = location;
 
-                // location has changed, geocode again.
-                geocoder.reverseGeocode(location.location, (results) => {
-                    if (results.length > 0) {
-                        location.description = results[0].description;
-                        locations = [...locations];
-                    }
-                });
+            //     // location has changed, geocode again.
+            //     geocoder.reverseGeocode(location.location, (results) => {
+            //         if (results.length > 0) {
+            //             location.description = results[0].description;
+            //             locations = [...locations];
+            //         }
+            //     });
 
-                locations = [...locations];
-            } else if (typeof locations[1].location === "undefined") {
-                const location = {
-                    id: locations[1].id,
-                    description: `${pos.lng},${pos.lat}`,
-                    isUserLocation: true,
-                    location: pos,
-                };
-                locations[1] = location;
+            //     locations = [...locations];
+            // } else if (typeof locations[1].location === "undefined") {
+            //     const location = {
+            //         id: locations[1].id,
+            //         description: `${pos.lng},${pos.lat}`,
+            //         isUserLocation: true,
+            //         location: pos,
+            //     };
+            //     locations[1] = location;
 
-                // location has changed, geocode again.
-                geocoder.reverseGeocode(location.location, (results) => {
-                    if (results.length > 0) {
-                        location.description = results[0].description;
-                        locations = [...locations];
-                    }
-                });
+            //     // location has changed, geocode again.
+            //     geocoder.reverseGeocode(location.location, (results) => {
+            //         if (results.length > 0) {
+            //             location.description = results[0].description;
+            //             locations = [...locations];
+            //         }
+            //     });
 
-                locations = [...locations];
-            }
+            //     locations = [...locations];
+            // }
         });
     }
 
@@ -416,11 +468,16 @@
     let viewState: {
         view: "START" | "SEARCH" | "ROUTES";
         search?: {
-            location: number;
-            placeholder: string;
-        };
+            location: number
+            placeholder: string
+            currentLocation?: number
+        }
     } = {
         view: VIEW_START,
+        search: {
+            location: -1,
+            placeholder: ""
+        }
     };
 
     function onSelect(e: CustomEvent<LocationSearchResult>): void {
@@ -436,6 +493,17 @@
         };
 
         mapHook.flyTo(e.detail.location);
+
+        viewState.view = VIEW_START;
+        viewState.search.location = -1;
+    }
+
+    function onUseCurrentLocation(): void {
+        if (typeof viewState.search !== "undefined") {
+            viewState.search.currentLocation = viewState.search.location;
+
+            userLocationLayerHook.trigger();
+        }
     }
 
     $: {
@@ -582,7 +650,7 @@
             view: VIEW_SEARCH,
             search: {
                 location: e.detail,
-                placeholder: placeholder,
+                placeholder: placeholder
             },
         };
     }
@@ -627,47 +695,33 @@
 </script>
 
 <div class="outer">
-    {#if viewState.view === VIEW_START || viewState.view == VIEW_SEARCH}
         <div class="row">
             <Locations
                 bind:locations
+                selected={typeof viewState.search !== "undefined" ? viewState.search.location : -1}
                 on:focus={onLocationFocus}
                 on:input={onLocationInput}
                 on:close={onLocationClose}
                 on:add={onLocationAdd}
             />
         </div>
-        <div
-            class="row {viewState.view == VIEW_SEARCH
+        <div class="row {viewState.view == VIEW_SEARCH
                 ? 'd-none d-sm-block'
-                : ''}"
-        >
+                : ''}">
             <Profiles bind:profile />
         </div>
-    {/if}
 
     {#if viewState.view === VIEW_SEARCH}
         <div class="row">
             <LocationSearchResultsTable
                 searchResults={searchResults.results}
                 on:select={onSelect}
+                on:usecurrentlocation={onUseCurrentLocation}
             />
         </div>
     {/if}
 
     {#if viewState.view === VIEW_ROUTES}
-        <div class="row">
-            <Locations
-                bind:locations
-                on:switch={onSwitch}
-                on:focus={onLocationFocus}
-                on:close={onLocationClose}
-                on:add={onLocationAdd}
-            />
-        </div>
-        <div class="row">
-            <Profiles bind:profile />
-        </div>
         <div class="row">
             <RouteList {routes} />
         </div>
