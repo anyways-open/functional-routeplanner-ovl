@@ -161,6 +161,7 @@
         background: #fff;
         border-radius: 0px;
         height: 40px;
+        display: none;
     }
 
     .location-img-container {
@@ -186,22 +187,11 @@
             display: flex;
         }
 
-
-    .marker-via-dot-container {
-        padding-left: 0px;
-        padding-top: 0px;
-        margin-left: 5px;
-        margin-top: 3px;
-    }
-
-
     @media (min-width: 576px) {
         .locations-container {
             margin-top: unset;
             padding: 0.5rem;
         }
-
-
 
         .input-group {
             background: #fff;
@@ -209,6 +199,7 @@
             height: 39px;
             border-bottom-style: none;
             padding-bottom: 0.25rem;
+            display: flex;
         }
 
         .locations-container.focus {
