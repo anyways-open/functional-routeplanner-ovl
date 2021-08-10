@@ -19,7 +19,7 @@
 	import SchoolRoutes from "./components/map/layers/SchoolRoutes.svelte";
 	import type { RoutesLayerHook } from "./components/map/layers/RoutesLayerHook";
 	import type { LocationsLayerHook } from "./components/map/layers/locations/LocationsLayerHook";
-import GipodLayer from "./components/map/layers/GipodLayer.svelte";
+	import GipodLayer from "./components/map/layers/GipodLayer.svelte";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
@@ -123,9 +123,6 @@ import GipodLayer from "./components/map/layers/GipodLayer.svelte";
 	let locations: Location[] = [
 		{
 			id: 0,
-			description: "Huidige Locatie",
-			isUserLocation: true,
-			location: { lng: 3.7378, lat: 51.0569 },
 		},
 		{
 			id: 1

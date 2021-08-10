@@ -68,9 +68,8 @@
                 return i.id == lid;
             });
 
-            // make sure to remove the routes using this location.
             routes.forEach(route => {
-                if (l > 0) {
+                if (l > 0 && l < route.segments.length + 1) {
                     route.segments[l - 1] = undefined;
                 }
                 if (l < route.segments.length) {
@@ -81,10 +80,12 @@
 
             // update locations list.
             if (locations.length == 2) {
+                locations[l].description = "";
                 locations[l].location = undefined;
             } else {
                 locations.splice(l, 1);
             }
+
             locations = [...locations];
             routes = [...routes];
         });
@@ -107,12 +108,10 @@
                 locations.push(location);
             }
 
-            while (routes.length < locations.length - 1) {
-                routes.push(undefined);
-            }
-            routes[locations.length - 2] = undefined;
-
             locations = [...locations];
+
+            console.log("click");
+            console.log(locations);
         });
 
         routeLayerHook.on("selectroute", (e) => {
@@ -339,17 +338,18 @@
 
     $: if (typeof locations !== "undefined") {            
         if (
-                
+                typeof profile === "undefined" ||
                 typeof locations[0].location === "undefined" ||
                 typeof locations[1].location === "undefined"
             ) {
+
             } else {
                 viewState = { view: VIEW_ROUTES };
 
                 getRoutes();
             }
     }
-    
+
     let lastProfile = profile;
     $: if (typeof profile !== "undefined" &&
         lastProfile != profile) {

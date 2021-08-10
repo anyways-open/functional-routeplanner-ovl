@@ -29,7 +29,9 @@
 
     $: if (typeof map !== "undefined") {
         markers.forEach(m => {
-            m.marker.remove();
+            if (typeof m !== "undefined") {
+                m.marker.remove();
+            }
         });
         markers = [];
 
@@ -60,7 +62,9 @@
             };
 
             // hook drag event.
-            marker.on("dragend", () => {
+            marker.on("dragend", (e) => {
+                console.log(e);
+
                 if (typeof onLocationUpdate !== "undefined") {
                     onLocationUpdate({
                         id: location.id,
@@ -71,6 +75,9 @@
 
             // add click event.
             element.addEventListener("click", (e) => {
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
                 if (typeof onLocationClick !== "undefined") {
                     onLocationClick({
                         id: location.id,
@@ -78,7 +85,6 @@
                     });
                 }
 
-                e.stopPropagation();
             }, true);
         });
     }

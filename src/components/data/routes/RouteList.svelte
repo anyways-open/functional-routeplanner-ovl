@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
     import type { Route } from "../Route";
     import RouteRow from "./RouteRow.svelte";
 
@@ -14,12 +13,16 @@
 {#if routes.length > 0}
     <div>
         <div class="route-results">
-            <div class="d-block d-sm-none">
+            <div class="d-block d-sm-none"> 
                 Results
             </div>
             <div class="route-results-list">
                 {#each routes as route}
+                {#if typeof route !== "undefined" && 
+                    typeof route.segments !== "undefined" &&
+                    route.segments.length > 0}
                     <RouteRow {route} on:select={onSelect} />
+                {/if}
                 {/each}
             </div>
         </div>
