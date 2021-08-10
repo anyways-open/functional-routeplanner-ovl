@@ -78,7 +78,6 @@
         });
         var geojson = turf.featureCollection(features);
 
-        console.log(togpx);
         var gpx = togpx(geojson, {});
 
         var data = gpx;

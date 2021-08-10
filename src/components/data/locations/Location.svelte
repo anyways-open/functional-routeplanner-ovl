@@ -24,6 +24,11 @@
         input("input", e.target.value);
     }
 
+    const close = createEventDispatcher();
+    function onClose(): void {
+        close("close");
+    }
+
     let value = data.description;
     $: if (typeof data.description === "undefined") {
         value = "";
@@ -68,7 +73,7 @@
             <img src="assets/icons/search.svg" alt="Zoek" />
         </button>
         <button type="button" class="btn btn-light border-0">
-            <img src="assets/icons/close.svg" alt="Sluit" />
+            <img src="assets/icons/close.svg" alt="Sluit" on:click="{onClose}" />
         </button>
     </div>
 </div>
@@ -109,6 +114,15 @@
 
     .btn {
         display: none;
+        min-width: 29px;
+        height: 29px;
+        padding: 0;
+    }
+    .btn:hover {
+        background-color: rgba(0,0,0,.05);
+    }
+    .btn:focus {
+        box-shadow: none;
     }
 
     .marker {

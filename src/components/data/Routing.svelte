@@ -39,7 +39,7 @@
     $: if (typeof locationsLayerHook !== "undefined") {
         locationsLayerHook.on("locationupdate", (e) => {
             const lid: number = e.id;
-            const l = locations.findIndex(i => {
+            const l = locations.findIndex((i) => {
                 return i.id == lid;
             });
             const location = locations[l];
@@ -49,7 +49,7 @@
             }
 
             // make sure to remove the routes using this location.
-            routes.forEach(route => {
+            routes.forEach((route) => {
                 if (l > 0) {
                     route.segments[l - 1] = undefined;
                 }
@@ -64,31 +64,37 @@
 
         locationsLayerHook.on("locationclick", (e) => {
             const lid: number = e.id;
-            const l = locations.findIndex(i => {
+            const l = locations.findIndex((i) => {
                 return i.id == lid;
             });
 
-            routes.forEach(route => {
-                if (l > 0 && l < route.segments.length + 1) {
-                    route.segments[l - 1] = undefined;
-                }
-                if (l < route.segments.length) {
-                    route.segments[l] = undefined;
-                }
-                route.segments.splice(l, 1);
-            });
-
-            // update locations list.
-            if (locations.length == 2) {
-                locations[l].description = "";
-                locations[l].location = undefined;
-            } else {
-                locations.splice(l, 1);
-            }
-
-            locations = [...locations];
-            routes = [...routes];
+            removeLocation(l);
         });
+    }
+
+    function removeLocation(l: number) {
+        routes.forEach((route) => {
+            if (typeof route === "undefined") return;
+            
+            if (l > 0 && l < route.segments.length + 1) {
+                route.segments[l - 1] = undefined;
+            }
+            if (l < route.segments.length) {
+                route.segments[l] = undefined;
+            }
+            route.segments.splice(l, 1);
+        });
+
+        // update locations list.
+        if (locations.length == 2) {
+            locations[l].description = "";
+            locations[l].location = undefined;
+        } else {
+            locations.splice(l, 1);
+        }
+
+        locations = [...locations];
+        routes = [...routes];
     }
 
     $: if (typeof routeLayerHook !== "undefined") {
@@ -263,12 +269,13 @@
         locations.forEach((_, i) => {
             if (i === 0) return;
 
-            const segment = i-1;       
+            const segment = i - 1;
 
-            if (typeof routes[0] !== "undefined" &&
+            if (
+                typeof routes[0] !== "undefined" &&
                 routes[0].segments.length > 0 &&
-                typeof routes[0].segments[segment] !== "undefined") {
-
+                typeof routes[0].segments[segment] !== "undefined"
+            ) {
                 // remove alternatives if more than 2 locations.
                 if (segment == 0 && locations.length > 2) {
                     while (routes.length > 1) {
@@ -336,25 +343,22 @@
         });
     }
 
-    $: if (typeof locations !== "undefined") {            
+    $: if (typeof locations !== "undefined") {
         if (
-                typeof profile === "undefined" ||
-                typeof locations[0].location === "undefined" ||
-                typeof locations[1].location === "undefined"
-            ) {
+            typeof profile === "undefined" ||
+            typeof locations[0].location === "undefined" ||
+            typeof locations[1].location === "undefined"
+        ) {
+        } else {
+            viewState = { view: VIEW_ROUTES };
 
-            } else {
-                viewState = { view: VIEW_ROUTES };
-
-                getRoutes();
-            }
+            getRoutes();
+        }
     }
 
     let lastProfile = profile;
-    $: if (typeof profile !== "undefined" &&
-        lastProfile != profile) {
-
-        routes.forEach(r => {
+    $: if (typeof profile !== "undefined" && lastProfile != profile) {
+        routes.forEach((r) => {
             if (typeof r !== "undefined") {
                 r.segments = [];
             }
@@ -402,6 +406,10 @@
             };
         });
     }
+
+    function onLocationClose(e: CustomEvent<number>): void {
+        removeLocation(e.detail);
+    }
 </script>
 
 <div class="outer">
@@ -411,6 +419,7 @@
                 bind:locations
                 on:focus={onLocationFocus}
                 on:input={onLocationInput}
+                on:close={onLocationClose}
             />
         </div>
         <div
@@ -437,6 +446,7 @@
                 bind:locations
                 on:switch={onSwitch}
                 on:focus={onLocationFocus}
+                on:close={onLocationClose}
             />
         </div>
         <div class="row">

@@ -254,7 +254,7 @@
 			border-top-right-radius: 10px;
 			min-height: 300px;
 			max-height: 300px;
-			width: 350px;
+			width: 310px;
 		}
 	}
 </style>

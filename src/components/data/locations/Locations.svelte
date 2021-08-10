@@ -54,6 +54,11 @@
         });
     }
 
+    const close = createEventDispatcher<{ close: number }>();
+    function onClose(i: number): void {
+        close("close", i);
+    }
+
 </script>
 
 <div class="locations-container {hasFocus == -1 ? "" : "focus"} ">
@@ -68,6 +73,7 @@
                         focused={locationsFocus[i]}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
+                        on:close={() => onClose(i)}
                     />
                 {:else if i === locations.length - 1}
                     <Location
@@ -77,6 +83,7 @@
                         focused={locationsFocus[i]}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
+                        on:close={() => onClose(i)}
                     />
                 {:else}
                     <Location
@@ -86,6 +93,7 @@
                         focused={locationsFocus[i]}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
+                        on:close={() => onClose(i)}
                     />
                 {/if}
             {/each}
