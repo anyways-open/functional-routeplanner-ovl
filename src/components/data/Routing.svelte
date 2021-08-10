@@ -17,8 +17,8 @@
     import type { RoutesLayerHook } from "../map/layers/RoutesLayerHook";
     import type { LocationsLayerHook } from "../map/layers/locations/LocationsLayerHook";
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
-import { onMount } from "svelte";
-import Location from "./locations/Location.svelte";
+    import { onMount } from "svelte";
+    import type { UserLocationLayerHook } from "../map/layers/UserLocationLayerHook";
 
     // exports
     export let routingHook: RoutingHook = new RoutingHook();
@@ -28,89 +28,89 @@ import Location from "./locations/Location.svelte";
     export let mapHook: MapHook; // interface to communicate with the map.
     export let routeLayerHook: RoutesLayerHook; // interface to communicate with the routes layer.
     export let locationsLayerHook: LocationsLayerHook; // interface to communicate with the locations component.
+    export let userLocationLayerHook: UserLocationLayerHook; // interface to communicate with the user location component.
 
     let locationId: number = 0;
 
-locations.forEach((l, i) => {
-    if (i === 0) return;
+    locations.forEach((l, i) => {
+        if (i === 0) return;
 
-    routes.push(undefined);
+        routes.push(undefined);
 
-    if (locationId < l.id) locationId = l.id;
-});
+        if (locationId < l.id) locationId = l.id;
+    });
 
     let urlHash = new UrlHashHandler("route");
     let urlHashParsed = false;
     onMount(async () => {
-
         // state is as follows:
-        // an array of locations comma seperate 
+        // an array of locations comma seperate
         // with each location: name/lon/lat
         // - when not set but there name=empty
         // - when not geocoded name=point ex: point/4.1445/51.4471
         // - when geocoded name=escaped geocode string, ex: Sept%2042%2F4%2C%202275%20Wechelderzande/4.1445/51.4471
         // - when user location name=user, ex; user/4.1445/51.4471
         const routeState = urlHash.getState();
+        if (typeof routeState !== "undefined") {
+            // split.
+            const locs = routeState.split(",");
 
-        // split.
-        const locs = routeState.split(",");
+            // get profile.
+            profile = locs[0];
 
-        // get profile.
-        profile = locs[0];
+            // reset routes causing recalculate later.
+            routes = [];
 
-        // reset routes causing recalculate later.
-        routes = [];
+            // parse locations.
+            if (locs.length > 0) {
+                locations = [];
 
-        // parse locations.
-        if (locs.length > 0) {
-            console.log(locs);
-            locations = [];
-
-            locationId++;
-            locations.push({
-                    id: locationId,
-                });
-            locationId++;
-            locations.push({
-                    id: locationId,
-                });
-                
-            for (let l = 1; l < locs.length; l++) {
-                const d = locs[l].split("/");
-                if (d.length != 3) continue;
-
-                const loc = {
-                    lng: parseFloat(d[1]),
-                    lat: parseFloat(d[2])
-                };
-
-                const name = unescape(d[0]);
-
-                // overwrite locations.
                 locationId++;
-                const location: Location = {
+                locations.push({
                     id: locationId,
-                    description: name,
-                    location: loc
-                }
-            
-                if (l - 1 < locations.length) {
-                    locations[l - 1] = location;
-                } else {
-                    locations.push(location);
+                });
+                locationId++;
+                locations.push({
+                    id: locationId,
+                });
+
+                for (let l = 1; l < locs.length; l++) {
+                    const d = locs[l].split("/");
+                    if (d.length != 3) continue;
+
+                    const loc = {
+                        lng: parseFloat(d[1]),
+                        lat: parseFloat(d[2]),
+                    };
+
+                    const name = unescape(d[0]);
+
+                    // overwrite locations.
+                    locationId++;
+                    const location: Location = {
+                        id: locationId,
+                        description: name,
+                        location: loc,
+                    };
+
+                    if (l - 1 < locations.length) {
+                        locations[l - 1] = location;
+                    } else {
+                        locations.push(location);
+                    }
                 }
             }
         }
-
         urlHashParsed = true;
     });
 
-    $: if (typeof profile !== "undefined" &&
+    $: if (
+        typeof profile !== "undefined" &&
         typeof locations !== "undefined" &&
-        urlHashParsed) {
-
+        urlHashParsed
+    ) {
         let s = `${escape(profile)}`;
-        locations.forEach(l => {
+        locations.forEach((l) => {
             if (s.length > 0) {
                 s += ",";
             }
@@ -137,6 +137,53 @@ locations.forEach((l, i) => {
         urlHash.update(s);
     }
 
+    $: if (typeof userLocationLayerHook !== "undefined") {
+        userLocationLayerHook.on("geolocate", (pos) => {
+            console.log("updated location");
+            const l = locations.findIndex((x) => x.isUserLocation);
+            if (l >= 0) {
+                const userLocationLocation = locations[l];
+                // TODO: update and recalculate if different.
+                userLocationLocation.location = pos;
+
+                // make sure to remove the routes using this location.
+                routes.forEach((route) => {
+                    if (l > 0) {
+                        route.segments[l - 1] = undefined;
+                    }
+                    if (l < route.segments.length) {
+                        route.segments[l] = undefined;
+                    }
+                });
+
+                locations = [...locations];
+                routes = [...routes];
+                return;
+            }
+
+            // see if the user location can be set.
+            if (typeof locations[0].location === "undefined") {
+                locations[0] = {
+                    id: locations[0].id,
+                    description: "Huidige locatie",
+                    isUserLocation: true,
+                    location: pos,
+                };
+
+                locations = [...locations];
+            } else if (typeof locations[1].location === "undefined") {
+                locations[1] = {
+                    id: locations[1].id,
+                    description: "Huidige locatie",
+                    isUserLocation: true,
+                    location: pos,
+                };
+
+                locations = [...locations];
+            }
+        });
+    }
+
     $: if (typeof locationsLayerHook !== "undefined") {
         locationsLayerHook.on("locationupdate", (e) => {
             const lid: number = e.id;
@@ -147,16 +194,15 @@ locations.forEach((l, i) => {
 
             if (typeof location !== "undefined") {
                 location.location = e.location;
+                location.isUserLocation = false;
             }
 
             // location has changed, geocode again.
             geocoder.reverseGeocode(location.location, (results) => {
-                console.log(results);
                 if (results.length > 0) {
                     location.description = results[0].description;
                     locations = [...locations];
                 }
-
             });
 
             // make sure to remove the routes using this location.
@@ -200,6 +246,7 @@ locations.forEach((l, i) => {
         if (locations.length == 2) {
             locations[l].description = "";
             locations[l].location = undefined;
+            locations[l].isUserLocation = false;
         } else {
             locations.splice(l, 1);
         }
@@ -229,12 +276,10 @@ locations.forEach((l, i) => {
             locations = [...locations];
 
             geocoder.reverseGeocode(location.location, (results) => {
-                console.log(results);
                 if (results.length > 0) {
                     location.description = results[0].description;
                     locations = [...locations];
                 }
-
             });
         });
 

@@ -4,7 +4,6 @@
 	import NetworksLayer from "./components/map/layers/NetworksLayer.svelte";
 	import RoutesLayer from "./components/map/layers/RoutesLayer.svelte";
 	import LocationsLayer from "./components/map/layers/locations/LocationsLayer.svelte";
-	import UserLocation from "./components/map/layers/UserLocation.svelte";
 	import type { Location } from "./components/data/Location";
 	import type { MapHook } from "./components/map/MapHook";
 	import Routing from "./components/data/Routing.svelte";
@@ -20,6 +19,8 @@
 	import type { RoutesLayerHook } from "./components/map/layers/RoutesLayerHook";
 	import type { LocationsLayerHook } from "./components/map/layers/locations/LocationsLayerHook";
 	import GipodLayer from "./components/map/layers/GipodLayer.svelte";
+	import type { UserLocationLayerHook } from "./components/map/layers/UserLocationLayerHook";
+	import UserLocationLayer from "./components/map/layers/UserLocationLayer.svelte";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
@@ -39,6 +40,7 @@
 	let routingHook: RoutingHook;
 	let routingLayerHook: RoutesLayerHook;
 	let locationsLayerHook: LocationsLayerHook;
+	let userLocationLayerHook: UserLocationLayerHook;
 
 	let baseLayerOptions: BaseLayerControlOptions = {
 		source: "aiv",
@@ -125,8 +127,8 @@
 			id: 0,
 		},
 		{
-			id: 1
-		}
+			id: 1,
+		},
 	];
 	let routes: Route[] = [];
 
@@ -168,14 +170,18 @@
 <div id="full" class="full">
 	<div id="map" class="map" style="height: {heights.map};">
 		<Map bind:hook={mapHook}>
-			<RoutesLayer {routes} bind:mapHook={mapHook} bind:routeLayerHook={routingLayerHook} />
-			<LocationsLayer {locations} bind:locationsLayerHook/>
+			<RoutesLayer
+				{routes}
+				bind:mapHook
+				bind:routeLayerHook={routingLayerHook}
+			/>
+			<LocationsLayer {locations} bind:locationsLayerHook />
 			<GipodLayer />
 			<NetworksLayer />
 			<ImageryLayer />
 			<BffLayer />
 			<SchoolRoutes />
-			<UserLocation />
+			<UserLocationLayer bind:hook={userLocationLayerHook} />
 
 			<BaseLayerControl bind:options={baseLayerOptions} />
 			<LayerControl bind:layers />
@@ -198,6 +204,7 @@
 			bind:locations
 			bind:profile
 			bind:locationsLayerHook
+			bind:userLocationLayerHook
 		/>
 	</div>
 </div>

@@ -37,6 +37,7 @@
 
         locations.forEach((location, i) => {
             if (typeof location.location === "undefined") return;
+            if (location.isUserLocation) return;
 
             const element = document.createElement("div");
             if (i == locations.length - 1) {
