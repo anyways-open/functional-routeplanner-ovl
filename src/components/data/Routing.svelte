@@ -75,7 +75,7 @@
     function removeLocation(l: number) {
         routes.forEach((route) => {
             if (typeof route === "undefined") return;
-            
+
             if (l > 0 && l < route.segments.length + 1) {
                 route.segments[l - 1] = undefined;
             }
@@ -229,6 +229,8 @@
         if (viewState.view != VIEW_SEARCH) return;
         if (typeof viewState.search === "undefined") return;
 
+        searchResults.results = [];
+
         locations[viewState.search.location] = {
             id: locations[viewState.search.location].id,
             description: e.detail.description,
@@ -266,30 +268,23 @@
     }
 
     function getRoutes() {
+        // remove alternatives if more than 2 locations.
+        if (locations.length > 2) {
+            while (routes.length > 1) {
+                routes.pop();
+            }
+            routes = [...routes];
+        }
+
         locations.forEach((_, i) => {
             if (i === 0) return;
 
             const segment = i - 1;
 
-            if (
-                typeof routes[0] !== "undefined" &&
-                routes[0].segments.length > 0 &&
-                typeof routes[0].segments[segment] !== "undefined"
-            ) {
-                // remove alternatives if more than 2 locations.
-                if (segment == 0 && locations.length > 2) {
-                    while (routes.length > 1) {
-                        routes.pop();
-                    }
-                    routes = [...routes];
-                }
-
-                return; // only recalculate when needed.
-            }
-
             const location1 = locations[segment];
             const location2 = locations[segment + 1];
 
+            // only calculate if locations are available and profile is set.
             if (
                 typeof profile === "undefined" ||
                 typeof location1.location === "undefined" ||
@@ -297,6 +292,18 @@
             ) {
                 return;
             }
+
+            // only calculate if segment is not there yet.
+            if (
+                routes.length > 0 &&
+                typeof routes[0] !== "undefined" &&
+                typeof routes[0].segments[segment] !== "undefined"
+            ) {
+                return;
+            }
+
+            // a route is expected.
+            viewState = { view: VIEW_ROUTES };
 
             var sequenceNumber = routeSequence;
             routingApi.getRoute(
@@ -335,6 +342,12 @@
                         routes = newRoutes;
                     } else {
                         // a route that is a missing segment.
+                        if (typeof routes[0] === "undefined") {
+                            routes[0] = {
+                                description: "Aangeraden route",
+                                segments: [],
+                            };
+                        }
                         routes[0].segments[segment] = e;
                         routes = [...routes];
                     }
@@ -344,16 +357,7 @@
     }
 
     $: if (typeof locations !== "undefined") {
-        if (
-            typeof profile === "undefined" ||
-            typeof locations[0].location === "undefined" ||
-            typeof locations[1].location === "undefined"
-        ) {
-        } else {
-            viewState = { view: VIEW_ROUTES };
-
-            getRoutes();
-        }
+        getRoutes();
     }
 
     let lastProfile = profile;
@@ -410,6 +414,18 @@
     function onLocationClose(e: CustomEvent<number>): void {
         removeLocation(e.detail);
     }
+
+    function onLocationAdd(): void {
+        locationId++;
+        const location: Location = {
+            id: locationId,
+            isUserLocation: false,
+        };
+
+        locations.push(location);
+
+        locations = [...locations];
+    }
 </script>
 
 <div class="outer">
@@ -420,6 +436,7 @@
                 on:focus={onLocationFocus}
                 on:input={onLocationInput}
                 on:close={onLocationClose}
+                on:add={onLocationAdd}
             />
         </div>
         <div
@@ -447,6 +464,7 @@
                 on:switch={onSwitch}
                 on:focus={onLocationFocus}
                 on:close={onLocationClose}
+                on:add={onLocationAdd}
             />
         </div>
         <div class="row">

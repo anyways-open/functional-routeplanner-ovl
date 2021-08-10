@@ -8,7 +8,7 @@
         hasFocus: boolean;
         canHaveFocus: boolean;
     }[] = [];
-    locations.forEach(l => {
+    locations.forEach((l) => {
         locationsFocus.push({
             hasFocus: false,
             canHaveFocus: false,
@@ -18,7 +18,7 @@
     let hasFocus: number = -1;
     $: if (hasFocus == -1) {
         locationsFocus = [];
-        locations.forEach(l => {
+        locations.forEach((l) => {
             locationsFocus.push({
                 hasFocus: false,
                 canHaveFocus: false,
@@ -59,9 +59,13 @@
         close("close", i);
     }
 
+    const add = createEventDispatcher();
+    function onAdd(): void {
+        add("add");
+    }
 </script>
 
-<div class="locations-container {hasFocus == -1 ? "" : "focus"} ">
+<div class="locations-container {hasFocus == -1 ? '' : 'focus'} ">
     <div class="locations">
         <div class="locations-list">
             {#each locations as location, i}
@@ -99,13 +103,29 @@
             {/each}
         </div>
         {#if hasFocus == -1}
-        <div type="button" class="btn btn-light border-0" on:click={onSwitch}>
-            <img
-                src="assets/icons/updown.svg"
-                alt="Verwissel start-and endpoint."
-            />
-        </div>
+            <div
+                type="button"
+                class="btn btn-light border-0"
+                on:click={onSwitch}
+            >
+                <img
+                    src="assets/icons/updown.svg"
+                    alt="Verwissel start-and endpoint."
+                />
+            </div>
         {/if}
+        <div class="input-group">
+            <div class="location-img-container" on:click="{onAdd}">
+                <img
+                    class="marker"
+                    src="assets/icons/add.svg"
+                    alt="Voeg locatie toe"
+                />
+            </div>
+            <div class="input-container">
+                <div class="add-location border-0 text-muted">Voeg locatie toe.</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -137,10 +157,58 @@
         width: 20px;
     }
 
-    @media (min-width: 576px) { 
+    .input-group {
+        background: #fff;
+        border-radius: 0px;
+        height: 40px;
+    }
+
+    .location-img-container {
+        padding: 0.575rem 0.78rem;
+        width: 49px;
+    }
+
+    img.marker {
+        height: 18px;
+    }
+
+    .marker {
+        margin-left: 4px;
+    }
+
+    .add-location {
+        height: 32px;
+        flex: 1 1 auto;
+        padding-top: 9px;
+    }
+
+    .input-container {
+            display: flex;
+        }
+
+
+    .marker-via-dot-container {
+        padding-left: 0px;
+        padding-top: 0px;
+        margin-left: 5px;
+        margin-top: 3px;
+    }
+
+
+    @media (min-width: 576px) {
         .locations-container {
             margin-top: unset;
-            padding: .5rem;
+            padding: 0.5rem;
+        }
+
+
+
+        .input-group {
+            background: #fff;
+            border-radius: 0px;
+            height: 39px;
+            border-bottom-style: none;
+            padding-bottom: 0.25rem;
         }
 
         .locations-container.focus {
