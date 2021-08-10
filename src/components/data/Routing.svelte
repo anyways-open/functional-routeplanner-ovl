@@ -16,6 +16,9 @@
     import * as turf from "@turf/turf";
     import type { RoutesLayerHook } from "../map/layers/RoutesLayerHook";
     import type { LocationsLayerHook } from "../map/layers/locations/LocationsLayerHook";
+    import { UrlHashHandler } from "../../shared/UrlHashHandler";
+import { onMount } from "svelte";
+import Location from "./locations/Location.svelte";
 
     // exports
     export let routingHook: RoutingHook = new RoutingHook();
@@ -28,13 +31,111 @@
 
     let locationId: number = 0;
 
-    locations.forEach((l, i) => {
-        if (i === 0) return;
+locations.forEach((l, i) => {
+    if (i === 0) return;
 
-        routes.push(undefined);
+    routes.push(undefined);
 
-        if (locationId < l.id) locationId = l.id;
+    if (locationId < l.id) locationId = l.id;
+});
+
+    let urlHash = new UrlHashHandler("route");
+    let urlHashParsed = false;
+    onMount(async () => {
+
+        // state is as follows:
+        // an array of locations comma seperate 
+        // with each location: name/lon/lat
+        // - when not set but there name=empty
+        // - when not geocoded name=point ex: point/4.1445/51.4471
+        // - when geocoded name=escaped geocode string, ex: Sept%2042%2F4%2C%202275%20Wechelderzande/4.1445/51.4471
+        // - when user location name=user, ex; user/4.1445/51.4471
+        const routeState = urlHash.getState();
+
+        // split.
+        const locs = routeState.split(",");
+
+        // get profile.
+        profile = locs[0];
+
+        // reset routes causing recalculate later.
+        routes = [];
+
+        // parse locations.
+        if (locs.length > 0) {
+            console.log(locs);
+            locations = [];
+
+            locationId++;
+            locations.push({
+                    id: locationId,
+                });
+            locationId++;
+            locations.push({
+                    id: locationId,
+                });
+                
+            for (let l = 1; l < locs.length; l++) {
+                const d = locs[l].split("/");
+                if (d.length != 3) continue;
+
+                const loc = {
+                    lng: parseFloat(d[1]),
+                    lat: parseFloat(d[2])
+                };
+
+                const name = unescape(d[0]);
+
+                // overwrite locations.
+                locationId++;
+                const location: Location = {
+                    id: locationId,
+                    description: name,
+                    location: loc
+                }
+            
+                if (l - 1 < locations.length) {
+                    locations[l - 1] = location;
+                } else {
+                    locations.push(location);
+                }
+            }
+        }
+
+        urlHashParsed = true;
     });
+
+    $: if (typeof profile !== "undefined" &&
+        typeof locations !== "undefined" &&
+        urlHashParsed) {
+
+        let s = `${escape(profile)}`;
+        locations.forEach(l => {
+            if (s.length > 0) {
+                s += ",";
+            }
+
+            if (typeof l.location === "undefined") {
+                s += `empty`;
+                return;
+            }
+
+            if (l.isUserLocation) {
+                s += `user/`;
+            } else {
+                if (l.description) {
+                    s += `${escape(l.description)}/`;
+                } else {
+                    s += `point/`;
+                }
+            }
+
+            const location = l.location;
+            s += `${location.lng.toFixed(5)}/${location.lat.toFixed(5)}`;
+        });
+
+        urlHash.update(s);
+    }
 
     $: if (typeof locationsLayerHook !== "undefined") {
         locationsLayerHook.on("locationupdate", (e) => {
