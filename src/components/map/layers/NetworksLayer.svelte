@@ -8,32 +8,29 @@
     
     onMount(async () => {
         map.on("load", () => {
-            // get lowest label and road.
+
+            console.log("adding networks.");
+
+            // get the best before layer.
             const style = map.getStyle();
-            let lowestRoad = undefined;
-            let lowestLabel = undefined;
-            let lowestSymbol = undefined;
+            let before: string = undefined;
             for (let l = 0; l < style.layers.length; l++) {
                 const layer = style.layers[l];
 
-                if (layer && layer["source-layer"] === "transportation") {
-                    if (!lowestRoad) {
-                        lowestRoad = layer.id;
-                    }
-                }
-
                 if (layer && layer["source-layer"] === "transportation_name") {
-                    if (!lowestLabel) {
-                        lowestLabel = layer.id;
+                    if (!before) {
+                        before = layer.id;
                     }
                 }
 
-                if (layer && layer.type == "symbol") {
-                    if (!lowestSymbol) {
-                        lowestSymbol = layer.id;
+                if (layer && layer["source"] == "route") {
+                    if (!before) {
+                        before = layer.id;
                     }
                 }
             }
+
+            console.log(before);
 
             map.addSource("cyclenetworks-tiles", {
                 type: "vector",
@@ -72,7 +69,7 @@
                         "proposed"
                     ]
                 ]
-            }, lowestLabel);
+            }, before);
 
             const nodesColor = "#ccad00";
             const schoolRoutesColor = "#00cc00";
@@ -105,7 +102,7 @@
                         "srfn_gent"
                     ]
                 ]
-            }, lowestLabel);
+            }, before);
 
             map.addLayer({
                 "id": "cycle-highways",
@@ -138,7 +135,7 @@
                         "proposed"
                     ]
                 ]
-            }, lowestLabel);
+            }, before);
 
             map.addLayer({
                 "id": "cycle-highways-labels",
@@ -199,7 +196,7 @@
                         "srfn_gent"
                     ]
                 ]
-            }, lowestLabel);
+            }, before);
 
             map.addLayer({
                 "id": "cyclenodes-circles",
@@ -269,7 +266,6 @@
                     ]
                 ]
             });
-
         });
     });
 </script>

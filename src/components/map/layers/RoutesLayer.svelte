@@ -50,6 +50,8 @@
             if (typeof source === "undefined") {
                 // add source and layers.
 
+                console.log("adding routes.");
+                
                 // get lowest label and road.
                 const style = map.getStyle();
                 let lowestRoad = undefined;
