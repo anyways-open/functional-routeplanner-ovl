@@ -13,7 +13,7 @@
     export let hook: UserLocationLayerHook = new UserLocationLayerHook();
     hook.on = (name, handler) => {
         switch (name) {
-            case "geolocation":
+            case "geolocate":
                 onGeolocation = handler;
                 break;
             case "error":
@@ -46,11 +46,8 @@
         }
     });
     geolocationControl.on("error", (e) => {
-        if (typeof onGeolocation !== "undefined") {
-            onGeolocation({
-                lng: pos.coords.longitude,
-                lat: pos.coords.latitude
-            });
+        if (typeof onError !== "undefined") {
+            onError(e);
         }
     });
 </script>

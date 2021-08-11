@@ -138,6 +138,7 @@
 
     $: if (typeof userLocationLayerHook !== "undefined") {
         userLocationLayerHook.on("geolocate", (pos) => {
+            console.log("geolocate");
             lastCurrentLocation = pos;
 
             handleCurrentLocation();
