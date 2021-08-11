@@ -163,6 +163,8 @@
 
                 // make sure to remove the routes using this location.
                 routes.forEach((route) => {
+                    if (typeof route === "undefined") return;
+
                     if (l > 0) {
                         route.segments[l - 1] = undefined;
                     }
@@ -224,45 +226,6 @@
                 routes = [...routes];
                 return;
             }
-
-            // // see if the user location can be set.
-            // if (typeof locations[0].location === "undefined") {
-            //     const location = {
-            //         id: locations[0].id,
-            //         description: `${pos.lng},${pos.lat}`,
-            //         isUserLocation: true,
-            //         location: pos,
-            //     };
-            //     locations[0] = location;
-
-            //     // location has changed, geocode again.
-            //     geocoder.reverseGeocode(location.location, (results) => {
-            //         if (results.length > 0) {
-            //             location.description = results[0].description;
-            //             locations = [...locations];
-            //         }
-            //     });
-
-            //     locations = [...locations];
-            // } else if (typeof locations[1].location === "undefined") {
-            //     const location = {
-            //         id: locations[1].id,
-            //         description: `${pos.lng},${pos.lat}`,
-            //         isUserLocation: true,
-            //         location: pos,
-            //     };
-            //     locations[1] = location;
-
-            //     // location has changed, geocode again.
-            //     geocoder.reverseGeocode(location.location, (results) => {
-            //         if (results.length > 0) {
-            //             location.description = results[0].description;
-            //             locations = [...locations];
-            //         }
-            //     });
-
-            //     locations = [...locations];
-            // }
         });
     }
 

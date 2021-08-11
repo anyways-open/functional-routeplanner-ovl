@@ -4,25 +4,37 @@ export class UrlHashHandler {
 
     private key: string;
 
+    private static state: any = undefined;
+    private static stateDirty: boolean = false;
+    private static updateTimer = setInterval(() => {
+        if (!UrlHashHandler.stateDirty) return;
+
+        UrlHash.write(UrlHashHandler.state);
+        UrlHashHandler.stateDirty = false;
+    }, 500);
+
     constructor(key: string) {
         this.key = key;
+
+        if (typeof UrlHashHandler.state === "undefined") {
+            UrlHashHandler.state = UrlHash.read();
+        }
     }
 
     public update(value?: string) {
-        const state = UrlHash.read();
+        const currentValue = UrlHashHandler.state[this.key];
+        if (currentValue === value) return;
 
         if (typeof value === "undefined") {
-            delete state[this.key];
+            delete UrlHashHandler.state[this.key];
         } else {
-            state[this.key] = value;
+            UrlHashHandler.state[this.key] = value;
         }
 
-        UrlHash.write(state);
+        UrlHashHandler.stateDirty = true;
     }
 
     public getState(): string {
-        const state = UrlHash.read();
-
-        return state[this.key];
+        return UrlHashHandler.state[this.key];
     }
 }
