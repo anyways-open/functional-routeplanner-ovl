@@ -683,6 +683,7 @@
             on:input={onLocationInput}
             on:close={onLocationClose}
             on:add={onLocationAdd}
+            on:switch={onSwitch}
         />
     </div>
     <div class="row {viewState.view == VIEW_SEARCH ? 'd-none d-sm-block' : ''}">
