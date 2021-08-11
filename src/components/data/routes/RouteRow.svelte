@@ -109,12 +109,12 @@
 
 {#if typeof route !== "undefined"}
     <div class="route-detail route-detail-selected row my-1" on:click="{onClick}">
-        <div class="col-4 py-3">{route.description}</div>
+        <div class="col-6 py-3">{route.description}</div>
         <div class="col-4 py-3">
             <div><strong>{formatDistance(routeDetail.distance)}</strong></div>
             <div><strong>{formatTime(routeDetail.time)}</strong></div>
         </div>
-        <div class="col-3 py-3"><img src="assets/icons/download.svg" alt="Download" on:click="{exportGpx}"></div>
+        <div class="col-2 py-3"><img src="assets/icons/download.svg" alt="Download" on:click="{exportGpx}"></div>
     </div>
 {/if}
 
