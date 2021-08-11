@@ -118,15 +118,15 @@
     .locations .btn {
         position: absolute;
         right: 31px;
-        top: -2px;
+        top: 2px;
         background: #1da1f2;
         padding: 4px;
         z-index: 100;
     }
 
     .locations .btn img {
-        height: 20px;
-        width: 20px;
+        height: 25px;
+        width: 25px;
     }
 
     .input-group {
@@ -180,6 +180,12 @@
 
         .btn {
             display: none;
+        }
+
+
+        .locations .btn img {
+            height: 20px;
+            width: 20px;
         }
 
         .locations {

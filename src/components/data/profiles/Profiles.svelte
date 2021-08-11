@@ -44,8 +44,7 @@
         text-align: center;
         color: #fff;
         width: 50%;
-        height: 100%;
-        padding-top: 20px;
+        padding-top: 5px;
     }
 
     .btn:first-child {

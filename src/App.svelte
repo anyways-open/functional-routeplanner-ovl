@@ -216,7 +216,7 @@
 		bottom: 0px;
 		left: 0px;
 		right: 0px;
-		font: 12px/20px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+		font: 16px/20px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
 			Helvetica Neue, Arial, Noto Sans, Liberation Sans, sans-serif,
 			Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
 		font-weight: 400;
@@ -229,7 +229,7 @@
 		bottom: 0;
 		width: 100%;
 		min-height: calc(25% + 6px);
-		max-height: calc(75% + 6px);
+		max-height: calc(100% - 195px + 6px);
 	}
 
 	.data {
@@ -239,11 +239,15 @@
 		right: 0px;
 		border-top-left-radius: 10px;
 		border-top-right-radius: 10px;
-		min-height: 25%;
+		min-height: 195px;
 		max-height: 75%;
 	}
 
 	@media (min-width: 576px) {
+		.full {
+			font-size: 12px;
+		}
+
 		.map {
 			position: absolute;
 			top: 0px;

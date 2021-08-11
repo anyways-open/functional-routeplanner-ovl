@@ -84,7 +84,7 @@
     .input-group {
         background: #fff;
         border-radius: 0px;
-        height: 40px;
+        height: 50px;
         border-bottom-width: 1px;
         border-bottom-color: lightgray;
         border-bottom-style: solid;
@@ -100,18 +100,8 @@
         border-bottom-right-radius: 10px;
     }
 
-    input {
-        background: #fff;
-        padding-left: 0px;
-        margin-right: 10px;
-    }
-
     img {
-        height: 20px;
-    }
-
-    .marker-via-dot-container {
-        width: 49px;
+        height: 27px;
     }
 
     .btn {
@@ -127,25 +117,17 @@
         box-shadow: none;
     }
 
-    .marker {
-        margin-left: 4px;
-    }
-
-    .marker-via-dot-container {
-        padding-left: 0px;
-        padding-top: 0px;
-        margin-left: 5px;
-        margin-top: 3px;
-    }
-
     .location-img-container {
         padding: 0.575rem 0.78rem;
         width: 49px;
     }
 
     input {
-        height: 32px;
+        height: 45px;
         flex: 1 1 auto;
+        background: #fff;
+        padding-left: 0px;
+        margin-right: 0px;
     }
 
     .no-focus {
@@ -154,6 +136,30 @@
 
     .input-group.focus {
         border-radius: 10px;
+    }
+
+
+    .marker {
+        margin-left: 4px;
+    }
+
+    .marker-via-dot-container {
+        padding-left: 0px;
+        padding-top: 0px;
+        margin-left: 5px;
+        margin-top: 7px;
+        width: 49px;
+    }
+
+    .marker-via-dot {
+        background-color: #fff;
+        border-radius: 50%;
+        border: 4px solid #1da1f2;
+        content: '';
+        height: 18px;
+        width: 18px;
+        box-sizing: border-box;
+        cursor: pointer;
     }
 
     .marker-user-location {
@@ -166,8 +172,8 @@
         margin-left: 6px;
         margin-top: 4px;
         background-color: #1da1f2;
-        width: 10px;
-        height: 10px;
+        width: 15px;
+        height: 15px;
         border-radius: 50%;
     }
 
@@ -198,8 +204,19 @@
     }
 
     @media (min-width: 576px) {
+
+
+        img {
+            height: 20px;
+        }
+        
         .btn {
             display: block;
+        }
+
+        input {
+            height: 32px;
+            margin-right: 10px;
         }
 
         .input-group {
@@ -225,6 +242,21 @@
         .input-group:last-child {
             border-bottom-left-radius: unset;
             border-bottom-right-radius: unset;
+        }
+
+        .user-location-dot {
+            width: 10px;
+            height: 10px;
+        }
+
+        .marker-via-dot-container {
+            margin-top: 3px;
+        }
+
+        .marker-via-dot {
+            border: 3px solid #1da1f2;
+            height: 14px;
+            width: 14px;
         }
 
         .no-focus {
