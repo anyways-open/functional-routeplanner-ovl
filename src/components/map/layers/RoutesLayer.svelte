@@ -1,5 +1,10 @@
 <script lang="ts">
-    import type { GeoJSONSource, Map } from "mapbox-gl";
+    import {
+        BoxZoomHandler,
+        GeoJSONSource,
+        LngLatBounds,
+        Map,
+    } from "mapbox-gl";
     import { getContext } from "svelte";
     import { key } from "../../map/map";
     import * as turf from "@turf/turf";
@@ -22,6 +27,7 @@
     let selected: number = 0; // the selected route.
     let snapPoint: NearestPointOnLine;
     let mapLoaded: boolean = false;
+    //let latestBbox: any;
 
     // hook up events.
     let onClick: (e: any) => void;
@@ -36,6 +42,26 @@
                 break;
         }
     };
+    // routeLayerHook.fitRoute = (padding) => {
+    //     if (typeof latestBbox === "undefined") return;
+
+    //     console.log(latestBbox);
+
+    //             map.fitBounds(
+    //                 [
+    //                     [latestBbox[0], latestBbox[1]],
+    //                     [latestBbox[2], latestBbox[3]],
+    //                 ],
+    //                 {
+    //                     padding: {
+    //                         left: 20,
+    //                         right: 20,
+    //                         top: 20,
+    //                         bottom: 50,
+    //                     },
+    //                 }
+    //             );
+    // };
 
     let clickHooked: boolean = false;
     $: if (typeof mapHook !== "undefined" && !clickHooked) {
@@ -48,7 +74,8 @@
         typeof routes !== "undefined" &&
         routes.length > 0 &&
         typeof routes[0] !== "undefined" &&
-        selected >= 0 && mapLoaded
+        selected >= 0 &&
+        mapLoaded
     ) {
         if (typeof map !== "undefined") {
             let source: GeoJSONSource = map.getSource("route") as GeoJSONSource;
@@ -236,22 +263,47 @@
 
                 source.setData(routesFeatures);
 
-                const bbox = turf.bbox(routesFeatures);
+                if (routesFeatures.features.length > 0) {
+                    const box = turf.bbox(routesFeatures);
 
-                // map.fitBounds(
-                //     [
-                //         [bbox[0], bbox[1]],
-                //         [bbox[2], bbox[3]],
-                //     ],
-                //     {
-                //         padding: {
-                //             left: 20,
-                //             right: 20,
-                //             top: 20,
-                //             bottom: 50,
-                //         },
-                //     }
-                // );
+                    const bounds = map.getBounds();
+
+                    console.log(box);
+
+                    if (
+                        !bounds.contains({
+                            lng: box[0],
+                            lat: box[1],
+                        }) ||
+                        !bounds.contains({
+                            lng: box[0],
+                            lat: box[3],
+                        }) ||
+                        !bounds.contains({
+                            lng: box[2],
+                            lat: box[1],
+                        }) ||
+                        !bounds.contains({
+                            lng: box[2],
+                            lat: box[3],
+                        })
+                    ) {
+                        map.fitBounds(
+                            [
+                                [box[0], box[1]],
+                                [box[2], box[3]],
+                            ],
+                            {
+                                padding: {
+                                    left: 20,
+                                    right: 20,
+                                    top: 20,
+                                    bottom: 50,
+                                },
+                            }
+                        );
+                    }
+                }
             }
         }
     }

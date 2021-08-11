@@ -43,9 +43,11 @@
             if (i == locations.length - 1) {
                 element.className = "marker-destination";
                 element.innerHTML = svgs.marker;
+                element.title = "Bestemming";
             } else {
                 element.className = "marker-via";
                 element.innerHTML = svgs.via;
+                element.title = i == 0 ? "Vertrek" : "Via";
             }
             while (i >= markers.length) {
                 markers.push(undefined);

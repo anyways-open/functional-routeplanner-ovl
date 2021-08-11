@@ -469,7 +469,23 @@
             location: e.detail.location,
         };
 
-        mapHook.flyTo(e.detail.location);
+        // zoom to location if a route cannot be calculated yet.
+        let canCalulateRoute = false;
+        for (var segment = 1; segment<locations.length;segment++) {
+            const location1 = locations[segment];
+            const location2 = locations[segment + 1];
+
+            if (
+                typeof profile === "undefined" ||
+                typeof location1.location === "undefined" ||
+                typeof location2.location === "undefined"
+            ) {
+            } else {
+                canCalulateRoute = true;
+            }
+        }
+
+        if (!canCalulateRoute) mapHook.flyTo(e.detail.location);
 
         viewState.view = VIEW_START;
         viewState.search.location = -1;
