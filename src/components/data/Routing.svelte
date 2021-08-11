@@ -682,6 +682,12 @@
             placeholder = "Van";
         }
 
+        if (e.detail < locations.length) {
+            const location = locations[e.detail];
+            if (typeof locations !== "undefined") location.description = "";
+        }
+
+        locations = [...locations];
         viewState = {
             view: VIEW_SEARCH,
             search: {
