@@ -15,8 +15,13 @@
     const { getMap } = getContext(key);
     const map: Map = getMap();
 
+    map.on("load", () => {
+        mapLoaded = true;
+    });
+
     let selected: number = 0; // the selected route.
     let snapPoint: NearestPointOnLine;
+    let mapLoaded: boolean = false;
 
     // hook up events.
     let onClick: (e: any) => void;
@@ -43,15 +48,13 @@
         typeof routes !== "undefined" &&
         routes.length > 0 &&
         typeof routes[0] !== "undefined" &&
-        selected >= 0
+        selected >= 0 && mapLoaded
     ) {
         if (typeof map !== "undefined") {
             let source: GeoJSONSource = map.getSource("route") as GeoJSONSource;
             if (typeof source === "undefined") {
                 // add source and layers.
 
-                console.log("adding routes.");
-                
                 // get lowest label and road.
                 const style = map.getStyle();
                 let lowestRoad = undefined;

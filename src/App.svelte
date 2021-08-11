@@ -259,9 +259,9 @@
 			top: 20px;
 			border-top-left-radius: 10px;
 			border-top-right-radius: 10px;
-			min-height: 300px;
-			max-height: 300px;
 			width: 310px;
+			min-height: 0px;
+			max-height: 0px;
 		}
 	}
 </style>

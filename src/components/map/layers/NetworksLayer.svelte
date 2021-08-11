@@ -9,8 +9,6 @@
     onMount(async () => {
         map.on("load", () => {
 
-            console.log("adding networks.");
-
             // get the best before layer.
             const style = map.getStyle();
             let before: string = undefined;
@@ -29,8 +27,6 @@
                     }
                 }
             }
-
-            console.log(before);
 
             map.addSource("cyclenetworks-tiles", {
                 type: "vector",
