@@ -30,6 +30,8 @@
     export let locationsLayerHook: LocationsLayerHook; // interface to communicate with the locations component.
     export let userLocationLayerHook: UserLocationLayerHook; // interface to communicate with the user location component.
 
+    let lastCurrentLocation: { lng: number; lat: number };
+
     let locationId: number = 0;
 
     locations.forEach((l, i) => {
@@ -135,98 +137,137 @@
 
     $: if (typeof userLocationLayerHook !== "undefined") {
         userLocationLayerHook.on("geolocate", (pos) => {
-            if (
-                viewState.view == VIEW_SEARCH &&
-                viewState.search.currentLocation >= 0
-            ) {
+            lastCurrentLocation = pos;
+
+            handleCurrentLocation();
+        });
+    }
+
+    function onUseCurrentLocation(): void {
+        if (typeof viewState.search !== "undefined") {
+            viewState.search.currentLocation = viewState.search.location;
+
+            if (typeof lastCurrentLocation !== "undefined") {
+                console.log("using last current");
+                handleCurrentLocation();
+            } else {
                 const l = viewState.search.currentLocation;
-                delete viewState.search.currentLocation;
                 const userLocationLocation = locations[l];
 
                 // update.
-                userLocationLocation.isUserLocation = true;
-                userLocationLocation.location = pos;
-                userLocationLocation.description = `${pos.lng},${pos.lat}`;
-
-                // location has changed, geocode again.
-                geocoder.reverseGeocode(
-                    userLocationLocation.location,
-                    (results) => {
-                        if (results.length > 0) {
-                            userLocationLocation.description =
-                                results[0].description;
-
-                            locations = [...locations];
-                        }
-                    }
-                );
-
-                // make sure to remove the routes using this location.
-                routes.forEach((route) => {
-                    if (typeof route === "undefined") return;
-
-                    if (l > 0) {
-                        route.segments[l - 1] = undefined;
-                    }
-                    if (l < route.segments.length) {
-                        route.segments[l] = undefined;
-                    }
+                locations.forEach((l) => {
+                    l.isUserLocation = false;
                 });
+                userLocationLocation.isUserLocation = true;
+                userLocationLocation.description = undefined;
 
                 locations = [...locations];
                 routes = [...routes];
 
                 viewState = { view: VIEW_ROUTES };
-                return;
             }
 
-            const l = locations.findIndex((x) => x.isUserLocation);
-            if (l >= 0) {
-                const userLocationLocation = locations[l];
+            userLocationLayerHook.trigger();
+        }
+    }
+
+    function handleCurrentLocation() {
+        if (
+            viewState.view == VIEW_SEARCH &&
+            viewState.search.currentLocation >= 0
+        ) {
+            const l = viewState.search.currentLocation;
+            delete viewState.search.currentLocation;
+            const userLocationLocation = locations[l];
+
+            // update.
+            locations.forEach((l) => {
+                l.isUserLocation = false;
+            });
+            userLocationLocation.isUserLocation = true;
+            userLocationLocation.location = lastCurrentLocation;
+            userLocationLocation.description = `${lastCurrentLocation.lng},${lastCurrentLocation.lat}`;
+
+            // location has changed, geocode again.
+            geocoder.reverseGeocode(
+                userLocationLocation.location,
+                (results) => {
+                    if (results.length > 0) {
+                        userLocationLocation.description =
+                            results[0].description;
+
+                        locations = [...locations];
+                    }
+                }
+            );
+
+            // make sure to remove the routes using this location.
+            routes.forEach((route) => {
+                if (typeof route === "undefined") return;
+
+                if (l > 0) {
+                    route.segments[l - 1] = undefined;
+                }
+                if (l < route.segments.length) {
+                    route.segments[l] = undefined;
+                }
+            });
+
+            locations = [...locations];
+            routes = [...routes];
+
+            viewState = { view: VIEW_ROUTES };
+            return;
+        }
+
+        const l = locations.findIndex((x) => x.isUserLocation);
+        if (l >= 0) {
+            const userLocationLocation = locations[l];
+            if (typeof userLocationLocation.location !== "undefined") {
                 // update and recalculate if different.
                 const distance = turf.distance(
                     [
                         userLocationLocation.location.lng,
                         userLocationLocation.location.lat,
                     ],
-                    [pos.lng, pos.lat]
+                    [lastCurrentLocation.lng, lastCurrentLocation.lat]
                 );
                 if (distance < 0.01) {
                     return;
                 }
-
-                // location is far enough, update.
-                userLocationLocation.location = pos;
-                userLocationLocation.description = `${pos.lng},${pos.lat}`;
-
-                // location has changed, geocode again.
-                geocoder.reverseGeocode(
-                    userLocationLocation.location,
-                    (results) => {
-                        if (results.length > 0) {
-                            userLocationLocation.description =
-                                results[0].description;
-
-                            locations = [...locations];
-                        }
-                    }
-                );
-
-                // make sure to remove the routes using this location.
-                routes.forEach((route) => {
-                    if (l > 0) {
-                        route.segments[l - 1] = undefined;
-                    }
-                    if (l < route.segments.length) {
-                        route.segments[l] = undefined;
-                    }
-                });
-
-                locations = [...locations];
-                routes = [...routes];
-                return;
             }
-        });
+
+            // location is far enough, update.
+            userLocationLocation.location = lastCurrentLocation;
+            userLocationLocation.description = `${lastCurrentLocation.lng},${lastCurrentLocation.lat}`;
+
+            // location has changed, geocode again.
+            geocoder.reverseGeocode(
+                userLocationLocation.location,
+                (results) => {
+                    if (results.length > 0) {
+                        userLocationLocation.description =
+                            results[0].description;
+
+                        locations = [...locations];
+                    }
+                }
+            );
+
+            // make sure to remove the routes using this location.
+            routes.forEach((route) => {
+                if (l > 0) {
+                    route.segments[l - 1] = undefined;
+                }
+                if (l < route.segments.length) {
+                    route.segments[l] = undefined;
+                }
+            });
+
+            locations = [...locations];
+            routes = [...routes];
+            return;
+        }
     }
 
     let lastMarkerBox: {
@@ -310,14 +351,16 @@
 
     $: if (typeof routeLayerHook !== "undefined") {
         routeLayerHook.on("click", (e) => {
-            // TODO: this is a workaround around mapbox gl triggering a click event after dragging a marker, there has to be a better way.            
+            // TODO: this is a workaround around mapbox gl triggering a click event after dragging a marker, there has to be a better way.
             if (typeof lastMarkerBox !== "undefined") {
-                if (lastMarkerBox.left - 1 <= e.point.x && 
+                if (
+                    lastMarkerBox.left - 1 <= e.point.x &&
                     lastMarkerBox.right + 1 >= e.point.x &&
-                    lastMarkerBox.top - 1 <= e.point.y && 
-                    lastMarkerBox.bottom + 1 >= e.point.y ) {
-                        return;
-                    }
+                    lastMarkerBox.top - 1 <= e.point.y &&
+                    lastMarkerBox.bottom + 1 >= e.point.y
+                ) {
+                    return;
+                }
             }
             lastMarkerBox = undefined;
 
@@ -471,13 +514,15 @@
 
         // zoom to location if a route cannot be calculated yet.
         let canCalulateRoute = false;
-        for (var segment = 1; segment<locations.length;segment++) {
+        for (var segment = 1; segment < locations.length; segment++) {
             const location1 = locations[segment];
             const location2 = locations[segment + 1];
 
             if (
                 typeof profile === "undefined" ||
+                typeof location1 === "undefined" ||
                 typeof location1.location === "undefined" ||
+                typeof location2 === "undefined" ||
                 typeof location2.location === "undefined"
             ) {
             } else {
@@ -489,14 +534,6 @@
 
         viewState.view = VIEW_START;
         viewState.search.location = -1;
-    }
-
-    function onUseCurrentLocation(): void {
-        if (typeof viewState.search !== "undefined") {
-            viewState.search.currentLocation = viewState.search.location;
-
-            userLocationLayerHook.trigger();
-        }
     }
 
     $: {

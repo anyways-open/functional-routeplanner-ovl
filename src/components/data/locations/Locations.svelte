@@ -45,7 +45,7 @@
                     <Location
                         type="START"
                         data={location}
-                        placeholder="Van"
+                        placeholder={location.isUserLocation ? "Huidige locatie" : "Van"}
                         focused={{ hasFocus: selected == i, canHaveFocus: selected != -1 }}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
@@ -55,7 +55,7 @@
                     <Location
                         type="END"
                         data={location}
-                        placeholder="Naar"
+                        placeholder={location.isUserLocation ? "Huidige locatie" : "Naar"}
                         focused={{ hasFocus: selected == i, canHaveFocus: selected != -1 }}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
@@ -65,7 +65,7 @@
                     <Location
                         type="VIA"
                         data={location}
-                        placeholder="Via"
+                        placeholder={location.isUserLocation ? "Huidige locatie" : "Via"}
                         focused={{ hasFocus: selected == i, canHaveFocus: selected != -1 }}
                         on:focus={() => onFocus(i)}
                         on:input={(e) => onInput(i, e.detail)}
@@ -74,7 +74,7 @@
                 {/if}
             {/each}
         </div>
-        {#if selected == -1}
+        {#if selected == -1 && locations.length == 2}
             <div
                 type="button"
                 class="btn btn-light border-0"
@@ -82,7 +82,7 @@
             >
                 <img
                     src="assets/icons/updown.svg"
-                    alt="Verwissel start-and endpoint."
+                    alt="Verwissel start-en eindpoint."
                 />
             </div>
         {/if}

@@ -14,39 +14,50 @@
 <div class="profiles-container">
     <div class="profile-btn-group btn-group">
         <div type="button" class="btn btn-profile {profile == "bicycle.commute" ? "active" : ""} border-0" on:click={onClickBicycle}>
-            <span>
-                <img src="assets/icons/bicycle.svg" alt="Snelste Route" />
-            </span>
-            <span>
-                Functioneel fietsen
-            </span>
+            <div class="button-content">
+                <span>
+                    <img src="assets/icons/bicycle.svg" alt="Snelste Route" />
+                </span>
+                <span>
+                    Functioneel fietsen
+                </span>
+            </div>
         </div>
         <div type="button" class="btn btn-profile {profile == "bicycle.functional_network" ? "active" : ""} border-0" on:click={onClickBicycleNetworks}>
-            <span>
-                <img src="assets/icons/network.svg" alt="Fietsnetwerken Route"/>
-            </span>
-            <span>
-                Fietsnetwerken
-            </span>
+            <div class="button-content">
+                <span>
+                    <img src="assets/icons/network.svg" alt="Fietsnetwerken Route"/>
+                </span>
+                <span>
+                    Fietsnetwerken
+                </span>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
     .profile-btn-group {
+        display: flex;
         background: #0d8bd9;
         border-radius: 10px;
         width: 100%;
-        padding: 4px;
+        padding: 5px;
     }
 
     .btn-profile {
-        text-align: center;
+        display: flex;
         color: #fff;
-        width: 50%;
-        padding-top: 5px;
+        flex-grow: 0;
+        flex-basis: 50%;
+        height: 90px;
     }
 
+    .button-content {
+        text-align: center;
+        align-self: center;
+        width: 100%;
+    }
     .btn:first-child {
         border-top-left-radius: 10px;
         border-bottom-left-radius: 10px;
@@ -95,7 +106,6 @@
             color: #fff;
             width: 50%;
             height: 100%;
-            padding-top: 20px;
         }
 
         .btn:first-child {

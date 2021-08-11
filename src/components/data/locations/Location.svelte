@@ -170,7 +170,7 @@
     .user-location-dot {
         position: unset;
         margin-left: 6px;
-        margin-top: 4px;
+        margin-top: 7px;
         background-color: #1da1f2;
         width: 15px;
         height: 15px;
@@ -180,8 +180,6 @@
     .user-location-dot::before {
         background-color: #1da1f2;
         content: "";
-        width: 10px;
-        height: 10px;
         border-radius: 50%;
         position: absolute;
         -webkit-animation: user-location-dot-pulse 2s infinite;
@@ -194,11 +192,11 @@
         border-radius: 50%;
         border: 2px solid #fff;
         content: "";
-        height: 14px;
-        left: -2px;
+        height: 15px;
+        left: 0px;
         position: absolute;
-        top: -2px;
-        width: 14px;
+        top: 0px;
+        width: 15px;
         box-sizing: border-box;
         box-shadow: 0 0 3px rgba(0, 0, 0, 0.35);
     }
@@ -245,8 +243,8 @@
         }
 
         .user-location-dot {
-            width: 10px;
-            height: 10px;
+            margin-left: 4px;
+            margin-top: 2px;
         }
 
         .marker-via-dot-container {
