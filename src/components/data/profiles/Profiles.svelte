@@ -46,6 +46,7 @@
     }
 
     .btn-profile {
+        -webkit-appearance: none;
         display: flex;
         color: #fff;
         flex-grow: 0;

@@ -12,13 +12,21 @@
     
     export let hook: UserLocationLayerHook = new UserLocationLayerHook();
     hook.on = (name, handler) => {
-        onGeolocation = handler;
+        switch (name) {
+            case "geolocation":
+                onGeolocation = handler;
+                break;
+            case "error":
+                onError = handler;
+                break;
+        }
     };
     hook.trigger = () => {
         geolocationControl.trigger();
     };
 
     let onGeolocation: (e: any) => void;
+    let onError: (e: any) => void;
     const geolocationControl = new GeolocateControl({
         positionOptions: {
             enableHighAccuracy: true,
@@ -30,6 +38,14 @@
     map.addControl(geolocationControl, "top-right");
 
     geolocationControl.on("geolocate", (pos) => {
+        if (typeof onGeolocation !== "undefined") {
+            onGeolocation({
+                lng: pos.coords.longitude,
+                lat: pos.coords.latitude
+            });
+        }
+    });
+    geolocationControl.on("error", (e) => {
         if (typeof onGeolocation !== "undefined") {
             onGeolocation({
                 lng: pos.coords.longitude,

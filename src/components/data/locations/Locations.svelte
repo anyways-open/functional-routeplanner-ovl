@@ -77,7 +77,7 @@
         {#if selected == -1 && locations.length == 2}
             <div
                 type="button"
-                class="btn btn-light border-0"
+                class="btn btn-light border-0 btn-switch"
                 on:click={onSwitch}
             >
                 <img
@@ -127,6 +127,10 @@
     .locations .btn img {
         height: 25px;
         width: 25px;
+    }
+
+    .btn-switch {
+        -webkit-appearance: none;
     }
 
     .input-group {

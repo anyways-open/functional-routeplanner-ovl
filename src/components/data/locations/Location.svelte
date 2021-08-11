@@ -88,6 +88,7 @@
         border-bottom-width: 1px;
         border-bottom-color: lightgray;
         border-bottom-style: solid;
+        flex-direction: column;
     }
 
     .input-group:first-child {
@@ -119,7 +120,14 @@
 
     .location-img-container {
         padding: 0.575rem 0.78rem;
-        width: 49px;
+        flex-grow: 0;
+        flex-shrink: 0;
+        flex-basis: 49px;
+    }
+
+    .input-container {
+        flex-grow: 8;
+        width: calc(100% - 49px);
     }
 
     input {
@@ -148,7 +156,6 @@
         padding-top: 0px;
         margin-left: 5px;
         margin-top: 7px;
-        width: 49px;
     }
 
     .marker-via-dot {
@@ -193,9 +200,7 @@
         border: 2px solid #fff;
         content: "";
         height: 15px;
-        left: 0px;
         position: absolute;
-        top: 0px;
         width: 15px;
         box-sizing: border-box;
         box-shadow: 0 0 3px rgba(0, 0, 0, 0.35);

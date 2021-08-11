@@ -31,6 +31,7 @@
     export let userLocationLayerHook: UserLocationLayerHook; // interface to communicate with the user location component.
 
     let lastCurrentLocation: { lng: number; lat: number };
+    let currentLocationAvailable: true;
 
     let locationId: number = 0;
 
@@ -140,6 +141,9 @@
             lastCurrentLocation = pos;
 
             handleCurrentLocation();
+        });
+        userLocationLayerHook.on("error", (e) => {
+            console.log(e);
         });
     }
 
