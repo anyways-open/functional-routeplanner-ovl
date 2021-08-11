@@ -266,8 +266,15 @@
         });
     }
 
+    let lastMarkerBox: {
+        top: number;
+        left: number;
+        bottom: number;
+        right: number;
+    };
     $: if (typeof locationsLayerHook !== "undefined") {
         locationsLayerHook.on("locationupdate", (e) => {
+            lastMarkerBox = e.markerBox;
             const lid: number = e.id;
             const l = locations.findIndex((i) => {
                 return i.id == lid;
@@ -340,6 +347,17 @@
 
     $: if (typeof routeLayerHook !== "undefined") {
         routeLayerHook.on("click", (e) => {
+            // TODO: this is a workaround around mapbox gl triggering a click event after dragging a marker, there has to be a better way.            
+            if (typeof lastMarkerBox !== "undefined") {
+                if (lastMarkerBox.left - 1 <= e.point.x && 
+                    lastMarkerBox.right + 1 >= e.point.x &&
+                    lastMarkerBox.top - 1 <= e.point.y && 
+                    lastMarkerBox.bottom + 1 >= e.point.y ) {
+                        return;
+                    }
+            }
+            lastMarkerBox = undefined;
+
             locationId++;
             const location: Location = {
                 id: locationId,

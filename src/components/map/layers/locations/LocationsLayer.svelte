@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Map, Marker } from "mapbox-gl";
+    import { Map, Marker, Point, PointLike } from "mapbox-gl";
     import { getContext } from "svelte";
     import type { Location } from "./Location";
     import { key } from "../../../map/map";
@@ -59,17 +59,30 @@
                 .addTo(map);
             markers[i] = { 
                 marker: marker, 
-                id: location.id 
+                id: location.id
             };
 
             // hook drag event.
             marker.on("dragend", (e) => {
-                console.log(e);
-
                 if (typeof onLocationUpdate !== "undefined") {
+                    // calculate box of marker.
+                    const anchor = map.project(marker.getLngLat());
+                    const offsets: Point = marker.getOffset();
+                    const computedStyle = getComputedStyle(element);
+                    const elementHeight = parseInt(computedStyle.height);
+                    const elementWidth = parseInt(computedStyle.width);
+
+                    const box = {
+                        top: anchor.y + offsets.y - (elementHeight / 2),
+                        left: anchor.x + offsets.x - (elementWidth / 2),
+                        bottom: anchor.y + offsets.y + (elementHeight / 2),
+                        right: anchor.x + offsets.x + (elementWidth / 2)
+                    };
+
                     onLocationUpdate({
                         id: location.id,
-                        location: marker.getLngLat()
+                        location: marker.getLngLat(),
+                        markerBox: box
                     });
                 }
             });
