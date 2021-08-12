@@ -5,39 +5,42 @@
     import { key } from "../../../map/map";
     import { LayerControlManager } from "./LayerControlManager";
     import { UrlHashHandler } from "../../../../shared/UrlHashHandler";
+    import type { MapHook } from "../../MapHook";
 
     // exports.
     export let layers: LayerConfig[] = [];
     let initialConfig: LayerConfig[] = [];
-    layers.forEach(l => {
+    layers.forEach((l) => {
         initialConfig.push(Object.assign({}, l));
     });
 
     // get map from context.
     const { getMap } = getContext(key);
-    const map: Map = getMap();
+    const mapAndHook = getMap();
+    const map: Map = mapAndHook.map;
+    const mapHook: MapHook = mapAndHook.hook;
     let urlHash = new UrlHashHandler("layers");
 
     // define variables.
     let manager: LayerControlManager;
     let controlRoot: HTMLElement;
-    
+
     onMount(async () => {
         // get url state for layers, if any.
         const layersState = urlHash.getState();
         if (typeof layersState !== "undefined") {
             const layerSettings = layersState.split("|");
 
-            layerSettings.forEach(l => {
+            layerSettings.forEach((l) => {
                 if (!l) return;
                 if (l.length != 3) return;
 
-                const id = l.substr(0,2);
+                const id = l.substr(0, 2);
 
-                const i = layers.findIndex(x => x.id == id);
+                const i = layers.findIndex((x) => x.id == id);
                 if (i == -1) return;
 
-                const s = Number(l.substr(2,1));
+                const s = Number(l.substr(2, 1));
                 if (s == 0) {
                     layers[i].enabled = false;
                     layers[i].visible = false;
@@ -51,22 +54,69 @@
             });
         }
 
+        for (let i = 0; i < layers.length; i++) {
+            layers[i].layers.forEach((l) => {
+                const visible = layers[i].visible;
+
+                // set default layer state.
+                mapHook.defaultLayerState[l] = {
+                    layout: { visibility: visible ? "visible" : "none" },
+                };
+
+                // if layer was loaded, set default.
+                const layer = map.getLayer(l);
+                if (typeof layer == "undefined") {
+                    return;
+                }
+                if (visible) {
+                    map.setLayoutProperty(layer.id, "visibility", "visible");
+                } else {
+                    map.setLayoutProperty(layer.id, "visibility", "none");
+                }
+            });
+        }
+
         // create and add control.
         manager = new LayerControlManager(controlRoot, map, layers);
         map.addControl(manager, "bottom-right");
+
+        // // make sure visibility is as expected.
+        // map.on("idle", () => {
+        //     for (let i = 0; i < layers.length; i++) {
+        //         layers[i].layers.forEach((l) => {
+        //             const layer = map.getLayer(l);
+        //             const visible = layers[i].visible;
+
+        //             if (typeof layer == "undefined") {
+        //                 console.warn(`Layer with id: '${l}' not found.`);
+        //                 return;
+        //             }
+
+        //             if (visible) {
+        //                 map.setLayoutProperty(
+        //                     layer.id,
+        //                     "visibility",
+        //                     "visible"
+        //                 );
+        //             } else {
+        //                 map.setLayoutProperty(layer.id, "visibility", "none");
+        //             }
+        //         });
+        //     }
+        // });
     });
 
     function onLayerToggle(i: number): void {
         layers[i].visible = !layers[i].visible;
 
-        layers[i].layers.forEach(l => {
+        layers[i].layers.forEach((l) => {
             const layer = map.getLayer(l);
             const visible = layers[i].visible;
 
             if (typeof layer == "undefined") {
                 console.warn(`Layer with id: '${l}' not found.`);
                 return;
-            };
+            }
 
             if (visible) {
                 map.setLayoutProperty(layer.id, "visibility", "visible");
@@ -109,17 +159,21 @@
 </script>
 
 <div class="mapboxgl-ctrl mapboxgl-ctrl-group" bind:this={controlRoot}>
-<nav class="layer-control" >
-    {#each layers as layer, i}
-        {#if layer.enabled}
-            <button class="btn {layer.visible ? 'active' : ''}" type="button" on:click={() => onLayerToggle(i)}>
-                <img src={layer.logo} alt={layer.name} />
-                <span>{layer.name}</span>
-            </button>
-        {/if}
-    {/each}
-</nav>
-</div> 
+    <nav class="layer-control">
+        {#each layers as layer, i}
+            {#if layer.enabled}
+                <button
+                    class="btn {layer.visible ? 'active' : ''}"
+                    type="button"
+                    on:click={() => onLayerToggle(i)}
+                >
+                    <img src={layer.logo} alt={layer.name} />
+                    <span>{layer.name}</span>
+                </button>
+            {/if}
+        {/each}
+    </nav>
+</div>
 
 <style>
     .layer-control {
@@ -156,7 +210,7 @@
     }
 
     .btn:not(.active):hover {
-        background-color: rgba(0,0,0,.05);
+        background-color: rgba(0, 0, 0, 0.05);
     }
 
     @media (min-width: 576px) {

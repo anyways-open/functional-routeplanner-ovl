@@ -25,7 +25,7 @@
     let markers: { marker: Marker, id: number }[] = [];
 
     const { getMap } = getContext(key);
-    const map: Map = getMap();
+    const map: Map = getMap().map;
 
     $: if (typeof map !== "undefined") {
         markers.forEach(m => {

@@ -1,10 +1,5 @@
 <script lang="ts">
-    import {
-        BoxZoomHandler,
-        GeoJSONSource,
-        LngLatBounds,
-        Map,
-    } from "mapbox-gl";
+    import type { GeoJSONSource, Map } from "mapbox-gl";
     import { getContext } from "svelte";
     import { key } from "../../map/map";
     import * as turf from "@turf/turf";
@@ -14,11 +9,12 @@
     import type { Route } from "../../data/Route";
 
     export let routes: Route[] = []; // the routes.
-    export let mapHook: MapHook; // interface to communicate with the map.
     export let routeLayerHook: RoutesLayerHook = new RoutesLayerHook(); // interface to communicate with this component.
 
     const { getMap } = getContext(key);
-    const map: Map = getMap();
+    const mapAndHook = getMap();
+    const map: Map = mapAndHook.map;
+    const mapHook: MapHook = mapAndHook.hook;
 
     map.on("load", () => {
         mapLoaded = true;

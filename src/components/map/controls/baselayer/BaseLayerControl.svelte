@@ -10,7 +10,7 @@
 
     // get map from context.
     const { getMap } = getContext(key);
-    const map: Map = getMap();
+    const map: Map = getMap().map;
 
     // defined variables.
     let mapVisible: boolean = true;

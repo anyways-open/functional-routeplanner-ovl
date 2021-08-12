@@ -4,7 +4,9 @@
     import { key } from "../map";
 
     const { getMap } = getContext(key);
-    const map: Map = getMap();
+    const mapAndHook = getMap();
+    const map: Map = mapAndHook.map;
+    const mapHook: MapHook = mapAndHook.hook;
 
     onMount(async () => {
         map.on("load", () => {
@@ -30,9 +32,10 @@
                 source: "gipod-con",
                 minzoom: 15,
                 paint: {},
-                layout: {
+                layout: Object.assign(
+                        mapHook.defaultLayerState["gipod-con"]?.layout ?? {}, {
                     visibility: "none",
-                },
+                }),
             });
 
             map.addLayer({
@@ -41,9 +44,10 @@
                 source: "gipod-icon",
                 minzoom: 15,
                 paint: {},
-                layout: {
+                layout: Object.assign(
+                        mapHook.defaultLayerState["gipod-icon"]?.layout ?? {}, {
                     visibility: "none",
-                },
+                }),
             });
         });
     });

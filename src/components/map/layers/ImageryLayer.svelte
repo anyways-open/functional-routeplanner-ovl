@@ -4,7 +4,7 @@
     import { key } from "../../map/map";
 
     const { getMap } = getContext(key);
-    const map: Map = getMap();
+    const map: Map = getMap().map;
 
     onMount(async () => {
         map.on("load", () => {

@@ -4,7 +4,9 @@
     import { key } from "../../map/map";
 
     const { getMap } = getContext(key);
-    const map: Map = getMap();
+    const mapAndHook = getMap();
+    const map: Map = mapAndHook.map;
+    const mapHook: MapHook = mapAndHook.hook;
 
     onMount(async () => {
         map.on("load", async () => {
@@ -38,7 +40,7 @@
             }
 
             const response = await fetch(
-                "https://static.anyways.eu/data/school-routes.geojson"
+                "data/school-routes.geojson"
             );
             const json = await response.json();
 
@@ -53,11 +55,11 @@
                     type: "line",
                     source: "school-routes",
                     minzoom: 1,
-                    layout: {
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["school-routes"]?.layout ?? {}, {
                         "line-join": "round",
-                        "line-cap": "round",
-                        visibility: "none",
-                    },
+                        "line-cap": "round"
+                    }),
                     paint: {
                         "line-color": schoolRoutesColor,
                         "line-width": [
@@ -88,11 +90,11 @@
                     type: "line",
                     source: "school-routes",
                     minzoom: 13.5,
-                    layout: {
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["school-routes-unsafe"]?.layout ?? {}, {
                         "line-join": "round",
-                        "line-cap": "round",
-                        visibility: "none",
-                    },
+                        "line-cap": "round"
+                    }),
                     paint: {
                         "line-color": "#FF0000",
                         "line-width": [
@@ -122,11 +124,11 @@
                     type: "line",
                     source: "school-routes",
                     minzoom: 14,
-                    layout: {
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["school-routes-semi"]?.layout ?? {}, {
                         "line-join": "round",
-                        "line-cap": "round",
-                        visibility: "none",
-                    },
+                        "line-cap": "round"
+                    }),
                     paint: {
                         "line-color": schoolRoutesColor,
                         "line-width": [

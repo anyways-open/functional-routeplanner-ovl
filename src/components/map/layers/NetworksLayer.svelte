@@ -2,13 +2,15 @@
     import type { Map } from "mapbox-gl";
     import { onMount, getContext } from "svelte";
     import { key } from "../../map/map";
+    import type { MapHook } from "../MapHook";
 
     const { getMap } = getContext(key);
-    const map: Map = getMap();
-    
+    const mapAndHook = getMap();
+    const map: Map = mapAndHook.map;
+    const mapHook: MapHook = mapAndHook.hook;
+
     onMount(async () => {
         map.on("load", () => {
-
             // get the best before layer.
             const style = map.getStyle();
             let before: string = undefined;
@@ -30,237 +32,245 @@
 
             map.addSource("cyclenetworks-tiles", {
                 type: "vector",
-                url: "https://api.anyways.eu/tiles/cyclenetworks/mvt.json"
+                //url: "https://staging.anyways.eu/prod/tiles/cyclenetworks/mvt.json",
+                url: "https://api.anyways.eu/tiles/cyclenetworks/mvt.json",
             });
 
-            map.addLayer({
-                "id": "cycle-highways-case",
-                "type": "line",
-                "source": "cyclenetworks-tiles",
-                "source-layer": "cyclenetwork",
-                "layout": {
-                    "line-join": "round",
-                    "line-cap": "round"
-                },
-                "paint": {
-                    "line-color": "#fff",
-                    "line-gap-width": [
-                        "interpolate", ["linear"], ["zoom"],
-                        10, 3,
-                        12, 3,
-                        16, 3
+            map.addLayer(
+                {
+                    id: "cycle-highways-case",
+                    type: "line",
+                    source: "cyclenetworks-tiles",
+                    "source-layer": "cyclenetwork",
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["cycle-highways-case"]
+                            ?.layout ?? {},
+                        {
+                            "line-join": "round",
+                            "line-cap": "round",
+                        }
+                    ),
+                    paint: {
+                        "line-color": "#fff",
+                        "line-gap-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            10,
+                            3,
+                            12,
+                            3,
+                            16,
+                            3,
+                        ],
+                        "line-width": 2,
+                    },
+                    filter: [
+                        "all",
+                        ["==", "cycle_highway", "yes"],
+                        ["!=", "state", "proposed"],
                     ],
-                    "line-width": 2
                 },
-                "filter": [
-                    "all",
-                    [
-                        "==",
-                        "cycle_highway",
-                        "yes"
-                    ],
-                    [
-                        "!=",
-                        "state",
-                        "proposed"
-                    ]
-                ]
-            }, before);
+                before
+            );
 
             const nodesColor = "#ccad00";
             const schoolRoutesColor = "#00cc00";
             const bffRoutesColor = "#cc0000";
 
-            map.addLayer({
-                "id": "cycle-node-network-case",
-                "type": "line",
-                "source": "cyclenetworks-tiles",
-                "source-layer": "cyclenetwork",
-                "layout": {
-                    "line-join": "round",
-                    "line-cap": "round"
+            map.addLayer(
+                {
+                    id: "cycle-node-network-case",
+                    type: "line",
+                    source: "cyclenetworks-tiles",
+                    "source-layer": "cyclenetwork",
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["cycle-node-network-case"]
+                            ?.layout ?? {},
+                        {
+                            "line-join": "round",
+                            "line-cap": "round",
+                        }
+                    ),
+                    paint: {
+                        "line-color": "#fff",
+                        "line-gap-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            10,
+                            3,
+                            12,
+                            3,
+                            16,
+                            3,
+                        ],
+                        "line-width": 2,
+                    },
+                    filter: ["all", ["==", "cycle_network", "srfn_gent"]],
                 },
-                "paint": {
-                    "line-color": "#fff",
-                    "line-gap-width": [
-                        "interpolate", ["linear"], ["zoom"],
-                        10, 3,
-                        12, 3,
-                        16, 3
+                before
+            );
+
+            map.addLayer(
+                {
+                    id: "cycle-highways",
+                    type: "line",
+                    source: "cyclenetworks-tiles",
+                    "source-layer": "cyclenetwork",
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["cycle-highways"]?.layout ??
+                            {},
+                        {
+                            "line-join": "round",
+                            "line-cap": "round",
+                        }
+                    ),
+                    paint: {
+                        "line-color": "#ff0000",
+                        "line-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            10,
+                            3,
+                            12,
+                            3,
+                            16,
+                            3,
+                        ],
+                    },
+                    filter: [
+                        "all",
+                        ["==", "cycle_highway", "yes"],
+                        ["!=", "state", "proposed"],
                     ],
-                    "line-width": 2
                 },
-                "filter": [
-                    "all",
-                    [
-                        "==",
-                        "cycle_network",
-                        "srfn_gent"
-                    ]
-                ]
-            }, before);
+                before
+            );
 
             map.addLayer({
-                "id": "cycle-highways",
-                "type": "line",
-                "source": "cyclenetworks-tiles",
+                id: "cycle-highways-labels",
+                type: "symbol",
+                source: "cyclenetworks-tiles",
                 "source-layer": "cyclenetwork",
-                "layout": {
-                    "line-join": "round",
-                    "line-cap": "round"
-                },
-                "paint": {
-                    "line-color": "#ff0000",
-                    "line-width": [
-                        "interpolate", ["linear"], ["zoom"],
-                        10, 3,
-                        12, 3,
-                        16, 3
-                    ]
-                },
-                "filter": [
-                    "all",
-                    [
-                        "==",
-                        "cycle_highway",
-                        "yes"
-                    ],
-                    [
-                        "!=",
-                        "state",
-                        "proposed"
-                    ]
-                ]
-            }, before);
-
-            map.addLayer({
-                "id": "cycle-highways-labels",
-                "type": "symbol",
-                "source": "cyclenetworks-tiles",
-                "source-layer": "cyclenetwork",
-                "minzoom": 12.5,
-                "layout": {
-                    "text-field": "{ref}",
-                    "text-size": 15,
-                    "symbol-placement": "line",
-                    "symbol-spacing": 100
-                },
-                "paint": {
+                minzoom: 12.5,
+                layout: Object.assign(
+                    mapHook.defaultLayerState["cycle-highways-labels"]
+                        ?.layout ?? {},
+                    {
+                        "text-field": "{ref}",
+                        "text-size": 15,
+                        "symbol-placement": "line",
+                        "symbol-spacing": 100,
+                    }
+                ),
+                paint: {
                     "text-color": "#ff0000",
                     "text-halo-color": "#FFFFFF",
                     "text-halo-width": 1.5,
-                    "text-halo-blur": 1
+                    "text-halo-blur": 1,
                 },
-                "filter": [
+                filter: [
                     "all",
-                    [
-                        "==",
-                        "cycle_highway",
-                        "yes"
-                    ],
-                    [
-                        "!=",
-                        "state",
-                        "proposed"
-                    ]
-                ]
+                    ["==", "cycle_highway", "yes"],
+                    ["!=", "state", "proposed"],
+                ],
             });
 
-            map.addLayer({
-                "id": "cycle-node-network",
-                "type": "line",
-                "source": "cyclenetworks-tiles",
-                "source-layer": "cyclenetwork",
-                "layout": {
-                    "line-join": "round",
-                    "line-cap": "round"
+            map.addLayer(
+                {
+                    id: "cycle-node-network",
+                    type: "line",
+                    source: "cyclenetworks-tiles",
+                    "source-layer": "cyclenetwork",
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["cycle-node-network"]
+                            ?.layout ?? {},
+                        {
+                            "line-join": "round",
+                            "line-cap": "round",
+                        }
+                    ),
+                    paint: {
+                        "line-color": nodesColor,
+                        "line-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            10,
+                            3,
+                            12,
+                            3,
+                            16,
+                            3,
+                        ],
+                    },
+                    filter: ["all", ["==", "cycle_network", "srfn_gent"]],
                 },
-                "paint": {
-                    "line-color": nodesColor,
-                    "line-width": [
-                        "interpolate", ["linear"], ["zoom"],
-                        10, 3,
-                        12, 3,
-                        16, 3
-                    ]
-                },
-                "filter": [
-                    "all",
-                    [
-                        "==",
-                        "cycle_network",
-                        "srfn_gent"
-                    ]
-                ]
-            }, before);
+                before
+            );
 
             map.addLayer({
-                "id": "cyclenodes-circles",
-                "type": "circle",
-                "source": "cyclenetworks-tiles",
+                id: "cyclenodes-circles",
+                type: "circle",
+                source: "cyclenetworks-tiles",
                 "source-layer": "cyclenodes",
-                "minzoom": 12.5,
-                "paint": {
+                minzoom: 12.5,
+                layout: Object.assign(
+                    mapHook.defaultLayerState["cyclenodes-circles"]?.layout ??
+                        {},
+                    {}
+                ),
+                paint: {
                     "circle-stroke-width": 2,
                     "circle-stroke-color": nodesColor,
                     "circle-radius": 10,
                     "circle-color": "#000000",
-                    "circle-opacity": 0
+                    "circle-opacity": 0,
                 },
-                "filter": [
-                    "all",
-                    [
-                        "==",
-                        "cycle_network",
-                        "srfn_gent"
-                    ]
-                ]
+                filter: ["all", ["==", "cycle_network", "srfn_gent"]],
             });
 
             map.addLayer({
-                "id": "cyclenodes-circles-center",
-                "type": "circle",
-                "source": "cyclenetworks-tiles",
+                id: "cyclenodes-circles-center",
+                type: "circle",
+                source: "cyclenetworks-tiles",
                 "source-layer": "cyclenodes",
-                "minzoom": 12.5,
-                "paint": {
+                minzoom: 12.5,
+                layout: Object.assign(
+                    mapHook.defaultLayerState["cyclenodes-circles-center"]
+                        ?.layout ?? {},
+                    {}
+                ),
+                paint: {
                     "circle-radius": 10,
-                    "circle-color": "#fff"
+                    "circle-color": "#fff",
                 },
-                "filter": [
-                    "all",
-                    [
-                        "==",
-                        "cycle_network",
-                        "srfn_gent"
-                    ]
-                ]
+                filter: ["all", ["==", "cycle_network", "srfn_gent"]],
             });
 
             map.addLayer({
-                "id": "cyclenodes-labels",
-                "type": "symbol",
-                "source": "cyclenetworks-tiles",
+                id: "cyclenodes-labels",
+                type: "symbol",
+                source: "cyclenetworks-tiles",
                 "source-layer": "cyclenodes",
-                "minzoom": 12.5,
-                "layout": {
-                    "text-field": "{rcn_ref}",
-                    "text-size": 13
-                },
-                "paint": {
+                minzoom: 12.5,
+                layout: Object.assign(
+                    mapHook.defaultLayerState["cyclenodes-labels"]?.layout ??
+                        {},
+                    {
+                        "text-field": "{rcn_ref}",
+                        "text-size": 13,
+                    }
+                ),
+                paint: {
                     "text-color": nodesColor,
                     "text-halo-color": nodesColor,
                     "text-halo-width": 0.5,
-                    "text-halo-blur": 0
+                    "text-halo-blur": 0,
                 },
-                "filter": [
-                    "all",
-                    [
-                        "==",
-                        "cycle_network",
-                        "srfn_gent"
-                    ]
-                ]
+                filter: ["all", ["==", "cycle_network", "srfn_gent"]],
             });
         });
     });

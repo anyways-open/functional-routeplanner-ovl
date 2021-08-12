@@ -8,7 +8,7 @@
     import { UserLocationLayerHook } from "./UserLocationLayerHook";
 
     const { getMap } = getContext(key);
-    const map: Map = getMap();
+    const map: Map = getMap().map;
     
     export let hook: UserLocationLayerHook = new UserLocationLayerHook();
     hook.on = (name, handler) => {

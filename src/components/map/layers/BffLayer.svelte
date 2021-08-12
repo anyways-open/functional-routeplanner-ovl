@@ -2,9 +2,12 @@
     import type { Map } from "mapbox-gl";
     import { onMount, getContext } from "svelte";
     import { key } from "../../map/map";
+    import type { MapHook } from "../MapHook";
 
     const { getMap } = getContext(key);
-    const map: Map = getMap();
+    const mapAndHook = getMap();
+    const map: Map = mapAndHook.map;
+    const mapHook: MapHook = mapAndHook.hook;
 
     onMount(async () => {
         map.on("load", async () => {
@@ -37,9 +40,7 @@
                 }
             }
 
-            const response = await fetch(
-                "https://static.anyways.eu/data/bff.geojson"
-            );
+            const response = await fetch("data/bff.geojson");
             const json = await response.json();
 
             map.addSource("bff", {
@@ -53,11 +54,13 @@
                     type: "line",
                     source: "bff",
                     minzoom: 11,
-                    layout: {
-                        "line-join": "round",
-                        "line-cap": "round",
-                        visibility: "none",
-                    },
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["bff"]?.layout ?? {},
+                        {
+                            "line-join": "round",
+                            "line-cap": "round",
+                        }
+                    ),
                     paint: {
                         "line-color": bffRoutesColor,
                         "line-width": [

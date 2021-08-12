@@ -7,7 +7,7 @@
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
     
     // exports.
-    export let hook: MapHook;
+    export let hook: MapHook = new MapHook();
 
     // define variables.
     let map: Map;
@@ -16,7 +16,7 @@
     // get map context.
     setContext(key, {
         getMap: () => {
-            return map;
+            return { map: map, hook: hook};
         }
     });
     onMount(async () => {
@@ -46,7 +46,6 @@
             urlHash.update(`${map.getZoom().toFixed(2)}/${center.lng.toFixed(5)}/${center.lat.toFixed(5)}`);
         });
 
-        hook = new MapHook();
         hook.resize = () => {
             map.resize();
         };
