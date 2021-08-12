@@ -138,7 +138,11 @@
 
     $: if (typeof userLocationLayerHook !== "undefined") {
         userLocationLayerHook.on("geolocate", (pos) => {
-            console.log("geolocate");
+            if (viewState.view == VIEW_SEARCH) {
+                // do no accept location updates in search view.
+                return;
+            }
+
             lastCurrentLocation = pos;
 
             handleCurrentLocation();
@@ -511,10 +515,13 @@
 
         searchResults.results = [];
 
-        locations[viewState.search.location] = {
-            id: locations[viewState.search.location].id,
+        const l = viewState.search.location;
+
+        locations[l] = {
+            id: locations[l].id,
             description: e.detail.description,
             location: e.detail.location,
+            isUserLocation: false,
         };
 
         // zoom to location if a route cannot be calculated yet.
@@ -537,8 +544,21 @@
 
         if (!canCalulateRoute) mapHook.flyTo(e.detail.location);
 
-        viewState.view = VIEW_START;
+        // make sure to remove the routes using this location.
+        routes.forEach((route) => {
+            if (l > 0) {
+                route.segments[l - 1] = undefined;
+            }
+            if (l < route.segments.length) {
+                route.segments[l] = undefined;
+            }
+        });
+
+        viewState.view = VIEW_ROUTES;
         viewState.search.location = -1;
+
+        locations = [...locations];
+        routes = [...routes];
     }
 
     $: {
