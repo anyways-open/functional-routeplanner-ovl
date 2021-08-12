@@ -107,7 +107,7 @@
     }
 </script>
 
-{#if typeof route !== "undefined"}
+{#if typeof route !== "undefined" && routeDetail.distance > 0}
     <div class="route-detail route-detail-selected row my-1" on:click="{onClick}">
         <div class="col-6 py-3">{route.description}</div>
         <div class="col-4 py-3">
