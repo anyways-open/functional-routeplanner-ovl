@@ -10,7 +10,7 @@
     }
 </script>
 
-{#if routes.length > 0 && routes.findIndex(r => typeof r.segments !== "undefined" && r.segments.length > 0) >= 0}
+{#if routes.length > 0 && routes.findIndex(r => typeof r !== "undefined" && typeof r.segments !== "undefined" && r.segments.length > 0) >= 0}
     <div>
         <div class="route-results">
             <div class="d-block d-sm-none"> 
