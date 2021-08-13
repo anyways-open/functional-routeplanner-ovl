@@ -1,4 +1,4 @@
 export interface Route {
     description: string; 
-    segments: any[]
+    segments: any[];
 }

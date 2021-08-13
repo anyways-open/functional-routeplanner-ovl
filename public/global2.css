@@ -66,3 +66,7 @@
 .marker-destination svg g {
     fill: #1da1f2;
 }
+
+button.mapboxgl-ctrl-geolocate {
+    display: none;
+}

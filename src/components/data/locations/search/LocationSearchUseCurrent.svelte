@@ -1,20 +1,26 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
 
+    export let active: boolean = true;
+
     const click = createEventDispatcher();
     function onClick(): void {
         click("click");
     }
 </script>
 
-    <div class="search-result row my-1 mx-0" on:click="{onClick}">
+    <div class="search-result row my-1 mx-0 {active ? "" : "disabled"}" on:click="{onClick}">
         <div class="col-2 py-2">
             <div class="marker-user-location">
                 <div class="user-location-dot mapboxgl-marker" >
                 </div>
             </div>
         </div>
+        {#if active}
         <div class="col-10 py-2 p-0">Gebruik huidige locatie.</div>
+        {:else}
+        <div class="col-10 py-2 p-0">Huidige locatie niet beschikbaar.</div>
+        {/if}
     </div>
 
 <style>
@@ -65,6 +71,10 @@
 
     .search-result:hover {
         background-color: #9fd7f9;
+    }
+
+    .disabled {
+        color: gray;
     }
 
     @media (min-width: 576px) { 

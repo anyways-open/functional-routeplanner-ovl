@@ -1,38 +1,42 @@
 <script lang="ts">
+    import { createEventDispatcher } from "svelte";
     export let profile: string = "bicycle.commute";
 
-    function onClickBicycle(): void {
-        profile = "bicycle.commute";
-    }
+    const profiles: { id: string, description: string, icon: string}[] = [
+        {
+            id: "bicycle.commute",
+            description: "Functioneel fietsen",
+            icon:"assets/icons/bicycle.svg"
+        },
+        {
+            id: "bicycle.functional_network",
+            description: "Fietsnetwerken",
+            icon: "assets/icons/network.svg"
+        }
+    ];
 
-    function onClickBicycleNetworks(): void {
-        profile = "bicycle.functional_network";
+    const dispatch = createEventDispatcher<{ profile: string }>();
+    function onSelect(id: string): void {
+        profile = id;
+        dispatch("profile", id);
     }
 
 </script>
 
 <div class="profiles-container">
     <div class="profile-btn-group btn-group">
-        <div type="button" class="btn btn-profile {profile == "bicycle.commute" ? "active" : ""} border-0" on:click={onClickBicycle}>
+        {#each profiles as p}
+        <div type="button" class="btn btn-profile {profile == p.id ? "active" : ""} border-0" on:click={() => onSelect(p.id)}>
             <div class="button-content">
                 <span>
-                    <img src="assets/icons/bicycle.svg" alt="Snelste Route" />
+                    <img src="{p.icon}" alt="Snelste Route" />
                 </span>
                 <span>
-                    Functioneel fietsen
+                    {p.description}
                 </span>
             </div>
         </div>
-        <div type="button" class="btn btn-profile {profile == "bicycle.functional_network" ? "active" : ""} border-0" on:click={onClickBicycleNetworks}>
-            <div class="button-content">
-                <span>
-                    <img src="assets/icons/network.svg" alt="Fietsnetwerken Route"/>
-                </span>
-                <span>
-                    Fietsnetwerken
-                </span>
-            </div>
-        </div>
+        {/each}
     </div>
 </div>
 

@@ -264,8 +264,6 @@
 
                     const bounds = map.getBounds();
 
-                    console.log(box);
-
                     if (
                         !bounds.contains({
                             lng: box[0],

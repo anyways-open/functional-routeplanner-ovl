@@ -1,15 +1,12 @@
 <script lang="ts">
-    import {
-        Map,
-        GeolocateControl,
-    } from "mapbox-gl";
-    import { getContext } from "svelte";
+    import { Map, GeolocateControl } from "mapbox-gl";
+    import { getContext, onMount } from "svelte";
     import { key } from "../../map/map";
     import { UserLocationLayerHook } from "./UserLocationLayerHook";
 
     const { getMap } = getContext(key);
     const map: Map = getMap().map;
-    
+
     export let hook: UserLocationLayerHook = new UserLocationLayerHook();
     hook.on = (name, handler) => {
         switch (name) {
@@ -41,7 +38,7 @@
         if (typeof onGeolocation !== "undefined") {
             onGeolocation({
                 lng: pos.coords.longitude,
-                lat: pos.coords.latitude
+                lat: pos.coords.latitude,
             });
         }
     });

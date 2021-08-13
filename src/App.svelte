@@ -8,7 +8,6 @@
 	import type { MapHook } from "./components/map/MapHook";
 	import Routing from "./components/data/Routing.svelte";
 	import type { Route } from "./components/data/Route";
-	import type { RoutingHook } from "./components/data/RoutingHook";
 	import BaseLayerControl from "./components/map/controls/baselayer/BaseLayerControl.svelte";
 	import type { BaseLayerControlOptions } from "./components/map/controls/baselayer/BaseLayerControlOptions";
 	import ImageryLayer from "./components/map/layers/ImageryLayer.svelte";
@@ -37,7 +36,6 @@
 	});
 
 	let mapHook: MapHook;
-	let routingHook: RoutingHook;
 	let routingLayerHook: RoutesLayerHook;
 	let locationsLayerHook: LocationsLayerHook;
 	let userLocationLayerHook: UserLocationLayerHook;
@@ -106,19 +104,18 @@
 		},
 	];
 
-	$: if (typeof routingHook !== "undefined") {
-		routingHook.onSearch = () => {
+	function onExpand(expand: boolean) {
+		if (expand) {
 			heights = {
 				data: "calc(75% + 6px)",
 				map: "25%",
 			};
-		};
-		routingHook.onRoutes = () => {
+		} else {
 			heights = {
-				data: "calc(75% + 6px)",
-				map: "25%",
+				data: "25%",
+				map: "calc(75% + 6px)",
 			};
-		};
+		}
 	}
 
 	let profile: string = "bicycle.commute";
@@ -170,11 +167,7 @@
 <div id="full" class="full">
 	<div id="map" class="map" style="height: {heights.map};">
 		<Map bind:hook={mapHook}>
-			<RoutesLayer
-				{routes}
-				bind:mapHook
-				bind:routeLayerHook={routingLayerHook}
-			/>
+			<RoutesLayer {routes} bind:routeLayerHook={routingLayerHook} />
 			<LocationsLayer {locations} bind:locationsLayerHook />
 			<GipodLayer />
 			<NetworksLayer />
@@ -197,7 +190,6 @@
 		on:touchend={onTouchEnd}
 	>
 		<Routing
-			bind:routingHook
 			bind:routeLayerHook={routingLayerHook}
 			bind:mapHook
 			bind:routes
@@ -205,6 +197,7 @@
 			bind:profile
 			bind:locationsLayerHook
 			bind:userLocationLayerHook
+			on:expand={(e) => onExpand(e.detail)}
 		/>
 	</div>
 </div>
