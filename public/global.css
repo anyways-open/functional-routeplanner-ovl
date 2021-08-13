@@ -1,0 +1,10 @@
+html, body {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	min-width: 320px;
+    font-size: 0.85rem;
+	background: #1da1f2;
+}

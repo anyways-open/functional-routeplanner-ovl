@@ -1,0 +1,70 @@
+{
+  "_from": "togpx@^0.5.4",
+  "_id": "togpx@0.5.4",
+  "_inBundle": false,
+  "_integrity": "sha1-sz27BUHfBL1rpPULhtqVNCS7d3M=",
+  "_location": "/togpx",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "togpx@^0.5.4",
+    "name": "togpx",
+    "escapedName": "togpx",
+    "rawSpec": "^0.5.4",
+    "saveSpec": null,
+    "fetchSpec": "^0.5.4"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/togpx/-/togpx-0.5.4.tgz",
+  "_shasum": "b33dbb0541df04bd6ba4f50b86da953424bb7773",
+  "_spec": "togpx@^0.5.4",
+  "_where": "/Users/xivk/work/anyways/projects/ovl/functional-routeplanner-ovl-svelte",
+  "author": {
+    "name": "Martin Raifer"
+  },
+  "bin": {
+    "togpx": "togpx"
+  },
+  "browser": {
+    "xmldom": false
+  },
+  "bugs": {
+    "url": "https://github.com/tyrasd/togpx/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "concat-stream": "~1.0.1",
+    "jxon": "~2.0.0-beta.5",
+    "optimist": "~0.3.5",
+    "xmldom": "~0.1.17"
+  },
+  "deprecated": false,
+  "description": "convert geojson to gpx",
+  "devDependencies": {
+    "expect.js": "~0.2.0",
+    "mocha": "~2.1.0",
+    "mocha-phantomjs": "^4.1.0"
+  },
+  "homepage": "https://github.com/tyrasd/togpx#readme",
+  "keywords": [
+    "gpx",
+    "geojson"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "togpx",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tyrasd/togpx.git"
+  },
+  "scripts": {
+    "pretest": "npm ls --depth=Infinity > /dev/null",
+    "test": "npm run test-node && npm run test-webkit",
+    "test-node": "mocha -R spec",
+    "test-webkit": "mocha-phantomjs test/index.html"
+  },
+  "version": "0.5.4"
+}
