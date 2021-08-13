@@ -14,7 +14,7 @@
     <div>
         <div class="route-results">
             <div class="d-block d-sm-none"> 
-                Results
+                Routes
             </div>
             <div class="route-results-list">
                 {#each routes as route}

@@ -280,11 +280,13 @@ export class RoutingManager {
         // internal state:
         // - remove or empty out location.
         // - make sure the correct segments are recalculated by clearing them.
+        // - reset view to START if no routes anymore.
         // actions: 
         // - trigger route calculations.
         // push:
         // - locations.
         // - routes.
+        // - view.
 
         // check preconditions.
         if (this.view !== RoutingManager.VIEW_ROUTES &&
@@ -314,13 +316,28 @@ export class RoutingManager {
             this.locations.splice(l, 1);
         }
 
+        // set view to ROUTES if routes can be calculated.
+        this.view = RoutingManager.VIEW_ROUTES;
+        for (let s = 0; s < this.locations.length - 1; s++) {
+            const from = this.locations[s];
+            const to = this.locations[s + 1];
+            if (typeof from === "undefined" ||
+                typeof from.location === "undefined" ||
+                typeof to === "undefined" ||
+                typeof to.location === "undefined") {
+                this.view = RoutingManager.VIEW_START;
+                break;
+            }
+        }
+
         // take actions.
         this.actionRoute.go = true;
 
         // push state.
         this.pushState({
             routes: this.routes,
-            locations: this.locations
+            locations: this.locations,
+            view: this.view
         });
     }
 
@@ -738,6 +755,17 @@ export class RoutingManager {
             description: "Huidige locatie",
             location: userLocation
         };
+        this.routes.forEach((route) => {
+            if (typeof route === "undefined") return;
+
+            if (l > 0 && l < route.segments.length + 1) {
+                route.segments[l - 1] = undefined;
+            }
+            if (l < route.segments.length) {
+                route.segments[l] = undefined;
+            }
+            route.segments.splice(l, 1);
+        });
 
         // set view to ROUTES if routes can be calculated.
         this.view = RoutingManager.VIEW_ROUTES;
@@ -848,7 +876,6 @@ export class RoutingManager {
         this.locations[l].location = location;
         this.locations[l].description = `${location.lng},${location.lat}`;
         this.locations[l].isUserLocation = false;
-        console.log(this.locations);
 
         // take action.
         if (this.view == RoutingManager.VIEW_ROUTES) this.actionRoute.go = true;
