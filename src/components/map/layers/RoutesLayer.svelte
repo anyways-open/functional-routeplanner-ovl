@@ -66,236 +66,246 @@
         mapHook.on("click", (e) => onMapClick(e));
     }
 
-    $: if (
-        typeof routes !== "undefined" &&
-        routes.length > 0 &&
-        typeof routes[0] !== "undefined" &&
-        selected >= 0 &&
-        mapLoaded
-    ) {
-        if (typeof map !== "undefined") {
+    $: if (typeof routes !== "undefined" && mapLoaded) {
+        if (routes.length == 0) {
             let source: GeoJSONSource = map.getSource("route") as GeoJSONSource;
-            if (typeof source === "undefined") {
-                // add source and layers.
-
-                // get lowest label and road.
-                const style = map.getStyle();
-                let lowestRoad = undefined;
-                let lowestLabel = undefined;
-                let lowestSymbol = undefined;
-                for (let l = 0; l < style.layers.length; l++) {
-                    const layer = style.layers[l];
-
-                    if (layer && layer["source-layer"] === "transportation") {
-                        if (!lowestRoad) {
-                            lowestRoad = layer.id;
-                        }
-                    }
-
-                    if (
-                        layer &&
-                        layer["source-layer"] === "transportation_name"
-                    ) {
-                        if (!lowestLabel) {
-                            lowestLabel = layer.id;
-                        }
-                    }
-
-                    if (layer && layer.type == "symbol") {
-                        if (!lowestSymbol) {
-                            lowestSymbol = layer.id;
-                        }
-                    }
-                }
-
-                // add layers.
-                map.addSource("route", {
-                    type: "geojson",
-                    data: {
-                        type: "FeatureCollection",
-                        features: [],
-                    },
-                });
-                const routeColorLight = "#1da1f2";
-                const routeColorDark = "#0d8bd9";
-                const routeColor = routeColorLight;
-                const routeColorCasing = "#000";
-                map.addLayer(
-                    {
-                        id: "route-case",
-                        type: "line",
-                        source: "route",
-                        layout: {
-                            "line-join": "round",
-                            "line-cap": "round",
-                        },
-                        paint: {
-                            "line-color": routeColorCasing,
-                            "line-gap-width": 7,
-                            "line-width": 2,
-                        },
-                        filter: ["all", ["==", "_route-selected", true]],
-                    },
-                    lowestLabel
-                );
-                map.addLayer(
-                    {
-                        id: "route-case-alternate",
-                        type: "line",
-                        source: "route",
-                        layout: {
-                            "line-join": "round",
-                            "line-cap": "round",
-                        },
-                        paint: {
-                            "line-color": "#000",
-                            "line-gap-width": 7,
-                            "line-width": 2,
-                        },
-                        filter: ["all", ["!=", "_route-selected", true]],
-                    },
-                    lowestLabel
-                );
-                map.addLayer(
-                    {
-                        id: "route-alternate",
-                        type: "line",
-                        source: "route",
-                        layout: {
-                            "line-join": "round",
-                            "line-cap": "round",
-                        },
-                        paint: {
-                            "line-color": "#94b8b8",
-                            "line-width": 7,
-                        },
-                        filter: ["all", ["!=", "_route-selected", true]],
-                    },
-                    lowestLabel
-                );
-                map.addLayer(
-                    {
-                        id: "route",
-                        type: "line",
-                        source: "route",
-                        layout: {
-                            "line-join": "round",
-                            "line-cap": "round",
-                        },
-                        paint: {
-                            "line-color": routeColor,
-                            "line-width": 7,
-                        },
-                        filter: ["all", ["==", "_route-selected", true]],
-                    },
-                    lowestLabel
-                );
-
-                map.addSource("route-snap", {
-                    type: "geojson",
-                    data: {
-                        type: "FeatureCollection",
-                        features: [],
-                    },
-                });
-                map.addLayer(
-                    {
-                        id: "route-snap",
-                        type: "circle",
-                        source: "route-snap",
-                        paint: {
-                            "circle-color": "rgba(255, 255, 255, 1)",
-                            "circle-stroke-color": routeColor,
-                            "circle-stroke-width": 3,
-                            "circle-radius": 5,
-                        },
-                    },
-                    lowestLabel
-                );
-            }
-            source = map.getSource("route") as GeoJSONSource;
-
-            const routesFeatures: GeoJSON.FeatureCollection<GeoJSON.Geometry> =
-                {
+            if (typeof source !== "undefined") {
+                source.setData({
                     type: "FeatureCollection",
                     features: [],
-                };
+                });
+            }
+        } else if (typeof routes[0] !== "undefined" && selected >= 0) {
+            if (typeof map !== "undefined") {
+                let source: GeoJSONSource = map.getSource(
+                    "route"
+                ) as GeoJSONSource;
+                if (typeof source === "undefined") {
+                    // add source and layers.
 
-            // show routes.
-            const routeToSelect = routes.length == 1 ? 0 : selected;
-            if (typeof routes !== "undefined") {
-                for (let a = 0; a < routes.length; a++) {
-                    const alternative = routes[a];
-                    if (typeof alternative === "undefined") continue;
+                    // get lowest label and road.
+                    const style = map.getStyle();
+                    let lowestRoad = undefined;
+                    let lowestLabel = undefined;
+                    let lowestSymbol = undefined;
+                    for (let l = 0; l < style.layers.length; l++) {
+                        const layer = style.layers[l];
 
-                    const routeSegments = alternative.segments;
-                    if (typeof routeSegments !== "undefined") {
-                        for (let s = 0; s < routeSegments.length; s++) {
-                            const routeSegment = routeSegments[s];
-                            if (!routeSegment) continue;
+                        if (
+                            layer &&
+                            layer["source-layer"] === "transportation"
+                        ) {
+                            if (!lowestRoad) {
+                                lowestRoad = layer.id;
+                            }
+                        }
 
-                            const geojson =
-                                routeSegment as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
+                        if (
+                            layer &&
+                            layer["source-layer"] === "transportation_name"
+                        ) {
+                            if (!lowestLabel) {
+                                lowestLabel = layer.id;
+                            }
+                        }
 
-                            if (geojson && geojson.features) {
-                                geojson.features.forEach((f) => {
-                                    if (f && f.properties) {
-                                        f.properties["_route-segment-index"] =
-                                            s;
-                                        f.properties["_route-index"] = a;
-                                        f.properties["_route-selected"] =
-                                            a == routeToSelect;
-                                    }
-                                });
-
-                                routesFeatures.features =
-                                    routesFeatures.features.concat(
-                                        geojson.features
-                                    );
+                        if (layer && layer.type == "symbol") {
+                            if (!lowestSymbol) {
+                                lowestSymbol = layer.id;
                             }
                         }
                     }
+
+                    // add layers.
+                    map.addSource("route", {
+                        type: "geojson",
+                        data: {
+                            type: "FeatureCollection",
+                            features: [],
+                        },
+                    });
+                    const routeColorLight = "#1da1f2";
+                    const routeColorDark = "#0d8bd9";
+                    const routeColor = routeColorLight;
+                    const routeColorCasing = "#000";
+                    map.addLayer(
+                        {
+                            id: "route-case",
+                            type: "line",
+                            source: "route",
+                            layout: {
+                                "line-join": "round",
+                                "line-cap": "round",
+                            },
+                            paint: {
+                                "line-color": routeColorCasing,
+                                "line-gap-width": 7,
+                                "line-width": 2,
+                            },
+                            filter: ["all", ["==", "_route-selected", true]],
+                        },
+                        lowestLabel
+                    );
+                    map.addLayer(
+                        {
+                            id: "route-case-alternate",
+                            type: "line",
+                            source: "route",
+                            layout: {
+                                "line-join": "round",
+                                "line-cap": "round",
+                            },
+                            paint: {
+                                "line-color": "#000",
+                                "line-gap-width": 7,
+                                "line-width": 2,
+                            },
+                            filter: ["all", ["!=", "_route-selected", true]],
+                        },
+                        lowestLabel
+                    );
+                    map.addLayer(
+                        {
+                            id: "route-alternate",
+                            type: "line",
+                            source: "route",
+                            layout: {
+                                "line-join": "round",
+                                "line-cap": "round",
+                            },
+                            paint: {
+                                "line-color": "#94b8b8",
+                                "line-width": 7,
+                            },
+                            filter: ["all", ["!=", "_route-selected", true]],
+                        },
+                        lowestLabel
+                    );
+                    map.addLayer(
+                        {
+                            id: "route",
+                            type: "line",
+                            source: "route",
+                            layout: {
+                                "line-join": "round",
+                                "line-cap": "round",
+                            },
+                            paint: {
+                                "line-color": routeColor,
+                                "line-width": 7,
+                            },
+                            filter: ["all", ["==", "_route-selected", true]],
+                        },
+                        lowestLabel
+                    );
+
+                    map.addSource("route-snap", {
+                        type: "geojson",
+                        data: {
+                            type: "FeatureCollection",
+                            features: [],
+                        },
+                    });
+                    map.addLayer(
+                        {
+                            id: "route-snap",
+                            type: "circle",
+                            source: "route-snap",
+                            paint: {
+                                "circle-color": "rgba(255, 255, 255, 1)",
+                                "circle-stroke-color": routeColor,
+                                "circle-stroke-width": 3,
+                                "circle-radius": 5,
+                            },
+                        },
+                        lowestLabel
+                    );
                 }
+                source = map.getSource("route") as GeoJSONSource;
 
-                source.setData(routesFeatures);
+                const routesFeatures: GeoJSON.FeatureCollection<GeoJSON.Geometry> =
+                    {
+                        type: "FeatureCollection",
+                        features: [],
+                    };
 
-                if (routesFeatures.features.length > 0) {
-                    const box = turf.bbox(routesFeatures);
+                // show routes.
+                const routeToSelect = routes.length == 1 ? 0 : selected;
+                if (typeof routes !== "undefined") {
+                    for (let a = 0; a < routes.length; a++) {
+                        const alternative = routes[a];
+                        if (typeof alternative === "undefined") continue;
 
-                    const bounds = map.getBounds();
+                        const routeSegments = alternative.segments;
+                        if (typeof routeSegments !== "undefined") {
+                            for (let s = 0; s < routeSegments.length; s++) {
+                                const routeSegment = routeSegments[s];
+                                if (!routeSegment) continue;
 
-                    if (
-                        !bounds.contains({
-                            lng: box[0],
-                            lat: box[1],
-                        }) ||
-                        !bounds.contains({
-                            lng: box[0],
-                            lat: box[3],
-                        }) ||
-                        !bounds.contains({
-                            lng: box[2],
-                            lat: box[1],
-                        }) ||
-                        !bounds.contains({
-                            lng: box[2],
-                            lat: box[3],
-                        })
-                    ) {
-                        map.fitBounds(
-                            [
-                                [box[0], box[1]],
-                                [box[2], box[3]],
-                            ],
-                            {
-                                padding: {
-                                    left: 20,
-                                    right: 20,
-                                    top: 20,
-                                    bottom: 50,
-                                },
+                                const geojson =
+                                    routeSegment as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
+
+                                if (geojson && geojson.features) {
+                                    geojson.features.forEach((f) => {
+                                        if (f && f.properties) {
+                                            f.properties[
+                                                "_route-segment-index"
+                                            ] = s;
+                                            f.properties["_route-index"] = a;
+                                            f.properties["_route-selected"] =
+                                                a == routeToSelect;
+                                        }
+                                    });
+
+                                    routesFeatures.features =
+                                        routesFeatures.features.concat(
+                                            geojson.features
+                                        );
+                                }
                             }
-                        );
+                        }
+                    }
+
+                    source.setData(routesFeatures);
+
+                    if (routesFeatures.features.length > 0) {
+                        const box = turf.bbox(routesFeatures);
+
+                        const bounds = map.getBounds();
+
+                        if (
+                            !bounds.contains({
+                                lng: box[0],
+                                lat: box[1],
+                            }) ||
+                            !bounds.contains({
+                                lng: box[0],
+                                lat: box[3],
+                            }) ||
+                            !bounds.contains({
+                                lng: box[2],
+                                lat: box[1],
+                            }) ||
+                            !bounds.contains({
+                                lng: box[2],
+                                lat: box[3],
+                            })
+                        ) {
+                            map.fitBounds(
+                                [
+                                    [box[0], box[1]],
+                                    [box[2], box[3]],
+                                ],
+                                {
+                                    padding: {
+                                        left: 20,
+                                        right: 20,
+                                        top: 20,
+                                        bottom: 50,
+                                    },
+                                }
+                            );
+                        }
                     }
                 }
             }

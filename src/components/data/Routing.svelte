@@ -18,6 +18,7 @@
     import { Geocoder } from "../../apis/geocoder/Geocoder";
     import { RoutingApi } from "@anyways-open/routing-api";
     import { createEventDispatcher } from "svelte";
+import Map from "../map/Map.svelte";
 
     // exports.
     export let mapHook: MapHook; // interface to communicate with the map.
@@ -177,6 +178,7 @@
         });
     }
 
+    // expand/collapse depending on view.
     let previousView = view;
     $: if (view !== previousView) {
         previousView = view;
@@ -189,14 +191,14 @@
                 onRequestExpand(true);
                 break;
         }
-    }
+    };
 
-    $: if (focusLocation >= 0 && view == RoutingManager.VIEW_START) {
+    // fly to location if no route.
+    $: if (focusLocation >= 0 && view == RoutingManager.VIEW_START && typeof mapHook !== "undefined") {
         if (typeof locations[focusLocation].location !== "undefined") {
             mapHook.flyTo(locations[focusLocation].location);
         }
-    }
-
+    };
 
     // hook up user location management.
     $: if (typeof userLocationLayerHook !== "undefined") {
@@ -206,11 +208,55 @@
         userLocationLayerHook.on("error", () => {
             routingManager.onUserLocationError();
         })
-    }
+    };
     $: if (userLocationRequested && userLocationAvailable) {
         userLocationLayerHook.trigger();
-    }
+    };
 
+    // hook up map interactions/events.
+    let lastMarkerBox: {
+        top: number;
+        left: number;
+        bottom: number;
+        right: number;
+    };
+    let mapHookHooked: boolean = false;
+    $: if (typeof mapHook !== "undefined" &&
+        !mapHookHooked) {
+        mapHook.on("click", (e) => {
+            // TODO: this is a workaround around mapbox gl triggering a click event after dragging a marker, there has to be a better way.
+            if (typeof lastMarkerBox !== "undefined") {
+                if (
+                    lastMarkerBox.left - 1 <= e.point.x &&
+                    lastMarkerBox.right + 1 >= e.point.x &&
+                    lastMarkerBox.top - 1 <= e.point.y &&
+                    lastMarkerBox.bottom + 1 >= e.point.y
+                ) {
+                    return;
+                }
+            }
+            lastMarkerBox = undefined;
+
+            // a location was added.
+            routingManager.onMapClick(e.lngLat);
+        });
+        mapHookHooked = true;
+    };
+    let locationsLayerHookHooked: boolean = false;
+    $: if (typeof locationsLayerHook !== "undefined" && 
+        !locationsLayerHookHooked) {
+        locationsLayerHook.on("locationupdate", (e) => {
+            lastMarkerBox = e.markerBox;
+
+            routingManager.onLocationUpdateById(e.id, e.location);
+        });
+
+        locationsLayerHook.on("locationclick", (e) => {
+            routingManager.onRemoveOrClearById(e.id);
+        });
+
+        locationsLayerHookHooked = true;
+    }
 </script>
 
 <div class="outer">

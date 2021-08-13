@@ -316,6 +316,23 @@ export class RoutingManager {
     }
 
     /**
+     * Called when the user wants to clear or remove a location.
+     * @param lid The location id.
+     */
+     public onRemoveOrClearById(lid: number) {
+        // forward to regular on remove.
+        const l = this.locations.findIndex((i) => {
+            return i.id == lid;
+        });
+        if (l == -1) {
+            console.warn("cannot remove location, id not found");
+            return;
+        }
+
+        this.onRemoveOrClear(l);
+     }
+
+    /**
      * Called when the user wants to add a new location.
      */
     public onAdd() {
@@ -350,6 +367,77 @@ export class RoutingManager {
         // push state.
         this.pushState({
             locations: this.locations
+        });
+    }
+
+    /**
+     * Called when the user clicks on the map.
+     */
+    public onMapClick(location: { lng: number, lat: number }) {
+        // preconditions: view=ROUTES|START
+        // event: onMapClick
+        // internal state:
+        // - update first empty location or add new one.
+        // - set view to ROUTEs is route can be calculated.
+        // - trigger reverse geocode.
+        // - trigger routing.
+        // actions: 
+        // {none}
+        // push:
+        // - view
+        // - locations.
+
+        // check preconditions.
+        if (this.view !== RoutingManager.VIEW_ROUTES &&
+            this.view !== RoutingManager.VIEW_START) {
+            console.warn("add not in correct view");
+            return;
+        }
+
+        // update state.
+        // find first empty location or add empty one.
+        let l = this.locations.findIndex(x => typeof x.location == "undefined");
+        if (l == -1) {
+            let nextLocationId = -1;
+            this.locations.forEach(l => {
+                if (l.id + 1 > nextLocationId) nextLocationId = l.id + 1;
+            });
+            this.locations.push({
+                id: nextLocationId,
+                description: "",
+                isUserLocation: false,
+                location: location
+            });
+            l = this.locations.length - 1;
+        } 
+        const newLocation = this.locations[l];
+        newLocation.location = location;
+        newLocation.description = `${location.lng},${location.lat}`;
+        newLocation.isUserLocation = false;
+        console.log(this.locations);
+
+        // set view to ROUTES if routes can be calculated.
+        this.view = RoutingManager.VIEW_ROUTES;
+        for (let s = 0; s < this.locations.length - 1; s++) {
+            const from = this.locations[s];
+            const to = this.locations[s + 1];
+            if (typeof from === "undefined" ||
+                typeof from.location === "undefined" ||
+                typeof to === "undefined" ||
+                typeof to.location === "undefined") {
+                this.view = RoutingManager.VIEW_START;
+                break;
+            }
+        }
+
+        // trigger actions.
+        if (this.view == RoutingManager.VIEW_ROUTES) this.actionRoute.go = true;
+        if (this.actionReverseGeocode.queue.findIndex(x => l == x) == -1) this.actionReverseGeocode.queue.push(l);
+
+        // push state.
+        this.pushState({
+            locations: this.locations,
+            view: this.view
         });
     }
 
@@ -484,6 +572,18 @@ export class RoutingManager {
 
         // update state.
         const result = this.searchResults[r];
+        const l = this.searchLocation;
+        this.routes.forEach((route) => {
+            if (typeof route === "undefined") return;
+
+            if (l > 0 && l < route.segments.length + 1) {
+                route.segments[l - 1] = undefined;
+            }
+            if (l < route.segments.length) {
+                route.segments[l] = undefined;
+            }
+            route.segments.splice(l, 1);
+        });
         this.locations[this.searchLocation] = {
             id: this.locations[this.searchLocation].id,
             isUserLocation: false,
@@ -530,6 +630,7 @@ export class RoutingManager {
         // event: onSelectUserLocation
         // internal state:
         // - userLocationRequested:true
+        // - routes segments around location are cleared.
         // actions: 
         // - set a timeout to wait for the user location to come in or not.
         // push:
@@ -546,6 +647,18 @@ export class RoutingManager {
         }
 
         // update state.
+        const l = this.searchLocation;
+        this.routes.forEach((route) => {
+            if (typeof route === "undefined") return;
+
+            if (l > 0 && l < route.segments.length + 1) {
+                route.segments[l - 1] = undefined;
+            }
+            if (l < route.segments.length) {
+                route.segments[l] = undefined;
+            }
+            route.segments.splice(l, 1);
+        });
         this.userLocationRequested = true;
 
         // push state.
@@ -683,6 +796,60 @@ export class RoutingManager {
         this.pushState({
             userLocationAvailable: this.userLocationAvailable,
             userLocationRequested: this.userLocationRequested
+        });
+    }
+
+    /**
+     * Called when a locations' location is to be updated.
+     * @param lid The location id.
+     * @param location The new location.
+     */
+    public onLocationUpdateById(lid: number, location: {lng: number, lat: number}): void {
+        // preconditions: {none}
+        // event: onLocationUpdateById
+        // internal state:
+        // - update location.
+        // - remove route segmennts using the location.
+        // actions: 
+        // - trigger reverse geocoding.
+        // - trigger routing.
+        // push:
+        // - locations.
+        // - routes.
+
+        const l = this.locations.findIndex((i) => {
+            return i.id == lid;
+        });
+        if (l == -1) {
+            console.warn("cannot update location, id not found");
+            return;
+        }
+
+        // further update state for location that is the user location.
+        this.routes.forEach((route) => {
+            if (typeof route === "undefined") return;
+
+            if (l > 0 && l < route.segments.length + 1) {
+                route.segments[l - 1] = undefined;
+            }
+            if (l < route.segments.length) {
+                route.segments[l] = undefined;
+            }
+            route.segments.splice(l, 1);
+        });
+        this.locations[l].location = location;
+        this.locations[l].description = `${location.lng},${location.lat}`;
+        this.locations[l].isUserLocation = false;
+        console.log(this.locations);
+
+        // take action.
+        if (this.view == RoutingManager.VIEW_ROUTES) this.actionRoute.go = true;
+        if (this.actionReverseGeocode.queue.findIndex(x => l == x) == -1) this.actionReverseGeocode.queue.push(l);
+
+        // push state.
+        this.pushState({
+            locations: this.locations,
+            routes: this.routes
         });
     }
 
