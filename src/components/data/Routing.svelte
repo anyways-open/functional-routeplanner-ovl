@@ -1,4 +1,5 @@
 <script lang="ts">
+    import * as turf from "@turf/turf";
     import Profiles from "./profiles/Profiles.svelte";
     import Locations from "./locations/Locations.svelte";
     import type { Location } from "./Location";
@@ -126,6 +127,9 @@
         onStateUpdate,
         (query, callback) => {
             geocoder.geocode({ string: query }, callback);
+        },
+        (location, callback) => {
+            geocoder.reverseGeocode(location, callback);
         },
         (from, to, profile, alternatives, callback) => {
             routingApi.getRoute(

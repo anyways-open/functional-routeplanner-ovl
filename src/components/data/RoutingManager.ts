@@ -1,6 +1,7 @@
 import type { Route } from "./Route";
 import type { Location } from "./Location";
 import type { IForwardResult } from "../../apis/geocoder/IForwardResult";
+import type { IReverseResult } from "../../apis/geocoder/Providers/IReverseResult";
 
 /**
  * Manages the state for the routing component.
@@ -42,17 +43,21 @@ export class RoutingManager {
             query: ""
         };
 
+    private reverseGeocodeTimer = setInterval(() => this.action_reverseGeocode(), 500);
+    private readonly reverseGeocode: (l: { lng: number; lat: number}, callback: (results: IReverseResult[]) => void) => void;
     private actionReverseGeocode: {
-        go: boolean
+        queue: number[]
     } = {
-            go: false
-        };
+        queue: []
+    };
 
     constructor(view: string, profile: string, pushState: (state: any) => void,
         geocode: (query: string, callback: (results: IForwardResult[]) => void) => void,
+        reverseGeocode: (l: { lng: number; lat: number}, callback: (results: IReverseResult[]) => void) => void,
         route: (from: Location, to: Location, profile: string, alternatives: boolean, callback: (results: any) => void) => void) {
         this.pushState = pushState;
         this.geocode = geocode;
+        this.reverseGeocode = reverseGeocode;
         this.route = route;
         this.view = view;
         this.profile = profile;
@@ -158,6 +163,32 @@ export class RoutingManager {
     }
 
     /**
+     * Executed when a reverse geocoding query is requested.
+     */
+    private action_reverseGeocode(): void {
+        // preconditions: view=ROUTES|START
+        // event: action_route
+
+        if (this.view !== RoutingManager.VIEW_ROUTES && 
+            this.view !== RoutingManager.VIEW_START) {
+            console.warn("reverse geocoding triggered but not in routing or start view");
+            return;
+        }
+
+        if (this.actionReverseGeocode.queue.length == 0) return;
+        const l = this.actionReverseGeocode.queue.pop();
+        const location = this.locations[l];
+
+        if (typeof location === "undefined" || typeof location.location === "undefined") {
+            console.warn("reverse geocoding triggered on empty location");
+            return;
+        }
+        this.reverseGeocode(location.location, (results) => {
+            this.onReverseGeocodeResult(l, results);
+        });
+    }
+
+    /**
      * Called then the user select a profile.
      * @param profile The selected profile.
      */
@@ -235,14 +266,91 @@ export class RoutingManager {
      * @param l The location index.
      */
     public onRemoveOrClear(l: number) {
+        // preconditions: view=ROUTES|START
+        // event: onRemoveOrClear
+        // internal state:
+        // - remove or empty out location.
+        // - make sure the correct segments are recalculated by clearing them.
+        // actions: 
+        // - trigger route calculations.
+        // push:
+        // - locations.
+        // - routes.
 
+        // check preconditions.
+        if (this.view !== RoutingManager.VIEW_ROUTES &&
+            this.view !== RoutingManager.VIEW_START) {
+            console.warn("add not in correct view");
+            return;
+        }
+
+        // update state.
+        this.routes.forEach((route) => {
+            if (typeof route === "undefined") return;
+
+            if (l > 0 && l < route.segments.length + 1) {
+                route.segments[l - 1] = undefined;
+            }
+            if (l < route.segments.length) {
+                route.segments[l] = undefined;
+            }
+            route.segments.splice(l, 1);
+        });
+        // update locations.
+        if (this.locations.length == 2) {
+            this.locations[l].description = "";
+            this.locations[l].location = undefined;
+            this.locations[l].isUserLocation = false;
+        } else {
+            this.locations.splice(l, 1);
+        }
+
+        // take actions.
+        this.actionRoute.go = true;
+
+        // push state.
+        this.pushState({
+            routes: this.routes,
+            locations: this.locations
+        });
     }
 
     /**
      * Called when the user wants to add a new location.
      */
     public onAdd() {
+        // preconditions: view=ROUTES|START
+        // event: onAdd
+        // internal state:
+        // - add new empty location.
+        // actions: 
+        // {none}
+        // push:
+        // - locations.
 
+        // check preconditions.
+        if (this.view !== RoutingManager.VIEW_ROUTES &&
+            this.view !== RoutingManager.VIEW_START) {
+            console.warn("add not in correct view");
+            return;
+        }
+
+        // update state.
+        // add a new location with a new id.
+        let nextLocationId = -1;
+        this.locations.forEach(l => {
+            if (l.id + 1 > nextLocationId) nextLocationId = l.id + 1;
+        });
+        this.locations.push({
+            id: nextLocationId,
+            description: "",
+            isUserLocation: false
+        });
+
+        // push state.
+        this.pushState({
+            locations: this.locations
+        });
     }
 
     /**
@@ -472,6 +580,7 @@ export class RoutingManager {
         //  }
         // actions: 
         // - calculate route.
+        // - trigger reverse geocoding.
         // push:
         // - locations after update.
         // - view
@@ -525,6 +634,7 @@ export class RoutingManager {
 
         // take action.
         if (this.view == RoutingManager.VIEW_ROUTES) this.actionRoute.go = true;
+        if (this.actionReverseGeocode.queue.findIndex(x => l == x) == -1) this.actionReverseGeocode.queue.push(l);
 
         // push state.
         this.pushState({
@@ -573,6 +683,45 @@ export class RoutingManager {
         this.pushState({
             userLocationAvailable: this.userLocationAvailable,
             userLocationRequested: this.userLocationRequested
+        });
+    }
+
+    private onReverseGeocodeResult(l: number, results: IReverseResult[]): void {
+        // preconditions: {none}
+        // event: onReverseGeocodeResult
+        // internal state:
+        // - update location.
+        // actions: 
+        // {none}
+        // push:
+        // - locations.
+
+        // check preconditions.
+        if (this.view !== RoutingManager.VIEW_ROUTES &&
+            this.view !== RoutingManager.VIEW_START) {
+            console.warn("switch not in correct view");
+            return;
+        }
+        if (typeof results === "undefined" || 
+            results.length == 0) {
+                return;
+            }
+
+        // update state.
+        if (l >= this.locations.length) {
+            console.warn("location to reverse geocode for not found");
+            return;
+        }
+        const location = this.locations[l];
+        if (typeof location === "undefined") {
+            console.warn("location to reverse geocode for not found");
+            return;
+        }
+        this.locations[l].description = results[0].description;
+
+        // update state.
+        this.pushState({
+            locations: this.locations;
         });
     }
 
