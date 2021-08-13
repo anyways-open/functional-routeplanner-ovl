@@ -2,7 +2,7 @@ name: Docker Image - Website (Staging)
 
 on:
   push:
-    branches: [ features/svelte ]
+    branches: [ develop ]
 
 jobs:
 
@@ -15,6 +15,6 @@ jobs:
     - name: Login to Dock Hub
       run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysbot --password-stdin
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag anywaysopen/ovl-frontend:mobile
+      run: docker build . --file Dockerfile --tag anywaysopen/ovl-frontend:staging
     - name: Push Docker image.
-      run: docker push anywaysopen/ovl-frontend:mobile
+      run: docker push anywaysopen/ovl-frontend:staging
