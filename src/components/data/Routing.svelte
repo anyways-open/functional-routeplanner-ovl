@@ -17,8 +17,8 @@
     import { OpenCageDataProvider } from "../../apis/geocoder/Providers/OpenCageDataProvider";
     import { Geocoder } from "../../apis/geocoder/Geocoder";
     import { RoutingApi } from "@anyways-open/routing-api";
-    import { createEventDispatcher } from "svelte";
-import Map from "../map/Map.svelte";
+    import { createEventDispatcher, onMount } from "svelte";
+    import { UrlHashHandler } from "../../shared/UrlHashHandler";
 
     // exports.
     export let mapHook: MapHook; // interface to communicate with the map.
@@ -34,7 +34,14 @@ import Map from "../map/Map.svelte";
 
     // state.
     export let routes: Route[] = []; // the calculated routes.
-    export let locations: Location[] = []; // the start, end and via locations.
+    export let locations: Location[] = [
+        {
+            id: 0,
+        },
+        {
+            id: 1,
+        },
+    ]; // the start, end and via locations.
     export let profile: string; // the profile.
     let searchLocation: number = -1; // the location being searched, the location the user is working with/has selected.
     let focusLocation: number = -1; // the location being shown.
@@ -42,6 +49,7 @@ import Map from "../map/Map.svelte";
     let searchResults: LocationSearchResult[]; // the current search results.
     let userLocationRequested: boolean; // the user location is requested.
     let userLocationAvailable: boolean = true; // the user location is available.
+    let routingManager: RoutingManager;
 
     // TODO: move this to general settings files.
     // instantiate the routing api.
@@ -121,28 +129,125 @@ import Map from "../map/Map.svelte";
         },
     });
 
-    // start manager.
-    let routingManager = new RoutingManager(
-        view,
-        profile,
-        onStateUpdate,
-        (query, callback) => {
-            geocoder.geocode({ string: query }, callback);
-        },
-        (location, callback) => {
-            geocoder.reverseGeocode(location, callback);
-        },
-        (from, to, profile, alternatives, callback) => {
-            routingApi.getRoute(
-                {
-                    locations: [from.location, to.location],
-                    profile: profile,
-                    alternatives: alternatives ? 2 : 1,
-                },
-                callback
-            );
+    let urlHash = new UrlHashHandler("route");
+    let urlHashParsed = false;
+    onMount(async () => {
+        // state is as follows:
+        // an array of locations comma seperate
+        // with each location: name/lon/lat
+        // - when not set but there name=empty
+        // - when not geocoded name=point ex: point/4.1445/51.4471
+        // - when geocoded name=escaped geocode string, ex: Sept%2042%2F4%2C%202275%20Wechelderzande/4.1445/51.4471
+        // - when user location name=user, ex; user/4.1445/51.4471
+        const routeState = urlHash.getState();
+        if (typeof routeState !== "undefined") {
+            // split.
+            const locs = routeState.split(",");
+
+            // get profile.
+            profile = locs[0];
+
+            // reset routes causing recalculate later.
+            routes = [];
+
+            // parse locations.
+            let locationId = 0;
+            locations.forEach((l) => {
+                if (l.id + 1 > locationId) locationId = l.id + 1;
+            });
+            if (locs.length > 0) {
+                locations = [];
+
+                locationId++;
+                locations.push({
+                    id: locationId,
+                });
+                locationId++;
+                locations.push({
+                    id: locationId,
+                });
+
+                for (let l = 1; l < locs.length; l++) {
+                    const d = locs[l].split("/");
+                    if (d.length != 3) continue;
+
+                    const loc = {
+                        lng: parseFloat(d[1]),
+                        lat: parseFloat(d[2]),
+                    };
+
+                    const name = unescape(d[0]);
+
+                    // overwrite locations.
+                    locationId++;
+                    const location: Location = {
+                        id: locationId,
+                        description: name,
+                        location: loc,
+                    };
+
+                    if (l - 1 < locations.length) {
+                        locations[l - 1] = location;
+                    } else {
+                        locations.push(location);
+                    }
+                }
+            }
         }
-    );
+        urlHashParsed = true;
+
+        // start manager.
+        routingManager = new RoutingManager(
+            view,
+            profile,
+            locations,
+            onStateUpdate,
+            (query, callback) => {
+                geocoder.geocode({ string: query }, callback);
+            },
+            (location, callback) => {
+                geocoder.reverseGeocode(location, callback);
+            },
+            (from, to, profile, alternatives, callback) => {
+                routingApi.getRoute(
+                    {
+                        locations: [from.location, to.location],
+                        profile: profile,
+                        alternatives: alternatives ? 2 : 1,
+                    },
+                    callback
+                );
+            }
+        );
+    });
+    $: if (
+        typeof profile !== "undefined" &&
+        typeof locations !== "undefined" &&
+        urlHashParsed
+    ) {
+        let s = `${escape(profile)}`;
+        locations.forEach((l) => {
+            if (s.length > 0) {
+                s += ",";
+            }
+
+            if (typeof l.location === "undefined") {
+                s += `empty`;
+                return;
+            }
+
+            if (l.description) {
+                s += `${escape(l.description)}/`;
+            } else {
+                s += `point/`;
+            }
+
+            const location = l.location;
+            s += `${location.lng.toFixed(5)}/${location.lat.toFixed(5)}`;
+        });
+
+        urlHash.update(s);
+    }
 
     // updates the state of this component.
     function onStateUpdate(state: any): void {
@@ -152,6 +257,9 @@ import Map from "../map/Map.svelte";
             switch (k) {
                 case "view":
                     view = state.view;
+                    break;
+                case "profile":
+                    profile = state.profile;
                     break;
                 case "searchLocation":
                     searchLocation = state.searchLocation;
@@ -191,14 +299,18 @@ import Map from "../map/Map.svelte";
                 onRequestExpand(true);
                 break;
         }
-    };
+    }
 
     // fly to location if no route.
-    $: if (focusLocation >= 0 && view == RoutingManager.VIEW_START && typeof mapHook !== "undefined") {
+    $: if (
+        focusLocation >= 0 &&
+        view == RoutingManager.VIEW_START &&
+        typeof mapHook !== "undefined"
+    ) {
         if (typeof locations[focusLocation].location !== "undefined") {
             mapHook.flyTo(locations[focusLocation].location);
         }
-    };
+    }
 
     // hook up user location management.
     $: if (typeof userLocationLayerHook !== "undefined") {
@@ -207,11 +319,11 @@ import Map from "../map/Map.svelte";
         });
         userLocationLayerHook.on("error", () => {
             routingManager.onUserLocationError();
-        })
-    };
+        });
+    }
     $: if (userLocationRequested && userLocationAvailable) {
         userLocationLayerHook.trigger();
-    };
+    }
 
     // hook up map interactions/events.
     let lastMarkerBox: {
@@ -221,8 +333,7 @@ import Map from "../map/Map.svelte";
         right: number;
     };
     let mapHookHooked: boolean = false;
-    $: if (typeof mapHook !== "undefined" &&
-        !mapHookHooked) {
+    $: if (typeof mapHook !== "undefined" && !mapHookHooked) {
         mapHook.on("click", (e) => {
             // TODO: this is a workaround around mapbox gl triggering a click event after dragging a marker, there has to be a better way.
             if (typeof lastMarkerBox !== "undefined") {
@@ -241,10 +352,12 @@ import Map from "../map/Map.svelte";
             routingManager.onMapClick(e.lngLat);
         });
         mapHookHooked = true;
-    };
+    }
     let locationsLayerHookHooked: boolean = false;
-    $: if (typeof locationsLayerHook !== "undefined" && 
-        !locationsLayerHookHooked) {
+    $: if (
+        typeof locationsLayerHook !== "undefined" &&
+        !locationsLayerHookHooked
+    ) {
         locationsLayerHook.on("locationupdate", (e) => {
             lastMarkerBox = e.markerBox;
 

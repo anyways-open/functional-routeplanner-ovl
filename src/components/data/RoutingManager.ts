@@ -51,7 +51,7 @@ export class RoutingManager {
         queue: []
     };
 
-    constructor(view: string, profile: string, pushState: (state: any) => void,
+    constructor(view: string, profile: string, locations: Location[], pushState: (state: any) => void,
         geocode: (query: string, callback: (results: IForwardResult[]) => void) => void,
         reverseGeocode: (l: { lng: number; lat: number}, callback: (results: IReverseResult[]) => void) => void,
         route: (from: Location, to: Location, profile: string, alternatives: boolean, callback: (results: any) => void) => void) {
@@ -61,13 +61,22 @@ export class RoutingManager {
         this.route = route;
         this.view = view;
         this.profile = profile;
+        this.locations = locations;
 
-        this.locations = [{
-            id: 0
-        },
-        {
-            id: 1
-        }];
+        // set view to ROUTES if routes can be calculated.
+        this.view = RoutingManager.VIEW_ROUTES;
+        for (let s = 0; s < this.locations.length - 1; s++) {
+            const from = this.locations[s];
+            const to = this.locations[s + 1];
+            if (typeof from === "undefined" ||
+                typeof from.location === "undefined" ||
+                typeof to === "undefined" ||
+                typeof to.location === "undefined") {
+                this.view = RoutingManager.VIEW_START;
+                break;
+            }
+        }
+        if (this.view == RoutingManager.VIEW_ROUTES) this.actionRoute.go = true;
     }
 
     /**
@@ -354,7 +363,7 @@ export class RoutingManager {
 
         // update state.
         // add a new location with a new id.
-        let nextLocationId = -1;
+        let nextLocationId = 0;
         this.locations.forEach(l => {
             if (l.id + 1 > nextLocationId) nextLocationId = l.id + 1;
         });
@@ -414,7 +423,6 @@ export class RoutingManager {
         newLocation.location = location;
         newLocation.description = `${location.lng},${location.lat}`;
         newLocation.isUserLocation = false;
-        console.log(this.locations);
 
         // set view to ROUTES if routes can be calculated.
         this.view = RoutingManager.VIEW_ROUTES;
