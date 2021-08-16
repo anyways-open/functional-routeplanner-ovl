@@ -81,7 +81,7 @@
         var gpx = togpx(geojson, {});
 
         var data = gpx;
-        var type = ".gpx";
+        var type = "application/gpx+xml";
         var filename = "route.gpx";
 
         var file = new Blob([data], { type: type });
@@ -92,6 +92,7 @@
                 url = URL.createObjectURL(file);
             a.href = url;
             a.download = filename;
+            
             document.body.appendChild(a);
             a.click();
             setTimeout(function () {
