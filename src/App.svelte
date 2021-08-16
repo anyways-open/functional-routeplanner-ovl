@@ -20,6 +20,7 @@
 	import GipodLayer from "./components/map/layers/GipodLayer.svelte";
 	import type { UserLocationLayerHook } from "./components/map/layers/UserLocationLayerHook";
 	import UserLocationLayer from "./components/map/layers/UserLocationLayer.svelte";
+	import Settings from "./components/settings/Settings.svelte";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
@@ -34,6 +35,8 @@
 		dataElement = document.getElementById("data");
 		mapElement = document.getElementById("map");
 	});
+
+	let settingsOpen: boolean = false;
 
 	let mapHook: MapHook;
 	let routingLayerHook: RoutesLayerHook;
@@ -200,6 +203,8 @@
 			on:expand={(e) => onExpand(e.detail)}
 		/>
 	</div>
+	
+	<Settings bind:open={settingsOpen} />
 </div>
 
 <style>

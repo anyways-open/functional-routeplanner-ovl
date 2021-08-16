@@ -121,7 +121,7 @@
         top: 2px;
         background: #1da1f2;
         padding: 4px;
-        z-index: 100;
+        z-index: 2;
     }
 
     .locations .btn img {
