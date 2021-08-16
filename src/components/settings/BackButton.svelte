@@ -8,7 +8,7 @@
 </script>
 
 <div class="img-container" on:click={onClick}>
-    <img src="assets/icons/settings.svg" alt="Open Instellingen" />
+    <img src="assets/icons/back.svg" alt="Sluit" />
 </div>
 
 <style>
@@ -19,7 +19,7 @@
         width: 30px;
         height: 30px;
         top: 15px;
-        right: 15px;
+        left: 15px;
         box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.1);
     }
 

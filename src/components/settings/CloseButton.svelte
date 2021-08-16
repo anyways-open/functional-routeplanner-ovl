@@ -20,6 +20,7 @@
         height: 30px;
         top: 15px;
         right: 15px;
+        box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.1);
     }
 
     img {

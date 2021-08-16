@@ -36,7 +36,7 @@
 		mapElement = document.getElementById("map");
 	});
 
-	let settingsOpen: boolean = false;
+	let settingsOpen: boolean = true;
 
 	let mapHook: MapHook;
 	let routingLayerHook: RoutesLayerHook;
@@ -62,6 +62,7 @@
 				"cycle-node-network-case",
 			],
 			logo: "assets/icons/network.svg",
+			description: "Lokale netwerken van steden en gemeentes",
 			visible: true,
 			enabled: true,
 		},
@@ -74,6 +75,7 @@
 				"cycle-highways-labels",
 			],
 			logo: "assets/icons/highway.svg",
+			description: "De Vlaamse fietssnelwegen",
 			visible: true,
 			enabled: true,
 		},
@@ -86,6 +88,7 @@
 				"school-routes-semi",
 			],
 			logo: "assets/icons/school.svg",
+			description: "Gemeentelijke schoolroutes",
 			visible: false,
 			enabled: false,
 		},
@@ -94,6 +97,7 @@
 			name: "Functioneel Fietsnetwerk",
 			logo: "assets/icons/network.svg",
 			layers: ["bff"],
+			description: "Bovenlokaal functioneel fietsnetwerk",
 			visible: false,
 			enabled: true,
 		},
@@ -102,6 +106,7 @@
 			name: "Wegenwerken",
 			layers: ["gipod-con", "gipod-icon"],
 			logo: "assets/icons/road-works.svg",
+			description: "Wegenwerken uit GIPOD.",
 			visible: false,
 			enabled: true,
 		},
@@ -204,7 +209,7 @@
 		/>
 	</div>
 	
-	<Settings bind:open={settingsOpen} />
+	<Settings bind:profile bind:layers bind:open={settingsOpen} />
 </div>
 
 <style>
