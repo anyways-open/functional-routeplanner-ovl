@@ -21,6 +21,7 @@
 	import type { UserLocationLayerHook } from "./components/map/layers/UserLocationLayerHook";
 	import UserLocationLayer from "./components/map/layers/UserLocationLayer.svelte";
 	import Settings from "./components/settings/Settings.svelte";
+import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
@@ -184,6 +185,7 @@
 			<BffLayer />
 			<SchoolRoutes />
 			<UserLocationLayer bind:hook={userLocationLayerHook} />
+			<BicyclePoiLayer />
 
 			<BaseLayerControl bind:options={baseLayerOptions} />
 			<LayerControl bind:layers />
