@@ -191,7 +191,7 @@
 
 	<div
 		id="data"
-		class="data"
+		class="data {settingsOpen ? "d-none" : ""}"
 		style="height: {heights.data};"
 		on:touchstart={onTouchStart}
 		on:touchmove={onTouchMove}
