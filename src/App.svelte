@@ -36,7 +36,7 @@
 		mapElement = document.getElementById("map");
 	});
 
-	let settingsOpen: boolean = true;
+	let settingsOpen: boolean = false;
 
 	let mapHook: MapHook;
 	let routingLayerHook: RoutesLayerHook;
