@@ -7,4 +7,5 @@ html, body {
 	min-width: 320px;
     font-size: 0.85rem;
 	background: #1da1f2;
+	overscroll-behavior-y: contain;
 }
