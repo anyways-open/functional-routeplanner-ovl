@@ -78,7 +78,6 @@
 
     function onLayerToggle(i: number): void {
         layers[i].visible = !layers[i].visible;
-        console.log(i);
 
         layers = [...layers];
     }

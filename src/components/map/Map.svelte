@@ -46,6 +46,10 @@
             urlHash.update(`${map.getZoom().toFixed(2)}/${center.lng.toFixed(5)}/${center.lat.toFixed(5)}`);
         });
 
+        map.on("load", () => {
+            map.resize(); // on more resize, refresh on chrome broken.
+        });
+
         hook.resize = () => {
             map.resize();
         };
