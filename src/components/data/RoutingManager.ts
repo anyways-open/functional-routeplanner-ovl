@@ -397,6 +397,36 @@ export class RoutingManager {
     }
 
     /**
+     * Called when the load is loaded.
+     */
+    public onMapLoaded(): void {
+        // preconditions: none
+        // event: onMapLoaded
+        // internal state:
+        // if (view==START)
+        // - check if a location is user location.
+        // - set activeLocation to that location
+        // actions: 
+        // - if yes, trigger select user location.
+        // push:
+        // nothing
+
+        if (this.view != RoutingManager.VIEW_START) return;
+
+        let l = this.locations.findIndex(x => typeof x.isUserLocation);
+        if (l !== -1) {
+            this.userLocationRequested = true;
+            this.searchLocation = l;
+    
+            // push state.
+            this.pushState({
+                searchLocation: this.searchLocation,
+                userLocationRequested: this.userLocationRequested
+            });
+        }
+    }
+
+    /**
      * Called when the user clicks on the map.
      */
     public onMapClick(location: { lng: number, lat: number }) {
@@ -741,6 +771,7 @@ export class RoutingManager {
             l = this.searchLocation;
             this.searchLocation = -1;
         } else {
+            this.searchLocation = -1;
             l = this.locations.findIndex(x => x.isUserLocation);
             if (l < 0) {
                 console.error("user location returned there is no location with that needs it");

@@ -130,6 +130,7 @@
 	let locations: Location[] = [
 		{
 			id: 0,
+			isUserLocation: true
 		},
 		{
 			id: 1,

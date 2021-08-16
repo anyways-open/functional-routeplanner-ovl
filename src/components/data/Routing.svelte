@@ -37,6 +37,7 @@
     export let locations: Location[] = [
         {
             id: 0,
+            isUserLocation: true
         },
         {
             id: 1,
@@ -156,17 +157,6 @@
                 if (l.id + 1 > locationId) locationId = l.id + 1;
             });
             if (locs.length > 0) {
-                locations = [];
-
-                locationId++;
-                locations.push({
-                    id: locationId,
-                });
-                locationId++;
-                locations.push({
-                    id: locationId,
-                });
-
                 for (let l = 1; l < locs.length; l++) {
                     const d = locs[l].split("/");
                     if (d.length != 3) continue;
@@ -351,6 +341,9 @@
             // a location was added.
             routingManager.onMapClick(e.lngLat);
         });
+        mapHook.on("load", () => {
+            routingManager.onMapLoaded();
+        });
         mapHookHooked = true;
     }
     let locationsLayerHookHooked: boolean = false;
@@ -376,7 +369,7 @@
     <div class="row">
         <Locations
             bind:locations
-            selected={searchLocation}
+            selected={view == RoutingManager.VIEW_SEARCH ? searchLocation : -1}
             on:focus={(e) => routingManager.onSearch(e.detail)}
             on:input={(e) => routingManager.onSearchInput(e.detail.value)}
             on:close={(e) => routingManager.onRemoveOrClear(e.detail)}
