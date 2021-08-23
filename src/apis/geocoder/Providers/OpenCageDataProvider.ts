@@ -7,9 +7,14 @@ import * as turf from "@turf/turf";
 
 export class OpenCageDataProvider implements IProvider {
     private apiKey: string;
-    private settings: { maxResults?: number, language?: string };
+    private settings: { 
+        maxResults?: number, 
+        language?: string, 
+        bounds?: [number,number,number,number],
+        countrycode?: string
+    };
 
-    constructor(apiKey: string, settings?: { maxResults?: number, language?: string }) {
+    constructor(apiKey: string, settings?: { maxResults?: number, language?: string, bounds?: [number,number,number,number], countrycode?: string }) {
         this.apiKey = apiKey;
         this.settings =  settings ?? { maxResults: 10 };
     }
@@ -22,6 +27,17 @@ export class OpenCageDataProvider implements IProvider {
 
         if (query.location) {
             opencageQuery.bounds = `${query.location.lon-2},${query.location.lat-1},${query.location.lon+2},${query.location.lat+1}`;
+        }
+        if (typeof this.settings.bounds !== "undefined") {
+            const bounds = this.settings.bounds;
+            opencageQuery.bounds = `${bounds[0]},${bounds[1]},${bounds[2]},${bounds[3]}`
+        }
+        if (typeof query.bounds !== "undefined") {
+            const bounds = query.bounds;
+            opencageQuery.bounds = `${bounds[0]},${bounds[1]},${bounds[2]},${bounds[3]}`
+        }
+        if (typeof this.settings.countrycode !== "undefined") {
+            opencageQuery.countrycode = this.settings.countrycode;
         }
         if (this.settings.language) {
             opencageQuery.language = this.settings.language;

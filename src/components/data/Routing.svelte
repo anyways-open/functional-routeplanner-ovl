@@ -109,6 +109,8 @@
                     "dcec93be31054bc5a260386c0d84be98",
                     {
                         language: "nl",
+                        bounds: [2.63123,50.60416,5.91064,51.50532],
+                        countrycode: "be"
                     }
                 ),
             },
