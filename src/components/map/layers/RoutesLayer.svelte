@@ -232,7 +232,16 @@
                 // show routes.
                 const routeToSelect = routes.length == 1 ? 0 : selected;
                 if (typeof routes !== "undefined") {
-                    for (let a = 0; a < routes.length; a++) {
+                    let maxAlternatives = 1;
+                    if (
+                        typeof routes[0] !== "undefined" &&
+                        typeof routes[0].segments !== "undefined"
+                    ) {
+                        maxAlternatives =
+                            routes[0].segments.length > 1 ? 1 : routes.length;
+                    }
+
+                    for (let a = 0; a < maxAlternatives; a++) {
                         const alternative = routes[a];
                         if (typeof alternative === "undefined") continue;
 
