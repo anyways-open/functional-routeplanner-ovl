@@ -261,7 +261,7 @@
                     mapHook.defaultLayerState["cyclenodes-labels"]?.layout ??
                         {},
                     {
-                        "text-field": "{rcn_ref}",
+                        "text-field": "{lcn_ref}",
                         "text-size": 13,
                     }
                 ),
