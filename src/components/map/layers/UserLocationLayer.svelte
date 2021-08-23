@@ -30,7 +30,7 @@
         },
         showAccuracyCircle: true,
         showUserLocation: true,
-        trackUserLocation: true,
+        trackUserLocation: false,
     });
     map.addControl(geolocationControl, "top-right");
 
