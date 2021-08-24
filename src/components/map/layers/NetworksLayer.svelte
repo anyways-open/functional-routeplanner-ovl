@@ -37,6 +37,11 @@
                 //url: "https://api.anyways.eu/tiles/cyclenetworks/mvt.json",
             });
 
+            const nodesColor = "#ccad00";
+            const cycleHighwaysColor = "rgb(0, 129, 198)";
+            const schoolRoutesColor = "#00cc00";
+            const bffRoutesColor = "#cc0000";
+
             map.addLayer(
                 {
                     id: "cycle-highways-case",
@@ -74,10 +79,6 @@
                 },
                 before
             );
-
-            const nodesColor = "#ccad00";
-            const schoolRoutesColor = "#00cc00";
-            const bffRoutesColor = "#cc0000";
 
             map.addLayer(
                 {
@@ -128,7 +129,7 @@
                         }
                     ),
                     paint: {
-                        "line-color": "#ff0000",
+                        "line-color": cycleHighwaysColor,
                         "line-width": [
                             "interpolate",
                             ["linear"],
@@ -150,33 +151,70 @@
                 before
             );
 
-            map.addLayer({
-                id: "cycle-highways-labels",
-                type: "symbol",
-                source: "cyclenetworks-tiles",
-                "source-layer": "cyclenetwork",
-                minzoom: 12.5,
-                layout: Object.assign(
-                    mapHook.defaultLayerState["cycle-highways-labels"]
-                        ?.layout ?? {},
-                    {
-                        "text-field": "{ref}",
-                        "text-size": 15,
-                        "symbol-placement": "line",
-                        "symbol-spacing": 100,
-                    }
-                ),
-                paint: {
-                    "text-color": "#ff0000",
-                    "text-halo-color": "#FFFFFF",
-                    "text-halo-width": 1.5,
-                    "text-halo-blur": 1,
-                },
-                filter: [
-                    "all",
-                    ["==", "cycle_highway", "yes"],
-                    ["!=", "highway", "no"],
-                ],
+            // map.addLayer({
+            //     id: "cycle-highways-labels",
+            //     type: "symbol",
+            //     source: "cyclenetworks-tiles",
+            //     "source-layer": "cyclenetwork",
+            //     minzoom: 12.5,
+            //     layout: Object.assign(
+            //         mapHook.defaultLayerState["cycle-highways-labels"]
+            //             ?.layout ?? {},
+            //         {
+            //             "symbol-placement": "line",
+            //             "symbol-spacing": 100,
+            //         }
+            //     ),
+            //     paint: {
+            //         "text-color": cycleHighwaysColor,
+            //         "text-halo-color": "#FFFFFF",
+            //         "text-halo-width": 1.5,
+            //         "text-halo-blur": 1,
+            //     },
+            //     filter: [
+            //         "all",
+            //         ["==", "cycle_highway", "yes"],
+            //         ["!=", "highway", "no"],
+            //     ],
+            // });
+
+            map.loadImage("assets/img/icons/fietssnelwegen-128.png", (e, i) => {
+                if (e) throw e;
+
+                map.addImage("cycle-highway-shield", i);
+
+                map.addLayer({
+                    id: "cycle-highways-labels-shields",
+                    type: "symbol",
+                    source: "cyclenetworks-tiles",
+                    "source-layer": "cyclenetwork",
+                    minzoom: 12.5,
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["cycle-highways-labels"]
+                            ?.layout ?? {},
+                        {
+                            "text-field": "{ref}",
+                            "text-size": 11,
+                            "text-offset": [0, .3],
+                            "text-rotation-alignment": "viewport",
+                            "icon-image": "cycle-highway-shield",
+                            "icon-size": 0.3,
+                            "icon-rotation-alignment": "viewport",
+                            "symbol-placement": "line",
+                            "symbol-spacing": 200,
+                        }
+                    ),
+                    paint: {
+                        "text-color": "#FFFFFF",
+                        "text-halo-width": 0.5,
+                        "text-halo-color": "#FFFFFF",
+                    },
+                    filter: [
+                        "all",
+                        ["==", "cycle_highway", "yes"],
+                        ["!=", "highway", "no"],
+                    ],
+                });
             });
 
             map.addLayer(

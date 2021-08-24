@@ -35,7 +35,7 @@
 
         map = new Map({
             container: "mapbox-gl-container",
-            style: "https://api.maptiler.com/maps/basic/style.json?key=2Piy1GKXoXq0rHzzBVDA",
+            style: "https://api.maptiler.com/maps/152a1435-6dc1-441e-be13-3647c1ccb483/style.json?key=OZUCIh4RNx38vXF8gF4H",
             center: center,
             zoom: zoom,
             hash: false
