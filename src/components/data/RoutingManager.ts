@@ -259,6 +259,7 @@ export class RoutingManager {
         }
 
         // update internal state.
+        this.locations[l].backup = Object.assign({}, this.locations[l]);
         this.locations[l].isUserLocation = false;
         this.locations[l].description = "";
         this.searchLocation = l;
@@ -370,6 +371,7 @@ export class RoutingManager {
         // internal state:
         // - add new empty location.
         // - set view to START, new location is unknown.
+        // - if active location reset.
         // actions: 
         // {none}
         // push:
@@ -384,6 +386,22 @@ export class RoutingManager {
         }
 
         // update state.
+        if (this.view == RoutingManager.VIEW_SEARCH) {
+            if (this.searchLocation === -1) {
+                console.error("in search view but no search location.");
+                return;
+            }
+
+            const l = this.searchLocation;
+            if (typeof this.locations[l].backup === "undefined") {
+                console.error("in search view but search location has no backup.");
+                return;
+            }
+
+            // restore backup.
+            this.locations[l] = this.locations[l].backup;
+        }
+
         // add a new location with a new id.
         this.view = RoutingManager.VIEW_START;
         let nextLocationId = 0;
