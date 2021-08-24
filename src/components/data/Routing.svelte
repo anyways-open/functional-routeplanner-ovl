@@ -230,6 +230,7 @@
         urlHashParsed
     ) {
         let s = `${escape(profile)}`;
+        let isEmpty = true;
         locations.forEach((l) => {
             if (s.length > 0) {
                 s += ",";
@@ -239,6 +240,7 @@
                 s += `empty`;
                 return;
             }
+            isEmpty = false;
 
             if (l.description) {
                 s += `${escape(l.description)}/`;
@@ -250,7 +252,11 @@
             s += `${location.lng.toFixed(5)}/${location.lat.toFixed(5)}`;
         });
 
-        urlHash.update(s);
+        if (isEmpty) {
+            urlHash.update();
+        } else {
+            urlHash.update(s);
+        }
     }
 
     // updates the state of this component.

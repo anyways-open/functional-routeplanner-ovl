@@ -277,7 +277,7 @@ export class RoutingManager {
      * @param l The location index.
      */
     public onRemoveOrClear(l: number) {
-        // preconditions: view=ROUTES|START
+        // preconditions: view=ROUTES|START|SEARCH
         // event: onRemoveOrClear
         // internal state:
         // - remove or empty out location.
@@ -292,7 +292,8 @@ export class RoutingManager {
 
         // check preconditions.
         if (this.view !== RoutingManager.VIEW_ROUTES &&
-            this.view !== RoutingManager.VIEW_START) {
+            this.view !== RoutingManager.VIEW_START &&
+            this.view !== RoutingManager.VIEW_SEARCH) {
             console.warn("add not in correct view");
             return;
         }
@@ -364,10 +365,11 @@ export class RoutingManager {
      * Called when the user wants to add a new location.
      */
     public onAdd() {
-        // preconditions: view=ROUTES|START
+        // preconditions: view=ROUTES|START|SEARCH
         // event: onAdd
         // internal state:
         // - add new empty location.
+        // - set view to START, new location is unknown.
         // actions: 
         // {none}
         // push:
@@ -375,13 +377,15 @@ export class RoutingManager {
 
         // check preconditions.
         if (this.view !== RoutingManager.VIEW_ROUTES &&
-            this.view !== RoutingManager.VIEW_START) {
+            this.view !== RoutingManager.VIEW_START &&
+            this.view !== RoutingManager.VIEW_SEARCH) {
             console.warn("add not in correct view");
             return;
         }
 
         // update state.
         // add a new location with a new id.
+        this.view = RoutingManager.VIEW_START;
         let nextLocationId = 0;
         this.locations.forEach(l => {
             if (l.id + 1 > nextLocationId) nextLocationId = l.id + 1;
@@ -394,7 +398,8 @@ export class RoutingManager {
 
         // push state.
         this.pushState({
-            locations: this.locations
+            locations: this.locations,
+            view: this.view
         });
     }
 
@@ -432,7 +437,7 @@ export class RoutingManager {
      * Called when the user clicks on the map.
      */
     public onMapClick(location: { lng: number, lat: number }) {
-        // preconditions: view=ROUTES|START
+        // preconditions: view=ROUTES|START|SEARCH
         // event: onMapClick
         // internal state:
         // - update first empty location or add new one.
@@ -447,7 +452,8 @@ export class RoutingManager {
 
         // check preconditions.
         if (this.view !== RoutingManager.VIEW_ROUTES &&
-            this.view !== RoutingManager.VIEW_START) {
+            this.view !== RoutingManager.VIEW_START &&
+            this.view !== RoutingManager.VIEW_SEARCH) {
             console.warn("add not in correct view");
             return;
         }
