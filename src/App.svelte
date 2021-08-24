@@ -95,9 +95,9 @@
 			layers: [
 				"cycle-highways-case",
 				"cycle-highways",
-				"cycle-highways-labels",
+				"cycle-highways-labels-shields",
 			],
-			logo: "assets/icons/highway.svg",
+			logo: "assets/icons/cyclehighways.svg",
 			description: "De Vlaamse fietssnelwegen",
 			visible: true,
 			enabled: true,

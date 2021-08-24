@@ -153,7 +153,7 @@
                     type="button"
                     on:click={() => onLayerToggle(i)}
                 >
-                    <img src={layer.logo} alt={layer.name} />
+                    <div class="img-container"><img src={layer.logo} alt={layer.name} /></div>
                     <span>{layer.name}</span>
                 </button>
             {/if}
@@ -176,9 +176,12 @@
         border: none;
     }
 
+    .img-container {
+        width: 100%;
+    }
+
     .layer-control img {
         height: 25px;
-        width: 100%;
     }
 
     .btn {

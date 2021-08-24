@@ -190,7 +190,7 @@
                     "source-layer": "cyclenetwork",
                     minzoom: 12.5,
                     layout: Object.assign(
-                        mapHook.defaultLayerState["cycle-highways-labels"]
+                        mapHook.defaultLayerState["cycle-highways-labels-shields"]
                             ?.layout ?? {},
                         {
                             "text-field": "{ref}",
