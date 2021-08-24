@@ -18,8 +18,8 @@
         position: absolute;
         width: 30px;
         height: 30px;
-        top: 15px;
-        right: 15px;
+        top: 10px;
+        right: 50px;
         box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.1);
     }
 

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, setContext } from "svelte";
-    import { LngLatLike, Map } from "mapbox-gl";
+    import { LngLatLike, Map, NavigationControl } from "mapbox-gl";
     import "../../../node_modules/mapbox-gl/dist/mapbox-gl.css";
     import { key } from "./map";
     import { MapHook } from "./MapHook";
@@ -40,6 +40,11 @@
             zoom: zoom,
             hash: false
         });
+
+        const nav = new NavigationControl({
+            visualizePitch: true
+        });
+        map.addControl(nav, "top-right");
 
         map.on("move", () => {
             const center = map.getCenter();

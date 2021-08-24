@@ -91,15 +91,15 @@
         background-color: #1da1f2;
     }
 
-    .description {
-        height: 37px;
-    }
-
 	@media (min-width: 576px) { 
 		.profiles-container {
             padding: unset;
 		    bottom: unset;
 		}
+
+        .description {
+            height: 37px;
+        }
 
         .profile-btn-group {
             background: #0d8bd9;
