@@ -444,6 +444,7 @@ export class RoutingManager {
         // - set view to ROUTEs is route can be calculated.
         // - trigger reverse geocode.
         // - trigger routing.
+        // - if in search mode, replace destination.
         // actions: 
         // {none}
         // push:
@@ -459,25 +460,52 @@ export class RoutingManager {
         }
 
         // update state.
-        // find first empty location or add empty one.
-        let l = this.locations.findIndex(x => typeof x.location == "undefined");
-        if (l == -1) {
-            let nextLocationId = -1;
-            this.locations.forEach(l => {
-                if (l.id + 1 > nextLocationId) nextLocationId = l.id + 1;
+        let l = -1;
+        if (this.view !== RoutingManager.VIEW_SEARCH) {
+            // find first empty location or add empty one.
+            l = this.locations.findIndex(x => typeof x.location == "undefined");
+            if (l == -1) {
+                let nextLocationId = -1;
+                this.locations.forEach(l => {
+                    if (l.id + 1 > nextLocationId) nextLocationId = l.id + 1;
+                });
+                this.locations.push({
+                    id: nextLocationId,
+                    description: "",
+                    isUserLocation: false,
+                    location: location
+                });
+                l = this.locations.length - 1;
+            } 
+            const newLocation = this.locations[l];
+            newLocation.location = location;
+            newLocation.description = `${location.lng},${location.lat}`;
+            newLocation.isUserLocation = false;
+        } else {
+            if (this.searchLocation === -1) {
+                console.error("in search view but no search location.");
+                return;
+            }
+
+            l = this.searchLocation;
+            this.routes.forEach((route) => {
+                if (typeof route === "undefined") return;
+    
+                if (l > 0 && l < route.segments.length + 1) {
+                    route.segments[l - 1] = undefined;
+                }
+                if (l < route.segments.length) {
+                    route.segments[l] = undefined;
+                }
+                route.segments.splice(l, 1);
             });
-            this.locations.push({
-                id: nextLocationId,
-                description: "",
+            this.locations[this.searchLocation] = {
+                id: this.locations[this.searchLocation].id,
                 isUserLocation: false,
+                description: `${location.lng},${location.lat}`,
                 location: location
-            });
-            l = this.locations.length - 1;
-        } 
-        const newLocation = this.locations[l];
-        newLocation.location = location;
-        newLocation.description = `${location.lng},${location.lat}`;
-        newLocation.isUserLocation = false;
+            };
+        }
 
         // set view to ROUTES if routes can be calculated.
         this.view = RoutingManager.VIEW_ROUTES;
