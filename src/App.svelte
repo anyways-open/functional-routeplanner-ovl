@@ -21,7 +21,7 @@
 	import type { UserLocationLayerHook } from "./components/map/layers/UserLocationLayerHook";
 	import UserLocationLayer from "./components/map/layers/UserLocationLayer.svelte";
 	import Settings from "./components/settings/Settings.svelte";
-import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
+	import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
@@ -32,6 +32,7 @@ import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
 		data: "25%",
 		map: "calc(75% + 6px)",
 	};
+
 	onMount(async () => {
 		dataElement = document.getElementById("data");
 		mapElement = document.getElementById("map");
@@ -51,6 +52,27 @@ import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
 			map: "assets/img/base-layers/map.png",
 		},
 	};
+	let profiles: {
+		id: string;
+		description: string;
+		icon: string;
+		longDescription: string;
+	}[] = [
+		{
+			id: "bicycle.commute",
+			description: "Fietsen",
+			icon: "assets/icons/bicycle.svg",
+			longDescription:
+				"De snelste route tussen 2 punten rekening houdend met veiligheid en comfort.",
+		},
+		{
+			id: "bicycle.functional_network",
+			description: "Fietsen langs netwerken",
+			icon: "assets/icons/network.svg",
+			longDescription:
+				"Een route langs de fietssnelwegen en/of het Gentse fietsknooppunten netwerk.",
+		},
+	];
 	let layers: LayerConfig[] = [
 		{
 			id: "LN",
@@ -131,7 +153,6 @@ import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
 	let locations: Location[] = [
 		{
 			id: 0,
-			isUserLocation: true
 		},
 		{
 			id: 1,
@@ -194,7 +215,7 @@ import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
 
 	<div
 		id="data"
-		class="data {settingsOpen ? "d-none" : ""}"
+		class="data {settingsOpen ? 'd-none' : ''}"
 		style="height: {heights.data};"
 		on:touchstart={onTouchStart}
 		on:touchmove={onTouchMove}
@@ -202,6 +223,7 @@ import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
 	>
 		<Routing
 			bind:routeLayerHook={routingLayerHook}
+			{profiles}
 			bind:mapHook
 			bind:routes
 			bind:locations
@@ -211,8 +233,8 @@ import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
 			on:expand={(e) => onExpand(e.detail)}
 		/>
 	</div>
-	
-	<Settings bind:profile bind:layers bind:open={settingsOpen} />
+
+	<Settings {profiles} bind:profile bind:layers bind:open={settingsOpen} />
 </div>
 
 <style>

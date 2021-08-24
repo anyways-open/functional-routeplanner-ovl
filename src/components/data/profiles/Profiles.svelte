@@ -2,15 +2,15 @@
     import { createEventDispatcher } from "svelte";
     export let profile: string = "bicycle.commute";
 
-    const profiles: { id: string, description: string, icon: string}[] = [
+    export let profiles: { id: string, description: string, icon: string}[] = [
         {
             id: "bicycle.commute",
-            description: "Functioneel fietsen",
+            description: "Fietsen",
             icon:"assets/icons/bicycle.svg"
         },
         {
             id: "bicycle.functional_network",
-            description: "Fietsnetwerken",
+            description: "Fietsen langs netwerken",
             icon: "assets/icons/network.svg"
         }
     ];
@@ -31,7 +31,7 @@
                 <span>
                     <img src="{p.icon}" alt="Snelste Route" />
                 </span>
-                <span>
+                <span class="description">
                     {p.description}
                 </span>
             </div>
@@ -55,10 +55,10 @@
         color: #fff;
         flex-grow: 0;
         flex-basis: 50%;
-        height: 90px;
     }
 
     .button-content {
+        padding-top: 5px;
         text-align: center;
         align-self: center;
         width: 100%;
@@ -91,6 +91,10 @@
         background-color: #1da1f2;
     }
 
+    .description {
+        height: 37px;
+    }
+
 	@media (min-width: 576px) { 
 		.profiles-container {
             padding: unset;
@@ -110,7 +114,6 @@
             text-align: center;
             color: #fff;
             width: 50%;
-            height: 100%;
         }
 
         .btn:first-child {

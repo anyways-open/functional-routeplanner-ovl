@@ -25,6 +25,8 @@
     export let routeLayerHook: RoutesLayerHook; // interface to communicate with the routes layer.
     export let locationsLayerHook: LocationsLayerHook; // interface to communicate with the locations component.
     export let userLocationLayerHook: UserLocationLayerHook; // interface to communicate with the user location component.
+    export let profiles: { id: string, description: string, icon: string, longDescription: string}[] = [];
+    
 
     // events.
     const dispatch = createEventDispatcher<{ expand: boolean }>();
@@ -37,7 +39,6 @@
     export let locations: Location[] = [
         {
             id: 0,
-            isUserLocation: true
         },
         {
             id: 1,
@@ -51,6 +52,7 @@
     let userLocationRequested: boolean; // the user location is requested.
     let userLocationAvailable: boolean = true; // the user location is available.
     let routingManager: RoutingManager;
+    let isMobile = false;
 
     // TODO: move this to general settings files.
     // instantiate the routing api.
@@ -135,6 +137,11 @@
     let urlHash = new UrlHashHandler("route");
     let urlHashParsed = false;
     onMount(async () => {
+
+        if (document.body.clientWidth < 576) {
+            isMobile = true;
+        }
+        
         // state is as follows:
         // an array of locations comma seperate
         // with each location: name/lon/lat
@@ -185,6 +192,10 @@
                     }
                 }
             }
+        } else {
+            if (isMobile) {
+                locations[0].isUserLocation = true;
+            }
         }
         urlHashParsed = true;
 
@@ -193,6 +204,7 @@
             view,
             profile,
             locations,
+            isMobile,
             onStateUpdate,
             (query, callback) => {
                 geocoder.geocode({ string: query }, callback);
@@ -385,6 +397,7 @@
             : ''}"
     >
         <Profiles
+            {profiles}
             {profile}
             on:profile={(p) => routingManager.onSelectProfile(p.detail)}
         />

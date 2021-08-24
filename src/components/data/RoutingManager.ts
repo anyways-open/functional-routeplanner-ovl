@@ -22,6 +22,7 @@ export class RoutingManager {
     private focusLocation: number = -1; // the location that has focus.
     private userLocationRequested: boolean; // the user location is requested.
     private userLocationAvailable: boolean = true; // the user location is available.
+    private readonly isMobile;
 
     private readonly pushState: (state: any) => void; // callback used to push state.
 
@@ -51,7 +52,7 @@ export class RoutingManager {
         queue: []
     };
 
-    constructor(view: string, profile: string, locations: Location[], pushState: (state: any) => void,
+    constructor(view: string, profile: string, locations: Location[], isMobile: boolean, pushState: (state: any) => void,
         geocode: (query: string, callback: (results: IForwardResult[]) => void) => void,
         reverseGeocode: (l: { lng: number; lat: number}, callback: (results: IReverseResult[]) => void) => void,
         route: (from: Location, to: Location, profile: string, alternatives: boolean, callback: (results: any) => void) => void) {
@@ -59,6 +60,7 @@ export class RoutingManager {
         this.geocode = geocode;
         this.reverseGeocode = reverseGeocode;
         this.route = route;
+        this.isMobile = isMobile;
         this.view = view;
         this.profile = profile;
         this.locations = locations;
@@ -413,7 +415,7 @@ export class RoutingManager {
 
         if (this.view != RoutingManager.VIEW_START) return;
 
-        let l = this.locations.findIndex(x => typeof x.isUserLocation);
+        let l = this.locations.findIndex(x => x.isUserLocation);
         if (l !== -1) {
             this.userLocationRequested = true;
             this.searchLocation = l;

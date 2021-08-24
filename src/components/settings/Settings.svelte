@@ -6,10 +6,16 @@
     import BackButton from "./BackButton.svelte";
     import type { LayerConfig } from "../map/controls/layers/LayerConfig";
 
-    export let open: boolean = false;
-    export let view: string = "NONE";
+    export let open: boolean = true;
+    export let view: string = "PROFILES";
     export let profile: string;
     export let layers: LayerConfig[] = [];
+    export let profiles: {
+        id: string;
+        description: string;
+        icon: string;
+        longDescription: string;
+    }[] = [];
 
     function onOpen(): void {
         open = true;
@@ -121,7 +127,7 @@
             </div>
         {:else if view == "PROFILES"}
             <BackButton on:click={onCloseView} />
-            <RoutingProfilesSettings bind:profile />
+            <RoutingProfilesSettings {profiles} bind:profile />
         {:else if view == "LAYERS"}
             <BackButton on:click={onCloseView} />
             <LayerSettings bind:layers />
