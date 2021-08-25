@@ -145,7 +145,7 @@
                     filter: [
                         "all",
                         ["==", "cycle_highway", "yes"],
-                        ["!=", "highway", "no"],
+                        ["!=", "state", "proposed"],
                     ],
                 },
                 before
@@ -212,7 +212,7 @@
                     filter: [
                         "all",
                         ["==", "cycle_highway", "yes"],
-                        ["!=", "highway", "no"],
+                        ["!=", "state", "proposed"],
                     ],
                 });
             });
