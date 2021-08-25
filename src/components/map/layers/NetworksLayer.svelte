@@ -42,6 +42,15 @@
             const schoolRoutesColor = "#00cc00";
             const bffRoutesColor = "#cc0000";
 
+            const cycleHighwaysFilter = [
+                "all",
+                ["==", "cycle_highway", "yes"],
+                ["all", 
+                    ["!=", "note:state", "has_highway_under_construction"], 
+                    ["!=", "note:state", "has_highway_no"]
+                ]
+            ];
+
             map.addLayer(
                 {
                     id: "cycle-highways-case",
@@ -71,11 +80,7 @@
                         ],
                         "line-width": 2,
                     },
-                    filter: [
-                        "all",
-                        ["==", "cycle_highway", "yes"],
-                        ["!=", "highway", "no"],
-                    ],
+                    filter: cycleHighwaysFilter,
                 },
                 before
             );
@@ -142,11 +147,7 @@
                             3,
                         ],
                     },
-                    filter: [
-                        "all",
-                        ["==", "cycle_highway", "yes"],
-                        ["!=", "state", "proposed"],
-                    ],
+                    filter: cycleHighwaysFilter,
                 },
                 before
             );
@@ -190,12 +191,13 @@
                     "source-layer": "cyclenetwork",
                     minzoom: 12.5,
                     layout: Object.assign(
-                        mapHook.defaultLayerState["cycle-highways-labels-shields"]
-                            ?.layout ?? {},
+                        mapHook.defaultLayerState[
+                            "cycle-highways-labels-shields"
+                        ]?.layout ?? {},
                         {
                             "text-field": "{ref}",
                             "text-size": 11,
-                            "text-offset": [0, .3],
+                            "text-offset": [0, 0.3],
                             "text-rotation-alignment": "viewport",
                             "icon-image": "cycle-highway-shield",
                             "icon-size": 0.3,
@@ -209,11 +211,7 @@
                         "text-halo-width": 0.5,
                         "text-halo-color": "#FFFFFF",
                     },
-                    filter: [
-                        "all",
-                        ["==", "cycle_highway", "yes"],
-                        ["!=", "state", "proposed"],
-                    ],
+                    filter: cycleHighwaysFilter,
                 });
             });
 
