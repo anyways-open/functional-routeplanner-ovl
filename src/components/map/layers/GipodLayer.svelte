@@ -2,6 +2,7 @@
     import type { Map } from "mapbox-gl";
     import { onMount, getContext } from "svelte";
     import { key } from "../map";
+    import type { MapHook } from "../MapHook";
 
     const { getMap } = getContext(key);
     const mapAndHook = getMap();
@@ -10,6 +11,33 @@
 
     onMount(async () => {
         map.on("load", () => {
+            // get lowest label and road.
+            const style = map.getStyle();
+            let lowestRoad = undefined;
+            let lowestLabel = undefined;
+            let lowestSymbol = undefined;
+            for (let l = 0; l < style.layers.length; l++) {
+                const layer = style.layers[l];
+
+                if (layer && layer["source-layer"] === "transportation") {
+                    if (!lowestRoad) {
+                        lowestRoad = layer.id;
+                    }
+                }
+
+                if (layer && layer["source-layer"] === "transportation_name") {
+                    if (!lowestLabel) {
+                        lowestLabel = layer.id;
+                    }
+                }
+
+                if (layer && layer.type == "symbol") {
+                    if (!lowestSymbol) {
+                        lowestSymbol = layer.id;
+                    }
+                }
+            }
+
             map.addSource("gipod-con", {
                 type: "raster",
                 tiles: [
@@ -34,9 +62,8 @@
                 paint: {},
                 layout: Object.assign(
                         mapHook.defaultLayerState["gipod-con"]?.layout ?? {}, {
-                    visibility: "none",
                 }),
-            });
+            }, lowestLabel);
 
             map.addLayer({
                 id: "gipod-icon",
@@ -46,7 +73,6 @@
                 paint: {},
                 layout: Object.assign(
                         mapHook.defaultLayerState["gipod-icon"]?.layout ?? {}, {
-                    visibility: "none",
                 }),
             });
         });
