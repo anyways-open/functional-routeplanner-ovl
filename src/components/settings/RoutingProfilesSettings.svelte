@@ -39,7 +39,7 @@
 
 <div class="card p-2 m-2">
     {#each profiles as p}
-        <div class="row px-2">
+        <div class="row align-items-center px-2">
             <div class="col-5">
                 <div
                     type="button"

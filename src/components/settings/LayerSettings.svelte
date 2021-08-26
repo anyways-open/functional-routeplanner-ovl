@@ -93,7 +93,7 @@
 <div class="card p-2 m-2">
     {#each layers as layer, i}
         {#if layer.enabled}
-            <div class="row px-0">
+            <div class="row align-items-center px-0">
                 <div class="col-5 pe-0">
                     <button
                         class="btn {layer.visible ? 'active' : ''} border-0"
@@ -102,7 +102,7 @@
                     >
                         <div class="button-content">
                             <span>
-                                <img src={layer.logo} alt={layer.name} />
+                                <div class="img-container"><img src={layer.logo} alt={layer.name} /></div>
                             </span>
                             <span>
                                 {layer.name}
@@ -160,6 +160,9 @@
 
     .btn img {
         height: 25px;
+    }
+
+    .img-container {
         width: 100%;
     }
 </style>
