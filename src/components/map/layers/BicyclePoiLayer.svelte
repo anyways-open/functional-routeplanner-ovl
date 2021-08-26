@@ -59,6 +59,7 @@
                             { "font-scale": 0.8 },
                         ],
                         "text-anchor": "top",
+                        "symbol-sort-key": 10
                     },
                     filter: [
                         "all",
@@ -100,6 +101,7 @@
                     layout: {
                         "icon-image": "bicycle-parking",
                         "icon-size": 1,
+                        "symbol-sort-key": 10
                     },
                     filter: [
                         "all",
