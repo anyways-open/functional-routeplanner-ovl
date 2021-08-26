@@ -2,7 +2,7 @@
     import type { Map } from "mapbox-gl";
     import { onMount, getContext } from "svelte";
     import { key } from "../map";
-    import { MapHook } from "../MapHook";
+    import type { MapHook } from "../MapHook";
 
     const { getMap } = getContext(key);
     const mapAndHook = getMap();

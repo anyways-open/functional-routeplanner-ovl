@@ -302,6 +302,24 @@
             map.loadImage("assets/img/icons/fietssnelwegen-128.png", (e, i) => {
                 if (e) throw e;
 
+                const style = map.getStyle();
+                let before: string = undefined;
+                for (let l = 0; l < style.layers.length; l++) {
+                    const layer = style.layers[l];
+
+                    if (layer && layer["source-layer"] === "transportation_name") {
+                        if (!before) {
+                            before = layer.id;
+                        }
+                    }
+
+                    if (layer && layer["source"] == "route") {
+                        if (!before) {
+                            before = layer.id;
+                        }
+                    }
+                }
+
                 map.addImage("cycle-highway-shield", i);
 
                 map.addLayer(
@@ -496,9 +514,8 @@
                                 12,
                                 2,
                                 16,
-                                3,
-                            ],
-                            "line-dasharray": [0.1, 2],
+                                2,
+                            ]
                         },
                         filter: [
                             "any",
