@@ -45,13 +45,19 @@
             const cycleHighwaysFilter = [
                 "all",
                 ["==", "cycle_highway", "yes"],
-                ["all", ["!=", "highway", "proposed"], ["!=", "highway", "no"], ["!=", "state", "proposed"]],
+                ["all", ["!=", "highway", "proposed"], ["!=", "highway", "no"], ["!=", "state", "proposed"], ["!=", "state", "temporary"]],
             ];
 
             const cycleHighwaysFilterProposed = [
                 "all",
                 ["==", "cycle_highway", "yes"],
                 ["all", ["!=", "highway", "proposed"], ["!=", "highway", "no"], ["==", "state", "proposed"]],
+            ];
+
+            const cycleHighwaysFilterTemporary = [
+                "all",
+                ["==", "cycle_highway", "yes"],
+                ["all", ["!=", "highway", "proposed"], ["!=", "highway", "no"], ["==", "state", "temporary"]],
             ];
 
             map.addLayer(
@@ -83,7 +89,7 @@
                         ],
                         "line-width": 2,
                     },
-                    filter: cycleHighwaysFilter,
+                    filter: ["any", cycleHighwaysFilter, cycleHighwaysFilterTemporary]
                 },
                 before
             );
@@ -312,6 +318,40 @@
                                 "line-dasharray": [0.1,2]
                         },
                         filter: cycleHighwaysFilterProposed,
+                    },
+                    before
+                );
+
+                map.addLayer(
+                    {
+                        id: "cycle-highways-temporary",
+                        type: "line",
+                        source: "cyclenetworks-tiles",
+                        "source-layer": "cyclenetwork",
+                        layout: Object.assign(
+                            mapHook.defaultLayerState["cycle-highways"]
+                                ?.layout ?? {},
+                            {
+                                "line-join": "round",
+                                "line-cap": "round"
+                            }
+                        ),
+                        paint: {
+                            "line-color": cycleHighwaysColor,
+                            "line-width": [
+                                "interpolate",
+                                ["linear"],
+                                ["zoom"],
+                                10,
+                                3,
+                                12,
+                                3,
+                                16,
+                                3,
+                            ],
+                                "line-dasharray": [0.1,2]
+                        },
+                        filter: cycleHighwaysFilterTemporary,
                     },
                     before
                 );
