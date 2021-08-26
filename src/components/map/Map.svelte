@@ -33,9 +33,15 @@
             }
         }
 
+        const styleResponse = await fetch(
+                "https://api.maptiler.com/maps/152a1435-6dc1-441e-be13-3647c1ccb483/style.json?key=OZUCIh4RNx38vXF8gF4H"
+            );
+        const styleJson = await styleResponse.json();
+        styleJson.sources.openmaptiles.url = "https://tiles.anyways.eu/data/v3.json";
+
         map = new Map({
             container: "mapbox-gl-container",
-            style: "https://api.maptiler.com/maps/152a1435-6dc1-441e-be13-3647c1ccb483/style.json?key=OZUCIh4RNx38vXF8gF4H",
+            style: styleJson,
             center: center,
             zoom: zoom,
             hash: false

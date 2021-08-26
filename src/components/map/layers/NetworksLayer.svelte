@@ -42,22 +42,34 @@
             const schoolRoutesColor = "#00cc00";
             const bffRoutesColor = "#cc0000";
 
+            const nonExistingInfra = [
+                "all",
+                ["!=", "highway", "construction"],
+                ["!=", "highway", "proposed"],
+                ["!=", "highway", "no"],
+            ];
+
             const cycleHighwaysFilter = [
                 "all",
                 ["==", "cycle_highway", "yes"],
-                ["all", ["!=", "highway", "proposed"], ["!=", "highway", "no"], ["!=", "state", "proposed"], ["!=", "state", "temporary"]],
+                [
+                    "all",
+                    nonExistingInfra,
+                    ["!=", "state", "proposed"],
+                    ["!=", "state", "temporary"],
+                ],
             ];
 
             const cycleHighwaysFilterProposed = [
                 "all",
                 ["==", "cycle_highway", "yes"],
-                ["all", ["!=", "highway", "proposed"], ["!=", "highway", "no"], ["==", "state", "proposed"]],
+                ["all", nonExistingInfra, ["==", "state", "proposed"]],
             ];
 
             const cycleHighwaysFilterTemporary = [
                 "all",
                 ["==", "cycle_highway", "yes"],
-                ["all", ["!=", "highway", "proposed"], ["!=", "highway", "no"], ["==", "state", "temporary"]],
+                ["all", nonExistingInfra, ["==", "state", "temporary"]],
             ];
 
             map.addLayer(
@@ -89,7 +101,44 @@
                         ],
                         "line-width": 2,
                     },
-                    filter: ["any", cycleHighwaysFilter, cycleHighwaysFilterTemporary]
+                    filter: ["any", cycleHighwaysFilter],
+                },
+                before
+            );
+
+            map.addLayer(
+                {
+                    id: "cycle-highways-case-proposed",
+                    type: "line",
+                    source: "cyclenetworks-tiles",
+                    "source-layer": "cyclenetwork",
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["cycle-highways-case"]
+                            ?.layout ?? {},
+                        {
+                            "line-join": "round",
+                            "line-cap": "round",
+                        }
+                    ),
+                    paint: {
+                        "line-color": "#fff",
+                        "line-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            10,
+                            2,
+                            12,
+                            3,
+                            16,
+                            3,
+                        ],
+                    },
+                    filter: [
+                        "any",
+                        cycleHighwaysFilterProposed,
+                        cycleHighwaysFilterTemporary,
+                    ],
                 },
                 before
             );
@@ -127,33 +176,6 @@
                 },
                 before
             );
-
-            // map.addLayer({
-            //     id: "cycle-highways-labels",
-            //     type: "symbol",
-            //     source: "cyclenetworks-tiles",
-            //     "source-layer": "cyclenetwork",
-            //     minzoom: 12.5,
-            //     layout: Object.assign(
-            //         mapHook.defaultLayerState["cycle-highways-labels"]
-            //             ?.layout ?? {},
-            //         {
-            //             "symbol-placement": "line",
-            //             "symbol-spacing": 100,
-            //         }
-            //     ),
-            //     paint: {
-            //         "text-color": cycleHighwaysColor,
-            //         "text-halo-color": "#FFFFFF",
-            //         "text-halo-width": 1.5,
-            //         "text-halo-blur": 1,
-            //     },
-            //     filter: [
-            //         "all",
-            //         ["==", "cycle_highway", "yes"],
-            //         ["!=", "highway", "no"],
-            //     ],
-            // });
 
             map.loadImage("assets/img/icons/fietssnelwegen-128.png", (e, i) => {
                 if (e) throw e;
@@ -299,7 +321,7 @@
                                 ?.layout ?? {},
                             {
                                 "line-join": "round",
-                                "line-cap": "round"
+                                "line-cap": "round",
                             }
                         ),
                         paint: {
@@ -309,49 +331,19 @@
                                 ["linear"],
                                 ["zoom"],
                                 10,
-                                3,
+                                1,
                                 12,
-                                3,
+                                2,
                                 16,
                                 3,
                             ],
-                                "line-dasharray": [0.1,2]
+                            "line-dasharray": [0.1, 2],
                         },
-                        filter: cycleHighwaysFilterProposed,
-                    },
-                    before
-                );
-
-                map.addLayer(
-                    {
-                        id: "cycle-highways-temporary",
-                        type: "line",
-                        source: "cyclenetworks-tiles",
-                        "source-layer": "cyclenetwork",
-                        layout: Object.assign(
-                            mapHook.defaultLayerState["cycle-highways"]
-                                ?.layout ?? {},
-                            {
-                                "line-join": "round",
-                                "line-cap": "round"
-                            }
-                        ),
-                        paint: {
-                            "line-color": cycleHighwaysColor,
-                            "line-width": [
-                                "interpolate",
-                                ["linear"],
-                                ["zoom"],
-                                10,
-                                3,
-                                12,
-                                3,
-                                16,
-                                3,
-                            ],
-                                "line-dasharray": [0.1,2]
-                        },
-                        filter: cycleHighwaysFilterTemporary,
+                        filter: [
+                            "any",
+                            cycleHighwaysFilterTemporary,
+                            cycleHighwaysFilterProposed,
+                        ],
                     },
                     before
                 );
