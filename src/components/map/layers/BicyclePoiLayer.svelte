@@ -17,28 +17,6 @@
                 map.addImage("bicycle-shop", i);
 
                 map.addLayer({
-                    id: "bicycle-shops-back",
-                    type: "circle",
-                    source: "openmaptiles",
-                    "source-layer": "poi",
-                    minzoom: 15,
-                    paint: {
-                        "circle-translate": [0, -10],
-                        "circle-radius": 14,
-                        "circle-color": "#FFF",
-                        "circle-opacity": 0.5,
-                        "circle-stroke-color": "#FFF",
-                        "circle-stroke-width": 5,
-                        "circle-stroke-opacity": 0.1,
-                    },
-                    filter: [
-                        "all",
-                        ["==", "$type", "Point"],
-                        ["in", "class", "bicycle"],
-                    ],
-                });
-
-                map.addLayer({
                     id: "bicycle-shops",
                     type: "symbol",
                     source: "openmaptiles",
@@ -73,24 +51,6 @@
                 if (e) throw e;
 
                 map.addImage("bicycle-parking", i);
-
-                map.addLayer({
-                    id: "bicycle-parkings-back",
-                    type: "circle",
-                    source: "openmaptiles",
-                    "source-layer": "poi",
-                    minzoom: 15,
-                    paint: {
-                        "circle-radius": 10,
-                        "circle-color": "#FFF",
-                        "circle-opacity": 0.7,
-                    },
-                    filter: [
-                        "all",
-                        ["==", "$type", "Point"],
-                        ["in", "class", "bicycle_parking"],
-                    ],
-                });
 
                 map.addLayer({
                     id: "bicycle-parkings",
