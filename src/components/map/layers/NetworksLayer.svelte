@@ -46,8 +46,8 @@
                 "all",
                 ["==", "cycle_highway", "yes"],
                 ["all", 
-                    ["!=", "note:state", "has_highway_under_construction"], 
-                    ["!=", "note:state", "has_highway_no"]
+                    ["!=", "highway", "proposed"], 
+                    ["!=", "highway", "no"]
                 ]
             ];
 
