@@ -44,7 +44,8 @@
             style: styleJson,
             center: center,
             zoom: zoom,
-            hash: false
+            hash: false,
+            attributionControl: false
         });
 
         const nav = new NavigationControl({

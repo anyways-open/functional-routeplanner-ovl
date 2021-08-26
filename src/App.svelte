@@ -22,6 +22,8 @@
 	import UserLocationLayer from "./components/map/layers/UserLocationLayer.svelte";
 	import Settings from "./components/settings/Settings.svelte";
 	import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
+import type { AttributionControlOptions } from "./components/map/controls/attribution/AttributionControlOptions";
+import AttributionControl from "./components/map/controls/attribution/AttributionControl.svelte";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
@@ -45,6 +47,9 @@
 	let locationsLayerHook: LocationsLayerHook;
 	let userLocationLayerHook: UserLocationLayerHook;
 
+	let attributionOptions: AttributionControlOptions = {
+        customAttribution: "<a href=\"https://www.anyways.eu/\">ANYWAYS BV</a> | <a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a>"
+	};
 	let baseLayerOptions: BaseLayerControlOptions = {
 		source: "aiv",
 		images: {
@@ -212,8 +217,10 @@
 			<UserLocationLayer bind:hook={userLocationLayerHook} />
 			<BicyclePoiLayer />
 
+			<AttributionControl options={attributionOptions} />
 			<BaseLayerControl bind:options={baseLayerOptions} />
 			<LayerControl bind:layers />
+
 		</Map>
 	</div>
 
