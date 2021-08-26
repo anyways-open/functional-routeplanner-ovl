@@ -343,7 +343,7 @@
         right: number;
     };
     let mapHookHooked: boolean = false;
-    $: if (typeof mapHook !== "undefined" && !mapHookHooked) {
+    $: if (typeof mapHook !== "undefined" && !mapHookHooked && typeof mapHook.on !== "undefined") {
         mapHook.on("click", (e) => {
             // TODO: this is a workaround around mapbox gl triggering a click event after dragging a marker, there has to be a better way.
             if (typeof lastMarkerBox !== "undefined") {

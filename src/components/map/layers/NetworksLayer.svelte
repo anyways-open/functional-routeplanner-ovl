@@ -177,6 +177,128 @@
                 before
             );
 
+            map.addLayer(
+                {
+                    id: "cyclenetworks-genk",
+                    type: "line",
+                    source: "cyclenetworks-tiles",
+                    "source-layer": "cyclenetwork",
+                    layout: {
+                        "line-join": "round",
+                        "line-cap": "round",
+                    },
+                    paint: {
+                        "line-color": ["get", "colour"],
+                        "line-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            10,
+                            1,
+                            13,
+                            3,
+                            16,
+                            7,
+                        ],
+                        "line-opacity": 0.9,
+                    },
+                    filter: [
+                        "all",
+                        ["==", "$type", "LineString"],
+                        ["all", ["==", "operator", "Stad Genk"]],
+                    ],
+                },
+                before
+            );
+
+            map.addLayer({
+                id: "cyclenetworks-genk-shields",
+                type: "symbol",
+                source: "cyclenetworks-tiles",
+                "source-layer": "cyclenetwork",
+                minzoom: 14,
+                maxzoom: 24,
+                layout: {
+                    "icon-image": "network-{ref}-shield",
+                    "icon-rotation-alignment": "viewport",
+                    "icon-size": [
+                        "interpolate",
+                        ["linear"],
+                        ["zoom"],
+                        15,
+                        0.5,
+                        18,
+                        1,
+                    ],
+                    "icon-padding": 25,
+                    "symbol-placement": "line",
+                    "symbol-sort-key": ["-", 10, ["get", "ref"]], // { "type": "identity", "property": "ref" },
+                    "symbol-spacing": 10000,
+                },
+                filter: [
+                    "all",
+                    ["==", "$type", "LineString"],
+                    ["all", ["==", "operator", "Stad Genk"]],
+                ],
+            });
+
+            map.addLayer(
+                {
+                    id: "cyclenetworks-brussels",
+                    type: "line",
+                    source: "cyclenetworks-tiles",
+                    "source-layer": "cyclenetwork",
+                    layout: {
+                        "line-join": "round",
+                        "line-cap": "round",
+                    },
+                    paint: {
+                        "line-color": ["get", "colour"],
+                        "line-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            10,
+                            1,
+                            13,
+                            3,
+                            16,
+                            7,
+                        ],
+                        "line-opacity": 0.9,
+                    },
+                    filter: ["all", ["==", "operator", "Brussels Mobility"]],
+                },
+                before
+            );
+
+            map.addLayer({
+                id: "cyclenetworks-brussels-shields",
+                type: "symbol",
+                source: "cyclenetworks-tiles",
+                "source-layer": "cyclenetwork",
+                minzoom: 10,
+                maxzoom: 24,
+                layout: {
+                    "icon-image": "us-state_{ref_length}",
+                    "icon-rotation-alignment": "viewport",
+                    "icon-size": 1,
+                    "symbol-placement": {
+                        base: 1,
+                        stops: [
+                            [10, "point"],
+                            [11, "line"],
+                        ],
+                    },
+                    "symbol-spacing": 200,
+                    "text-field": "{ref}",
+                    "text-font": ["Noto Sans Regular"],
+                    "text-rotation-alignment": "viewport",
+                    "text-size": 10,
+                },
+                filter: ["all", ["==", "operator", "Brussels Mobility"]],
+            });
+
             map.loadImage("assets/img/icons/fietssnelwegen-128.png", (e, i) => {
                 if (e) throw e;
 
@@ -312,8 +434,47 @@
 
                 map.addLayer(
                     {
+                        id: "cycle-highways-proposed-high",
+                        type: "line",
+                        maxzoom: 12,
+                        source: "cyclenetworks-tiles",
+                        "source-layer": "cyclenetwork",
+                        layout: Object.assign(
+                            mapHook.defaultLayerState["cycle-highways"]
+                                ?.layout ?? {},
+                            {
+                                "line-join": "round",
+                                "line-cap": "round",
+                            }
+                        ),
+                        paint: {
+                            "line-color": cycleHighwaysColor,
+                            "line-width": [
+                                "interpolate",
+                                ["linear"],
+                                ["zoom"],
+                                10,
+                                1,
+                                12,
+                                2,
+                                16,
+                                3,
+                            ],
+                        },
+                        filter: [
+                            "any",
+                            cycleHighwaysFilterTemporary,
+                            cycleHighwaysFilterProposed,
+                        ],
+                    },
+                    before
+                );
+
+                map.addLayer(
+                    {
                         id: "cycle-highways-proposed",
                         type: "line",
+                        minzoom: 12,
                         source: "cyclenetworks-tiles",
                         "source-layer": "cyclenetwork",
                         layout: Object.assign(

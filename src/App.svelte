@@ -83,6 +83,10 @@
 				"cyclenodes-circles-center",
 				"cyclenodes-labels",
 				"cycle-node-network-case",
+				"cyclenetworks-brussels",
+				"cyclenetworks-brussels-shields",
+				"cyclenetworks-genk",
+				"cyclenetworks-genk-shields"
 			],
 			logo: "assets/icons/network.svg",
 			description: "Lokale netwerken van steden en gemeentes",
