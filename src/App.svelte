@@ -105,6 +105,8 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 				"cycle-highways-case",
 				"cycle-highways",
 				"cycle-highways-labels-shields",
+				"cycle-highways-case-proposed",
+				"cycle-highways-proposed"
 			],
 			logo: "assets/icons/cyclehighways.svg",
 			description: "De Vlaamse fietssnelwegen",
@@ -128,7 +130,7 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 			id: "BF",
 			name: "Functioneel Fietsnetwerk",
 			logo: "assets/icons/network.svg",
-			layers: ["bff"],
+			layers: ["bff", "lff"],
 			description: "Bovenlokaal functioneel fietsnetwerk",
 			visible: false,
 			enabled: true,

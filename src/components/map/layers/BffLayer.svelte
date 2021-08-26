@@ -11,7 +11,6 @@
 
     onMount(async () => {
         map.on("load", async () => {
-            const bffRoutesColor = "#cc0000";
 
             // get lowest label and road.
             const style = map.getStyle();
@@ -48,6 +47,54 @@
                 data: json,
             });
 
+            const lffRoutesColor = "#ffff00";
+            const filterLff = ["==", "FIETSROUTE", "LFF lokale functionele fietsroute"];
+            const bffRoutesColor = "#00cc00";
+            const filterBff = ["==", "FIETSROUTE", "BFF functionele fietsroute"];
+
+            map.addLayer(
+                {
+                    id: "lff",
+                    type: "line",
+                    source: "bff",
+                    minzoom: 11,
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["lff"]?.layout ?? {},
+                        {
+                            "line-join": "round",
+                            "line-cap": "round",
+                        }
+                    ),
+                    paint: {
+                        "line-color": lffRoutesColor,
+                        "line-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            10,
+                            1,
+                            12,
+                            4,
+                            16,
+                            12,
+                        ],
+                        "line-opacity": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            10,
+                            0,
+                            12,
+                            0.7,
+                            16,
+                            1,
+                        ],
+                    },
+                    filter: filterLff
+                },
+                lowestSymbol
+            );
+
             map.addLayer(
                 {
                     id: "bff",
@@ -81,11 +128,12 @@
                             10,
                             0,
                             12,
-                            0.3,
+                            0.7,
                             16,
                             1,
                         ],
                     },
+                    filter: filterBff
                 },
                 lowestSymbol
             );
