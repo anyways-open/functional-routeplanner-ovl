@@ -85,9 +85,6 @@
 
 <h2 class="mt-3 text-center">Kaartlagen</h2>
 
-<div class="row m-2 p-2">
-    Op de kaart zijn verschillende lagen beschikbaar relevant voor fietsers.
-</div>
 <div class="row m-2 p-2">De volgende lagen zijn beschikbaar:</div>
 
 <div class="card p-2 m-2">

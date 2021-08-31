@@ -75,7 +75,7 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 			description: "Fietsen langs netwerken",
 			icon: "assets/icons/network.svg",
 			longDescription:
-				"Een route langs de fietssnelwegen en/of het Gentse fietsknooppunten netwerk.",
+				"De snelste route tussen 2 punten rekening houdend met veiligheid en comfort, maximaal langs de fietssnelwegen en lokale netwerken.",
 		},
 	];
 	let layers: LayerConfig[] = [
@@ -140,7 +140,7 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 			name: "Wegenwerken",
 			layers: ["gipod-con", "gipod-icon"],
 			logo: "assets/icons/road-works.svg",
-			description: "Wegenwerken uit GIPOD.",
+			description: "Wegenwerken",
 			visible: false,
 			enabled: true,
 		},

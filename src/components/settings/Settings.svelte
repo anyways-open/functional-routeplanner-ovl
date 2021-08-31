@@ -46,7 +46,7 @@
         {#if view === "NONE"}
             <div class="row p-2">
                 <div class="card mt-5 my-2" on:click={onOpenProfiles}>
-                    <div class="card-img-top d-flex flex-row p-4">
+                    <!-- <div class="card-img-top d-flex flex-row p-4">
                         <img
                             class="w-50"
                             src="assets/icons/bicycle.svg"
@@ -57,21 +57,21 @@
                             src="assets/icons/network.svg"
                             alt="Network"
                         />
-                    </div>
+                    </div> -->
                     <div class="card-body">
-                        <h3 class="card-title">Routeringsprofielen</h3>
-                        <p class="card-text">
+                        <h3 class="card-title">Routes plannen en gebruiken</h3>
+                        <!-- <p class="card-text">
                             In deze routeplanner zijn 2 verschillende <em
                                 >routeringsprofielen</em
                             >
                             beschikbaar.
-                        </p>
+                        </p> -->
                         <h3 class="btn">Meer info over routeprofielen...</h3>
                     </div>
                 </div>
 
                 <div class="card my-2" on:click={onOpenLayers}>
-                    <div class="card-img-top d-flex flex-row p-4">
+                    <!-- <div class="card-img-top d-flex flex-row p-4">
                         <img
                             class="w-50"
                             src="assets/icons/highway.svg"
@@ -82,14 +82,14 @@
                             src="assets/icons/road-works.svg"
                             alt="Network"
                         />
-                    </div>
+                    </div> -->
                     <div class="card-body">
                         <h3 class="card-title">Kaartlagen</h3>
-                        <p class="card-text">
+                        <!-- <p class="card-text">
                             Op kaart toont de fietsrouteplanner een aantal lagen
                             relevant voor fietsers waaronder fietssnelwegen,
                             wegenwerken, fietsknooppunten, etc.
-                        </p>
+                        </p> -->
                         <h3 class="btn">Configureer zichtbare lagen...</h3>
                     </div>
                 </div>

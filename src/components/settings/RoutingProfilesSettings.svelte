@@ -28,14 +28,14 @@
     }
 </script>
 
-<h2 class="mt-3 text-center">Routeringsprofielen</h2>
+<h2 class="mt-3 text-center">Routes plannen</h2>
 
 <div class="row m-2 p-2">
     Met deze routeplanner kan je je woon-werk of andere functionele
     verplaatsingen plannen langs de fietsnetwerken en fietsinfrastructuur in
     Oost-Vlaanderen.
 </div>
-<div class="row m-2 p-2">De routeplanner heeft 2 fietsprofielen:</div>
+<div class="row m-2 p-2">Je kan op twee manieren een route plannen:</div>
 
 <div class="card p-2 m-2">
     {#each profiles as p}
@@ -66,14 +66,12 @@
 </div>
 
 <div class="row m-2 p-2">
+    <h2>Routes gebruiken</h2>
     <p>
-        Beide profielen zijn ontworpen om zo comfortabel mogelijke fietsroutes te
-        genereren op basis van <a href="https://www.openstreetmap.org/">OpenStreetMap (OSM)</a> en houden rekening
-        met zaken als wegcategorie, al dan niet vrijliggende fietspaden, wegoppervlakte,
-        enz.
+        Deze fietsrouteplanner is ontwikkeld om jouw route te plannen. Wil je hiermee navigeren, dan kan je een gpx downloaden en gebruiken in een eigen navigatietoepassing.
     </p>
     <p>
-        Meer technische informatie is <a href="https://docs.anyways.eu/routing-api/#bicycle">hier</a> beschikbaar.
+        Meer informatie is <a href="#">hier</a> beschikbaar.
     </p>
 </div>
 
