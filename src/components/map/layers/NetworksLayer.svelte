@@ -37,7 +37,7 @@
                 //url: "https://api.anyways.eu/tiles/cyclenetworks/mvt.json",
             });
 
-            const nodesColor = "#446372";
+            const nodesColor = "#ccad00";
             const cycleHighwaysColor = "rgb(0, 129, 198)";
             const schoolRoutesColor = "#00cc00";
             const bffRoutesColor = "#cc0000";
@@ -451,7 +451,7 @@
                         },
                         filter: cycleHighwaysFilter,
                     },
-                    before
+                    "cycle-node-network"
                 );
 
                 map.addLayer(
@@ -488,7 +488,7 @@
                             cycleHighwaysFilterProposed,
                         ],
                     },
-                    before
+                    "cycle-node-network"
                 );
 
                 map.addLayer({

@@ -7,7 +7,7 @@
     import type { LayerConfig } from "../map/controls/layers/LayerConfig";
 
     export let open: boolean = true;
-    export let view: string = "PROFILES";
+    export let view: string = "NONE";
     export let profile: string;
     export let layers: LayerConfig[] = [];
     export let profiles: {
