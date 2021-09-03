@@ -25,8 +25,12 @@
     export let routeLayerHook: RoutesLayerHook; // interface to communicate with the routes layer.
     export let locationsLayerHook: LocationsLayerHook; // interface to communicate with the locations component.
     export let userLocationLayerHook: UserLocationLayerHook; // interface to communicate with the user location component.
-    export let profiles: { id: string, description: string, icon: string, longDescription: string}[] = [];
-    
+    export let profiles: {
+        id: string;
+        description: string;
+        icon: string;
+        longDescription: string;
+    }[] = [];
 
     // events.
     const dispatch = createEventDispatcher<{ expand: boolean }>();
@@ -111,8 +115,8 @@
                     "dcec93be31054bc5a260386c0d84be98",
                     {
                         language: "nl",
-                        bounds: [2.63123,50.60416,5.91064,51.50532],
-                        countrycode: "be"
+                        bounds: [2.63123, 50.60416, 5.91064, 51.50532],
+                        countrycode: "be",
                     }
                 ),
             },
@@ -137,11 +141,10 @@
     let urlHash = new UrlHashHandler("route");
     let urlHashParsed = false;
     onMount(async () => {
-
         if (document.body.clientWidth < 576) {
             isMobile = true;
         }
-        
+
         // state is as follows:
         // an array of locations comma seperate
         // with each location: name/lon/lat
@@ -335,6 +338,19 @@
         userLocationLayerHook.trigger();
     }
 
+    // hook up route layer interactions.
+    $: if (typeof routeLayerHook !== "undefined") {
+        routeLayerHook.on("click", (e) => {
+            console.log("route layer click:" + e);
+        });
+        routeLayerHook.on("selectroute", (e) => {
+            console.log("route layer selectroute:" + e);
+        });
+        routeLayerHook.on("draggedroute", (e) => {
+            routingManager.onInsertLocation(e.index, e.location);
+        });
+    }
+
     // hook up map interactions/events.
     let lastMarkerBox: {
         top: number;
@@ -343,7 +359,11 @@
         right: number;
     };
     let mapHookHooked: boolean = false;
-    $: if (typeof mapHook !== "undefined" && !mapHookHooked && typeof mapHook.on !== "undefined") {
+    $: if (
+        typeof mapHook !== "undefined" &&
+        !mapHookHooked &&
+        typeof mapHook.on !== "undefined"
+    ) {
         mapHook.on("click", (e) => {
             // TODO: this is a workaround around mapbox gl triggering a click event after dragging a marker, there has to be a better way.
             if (typeof lastMarkerBox !== "undefined") {

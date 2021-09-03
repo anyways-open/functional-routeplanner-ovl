@@ -34,9 +34,11 @@
         }
 
         const styleResponse = await fetch(
-                "https://api.maptiler.com/maps/152a1435-6dc1-441e-be13-3647c1ccb483/style.json?key=OZUCIh4RNx38vXF8gF4H"
+                //"https://api.maptiler.com/maps/152a1435-6dc1-441e-be13-3647c1ccb483/style.json?key=OZUCIh4RNx38vXF8gF4H"
+                "https://api.maptiler.com/maps/5ee3edf5-df11-4b36-88c9-f660f7afded9/style.json?key=OZUCIh4RNx38vXF8gF4H"
             );
         const styleJson = await styleResponse.json();
+        // styleJson.sources.openmaptiles.url = "https://staging.anyways.eu/openmaptiles/data/v3.json";
         styleJson.sources.openmaptiles.url = "https://tiles.anyways.eu/data/v3.json";
 
         map = new Map({

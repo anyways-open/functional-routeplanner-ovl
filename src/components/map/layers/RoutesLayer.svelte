@@ -23,11 +23,13 @@
     let selected: number = 0; // the selected route.
     let snapPoint: NearestPointOnLine;
     let mapLoaded: boolean = false;
+    let locations: { lng: number, lat: number}[] = [];
     //let latestBbox: any;
 
     // hook up events.
     let onClick: (e: any) => void;
     let onSelectRoute: (e: any) => void;
+    let onDraggedRoute: (e: any) => void;
     routeLayerHook.on = (name, handler) => {
         switch (name) {
             case "click":
@@ -36,8 +38,22 @@
             case "selectroute":
                 onSelectRoute = handler;
                 break;
+            case "draggedroute":
+                onDraggedRoute = handler;
+                break;
         }
     };
+
+    let mapHookHooked: boolean = false;
+    $: if (typeof mapHook !== "undefined" && !mapHookHooked) {
+        mapHookHooked = true;
+
+        mapHook.on("click", (e) => onMapClick(e));
+        mapHook.on("mousemove", (e) => onMapMouseMove(e));
+        mapHook.on("mousedown", (e) => onMapMouseDown(e));
+        mapHook.on("mouseup", (e) => onMapMouseUp(e));
+    }
+
     // routeLayerHook.fitRoute = (padding) => {
     //     if (typeof latestBbox === "undefined") return;
 
@@ -58,13 +74,6 @@
     //                 }
     //             );
     // };
-
-    let clickHooked: boolean = false;
-    $: if (typeof mapHook !== "undefined" && !clickHooked) {
-        clickHooked = true;
-
-        mapHook.on("click", (e) => onMapClick(e));
-    }
 
     $: if (typeof routes !== "undefined" && mapLoaded) {
         if (routes.length == 0) {
@@ -230,6 +239,7 @@
                     };
 
                 // show routes.
+                locations = [];
                 const routeToSelect = routes.length == 1 ? 0 : selected;
                 if (typeof routes !== "undefined") {
                     let maxAlternatives = 1;
@@ -263,6 +273,13 @@
                                             f.properties["_route-index"] = a;
                                             f.properties["_route-selected"] =
                                                 a == routeToSelect;
+                                        }
+
+                                        if (f.geometry.type == "Point") {
+                                            locations.push({
+                                                lng: f.geometry.coordinates[0],
+                                                lat: f.geometry.coordinates[1]
+                                            });
                                         }
                                     });
 
@@ -369,6 +386,151 @@
 
         if (typeof onClick !== "undefined") {
             onClick(e);
+        }
+    }
+
+    let dragging: boolean = false;
+
+    function onMapMouseDown(e): void {
+        if (typeof onDraggedRoute === "undefined") return;
+
+        dragging = false;
+        if (typeof snapPoint !== "undefined") {
+            dragging = true;
+        }
+    }
+
+    function onMapMouseUp(e): void {
+        if (typeof onDraggedRoute === "undefined") return;
+
+        if (dragging) {
+            if (typeof snapPoint === "undefined") {
+                throw Error("Snappoint not set but dragging.");
+            }
+
+            const routeIndex: number = snapPoint.properties["_route-segment-index"];
+            onDraggedRoute({
+                index: routeIndex + 1,
+                location: e.lngLat
+            });
+            const snapSource: GeoJSONSource = map.getSource("route-snap") as GeoJSONSource;
+            const empty: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
+                type: "FeatureCollection",
+                features: []
+            };
+            snapSource.setData(empty);
+            snapPoint = undefined;
+
+            dragging = false;
+            map.dragPan.enable();
+        }
+    }
+
+    function onMapMouseMove(e): void {
+        if (typeof onDraggedRoute === "undefined") return;
+
+        const routeLayer = map.getLayer("route");
+        if (typeof routeLayer === "undefined") return;
+
+        const snapSource: GeoJSONSource = map.getSource(
+            "route-snap"
+        ) as GeoJSONSource;
+        if (typeof snapSource === "undefined") return;
+
+        if (!dragging) {
+            const boxSize = 10;
+
+            // check if dragging point is too close to an existing marker.
+            // if so, don't show it.
+            let tooCloseToMarker = false;
+            for (let i = 0; i < locations.length; i++) {
+                const location = locations[i];
+                if (typeof location === "undefined") continue;
+
+                const pl = map.project(location);
+                if (
+                    Math.abs(e.point.x - pl.x) < boxSize ||
+                    Math.abs(e.point.x - pl.x) < boxSize
+                ) {
+                    tooCloseToMarker = true;
+                }
+            }
+
+            // snap to line.
+            let snapped: NearestPointOnLine;
+            if (!tooCloseToMarker) {
+                const features = map.queryRenderedFeatures(
+                    [
+                        [e.point.x - boxSize, e.point.y - boxSize],
+                        [e.point.x + boxSize, e.point.y + boxSize],
+                    ],
+                    {
+                        layers: ["route"],
+                    }
+                );
+
+                features.forEach((f) => {
+                    if (f.geometry.type == "LineString") {
+                        if (
+                            f.properties &&
+                            typeof f.properties["_route-segment-index"] !=
+                                "undefined"
+                        ) {
+                            const s = turf.nearestPointOnLine(f.geometry, [
+                                e.lngLat.lng,
+                                e.lngLat.lat,
+                            ]);
+                            if (typeof s === "undefined") return;
+                            if (s.properties.dist) {
+                                if (typeof snapped === "undefined") {
+                                    snapped = s;
+                                    snapped.properties["_route-segment-index"] =
+                                        f.properties["_route-segment-index"];
+                                } else {
+                                    if (snapped.properties.dist) return;
+                                    if (
+                                        s.properties.dist <
+                                        snapped.properties.dist
+                                    ) {
+                                        snapped = s;
+                                        snapped.properties[
+                                            "_route-segment-index"
+                                        ] =
+                                            f.properties[
+                                                "_route-segment-index"
+                                            ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (typeof snapped === "undefined") {
+                const empty: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
+                    type: "FeatureCollection",
+                    features: [],
+                };
+                snapSource.setData(empty);
+                snapPoint = undefined;
+                map.dragPan.enable();
+                return;
+            }
+            snapSource.setData(snapped);
+            snapPoint = snapped;
+
+            map.dragPan.disable();
+        } else {
+            if (typeof snapPoint === "undefined") {
+                return;
+            }
+            snapPoint.geometry = {
+                type: "Point",
+                coordinates: [e.lngLat.lng, e.lngLat.lat],
+            };
+
+            snapSource.setData(snapPoint);
         }
     }
 </script>

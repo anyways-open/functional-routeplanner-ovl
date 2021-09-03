@@ -22,6 +22,7 @@ export class RoutingManager {
     private focusLocation: number = -1; // the location that has focus.
     private userLocationRequested: boolean; // the user location is requested.
     private userLocationAvailable: boolean = true; // the user location is available.
+    private ignoreNextMapClick: boolean = false; // ignore next map click.
     private readonly isMobile;
 
     private readonly pushState: (state: any) => void; // callback used to push state.
@@ -452,6 +453,69 @@ export class RoutingManager {
     }
 
     /**
+     * Called when a location needs to be inserted, usually after dragging.
+     */
+    public onInsertLocation(index: number, location: { lng: number, lat: number }) {
+        // preconditions: view=ROUTES|SEARCH
+        // event: onInsertLocation
+        // internal state:
+        // - insert location before the location with the given index.
+        // - remove route segment index - 1
+        // - set view to ROUTES if route can be calculated.
+        // - trigger reverse geocode.
+        // - trigger routing.
+        // - ignore next map click.
+        // actions: 
+        // {none}
+        // push:
+        // - view
+        // - locations.
+
+        // check preconditions.
+        if (this.view !== RoutingManager.VIEW_ROUTES &&
+            this.view !== RoutingManager.VIEW_SEARCH) {
+            console.warn("add not in correct view");
+            return;
+        }
+
+        // update state.
+        this.ignoreNextMapClick = true;
+        let nextLocationId = -1;
+        this.locations.forEach(l => {
+            if (l.id + 1 > nextLocationId) nextLocationId = l.id + 1;
+        });
+        let l = index;
+        console.log(l);
+        this.routes.forEach((route) => {
+            if (typeof route === "undefined") return;
+
+            if (l > 0 && l < route.segments.length + 1) {
+                route.segments[l - 1] = undefined;
+            }
+            route.segments.splice(l - 1, 0, undefined);
+        });
+        this.locations.splice(l, 0, {
+            id: nextLocationId,
+            isUserLocation: false,
+            description: `${location.lng},${location.lat}`,
+            location: location
+        });
+
+        // set view to ROUTES.
+        this.view = RoutingManager.VIEW_ROUTES;
+
+        // trigger actions.
+        if (this.view == RoutingManager.VIEW_ROUTES) this.actionRoute.go = true;
+        if (this.actionReverseGeocode.queue.findIndex(x => l == x) == -1) this.actionReverseGeocode.queue.push(l);
+
+        // push state.
+        this.pushState({
+            locations: this.locations,
+            view: this.view
+        });
+    }
+
+    /**
      * Called when the user clicks on the map.
      */
     public onMapClick(location: { lng: number, lat: number }) {
@@ -468,6 +532,11 @@ export class RoutingManager {
         // push:
         // - view
         // - locations.
+        
+        if (this.ignoreNextMapClick) {
+            this.ignoreNextMapClick = false;
+            return;
+        }
 
         // check preconditions.
         if (this.view !== RoutingManager.VIEW_ROUTES &&
