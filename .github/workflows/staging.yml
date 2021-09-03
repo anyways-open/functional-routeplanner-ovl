@@ -1,0 +1,20 @@
+name: Docker Image - Website (Staging)
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login to Dock Hub
+      run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysbot --password-stdin
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag anywaysopen/ovl-frontend:staging
+    - name: Push Docker image.
+      run: docker push anywaysopen/ovl-frontend:staging
