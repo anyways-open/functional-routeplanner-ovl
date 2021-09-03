@@ -485,7 +485,6 @@ export class RoutingManager {
             if (l.id + 1 > nextLocationId) nextLocationId = l.id + 1;
         });
         let l = index;
-        console.log(l);
         this.routes.forEach((route) => {
             if (typeof route === "undefined") return;
 
@@ -999,13 +998,15 @@ export class RoutingManager {
         // event: onLocationUpdateById
         // internal state:
         // - update location.
-        // - remove route segmennts using the location.
+        // - remove route segments using the location.
+        // - update view if routes possible.
         // actions: 
         // - trigger reverse geocoding.
         // - trigger routing.
         // push:
         // - locations.
         // - routes.
+        // - view
 
         const l = this.locations.findIndex((i) => {
             return i.id == lid;
@@ -1013,6 +1014,11 @@ export class RoutingManager {
         if (l == -1) {
             console.warn("cannot update location, id not found");
             return;
+        }
+
+        // cancel search if in search view.
+        if (this.view == RoutingManager.VIEW_SEARCH) {
+            this.locations[this.searchLocation] = this.locations[this.searchLocation].backup;
         }
 
         // further update state for location that is the user location.
@@ -1030,6 +1036,20 @@ export class RoutingManager {
         this.locations[l].location = location;
         this.locations[l].description = `${location.lng},${location.lat}`;
         this.locations[l].isUserLocation = false;
+
+        // set view to ROUTES if routes can be calculated.
+        this.view = RoutingManager.VIEW_ROUTES;
+        for (let s = 0; s < this.locations.length - 1; s++) {
+            const from = this.locations[s];
+            const to = this.locations[s + 1];
+            if (typeof from === "undefined" ||
+                typeof from.location === "undefined" ||
+                typeof to === "undefined" ||
+                typeof to.location === "undefined") {
+                this.view = RoutingManager.VIEW_START;
+                break;
+            }
+        }
 
         // take action.
         if (this.view == RoutingManager.VIEW_ROUTES) this.actionRoute.go = true;
