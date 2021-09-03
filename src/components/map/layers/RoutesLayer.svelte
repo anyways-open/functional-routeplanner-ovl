@@ -20,11 +20,10 @@
         mapLoaded = true;
     });
 
-    let selected: number = 0; // the selected route.
     let snapPoint: NearestPointOnLine;
     let mapLoaded: boolean = false;
     let locations: { lng: number, lat: number}[] = [];
-    //let latestBbox: any;
+    let selected: number = 0; // the selected alternative.
 
     // hook up events.
     let onClick: (e: any) => void;
@@ -43,37 +42,19 @@
                 break;
         }
     };
+    routeLayerHook.setSelectedAlternative = (i) => {
+        selected = i;
+    };
 
     let mapHookHooked: boolean = false;
     $: if (typeof mapHook !== "undefined" && !mapHookHooked) {
         mapHookHooked = true;
 
-        mapHook.on("click", (e) => onMapClick(e));
+        // mapHook.on("click", (e) => onMapClick(e));
         mapHook.on("mousemove", (e) => onMapMouseMove(e));
         mapHook.on("mousedown", (e) => onMapMouseDown(e));
         mapHook.on("mouseup", (e) => onMapMouseUp(e));
     }
-
-    // routeLayerHook.fitRoute = (padding) => {
-    //     if (typeof latestBbox === "undefined") return;
-
-    //     console.log(latestBbox);
-
-    //             map.fitBounds(
-    //                 [
-    //                     [latestBbox[0], latestBbox[1]],
-    //                     [latestBbox[2], latestBbox[3]],
-    //                 ],
-    //                 {
-    //                     padding: {
-    //                         left: 20,
-    //                         right: 20,
-    //                         top: 20,
-    //                         bottom: 50,
-    //                     },
-    //                 }
-    //             );
-    // };
 
     $: if (typeof routes !== "undefined" && mapLoaded) {
         if (routes.length == 0) {
@@ -338,56 +319,56 @@
         }
     }
 
-    function onMapClick(e: any): void {
-        if (typeof snapPoint !== "undefined") {
-            return;
-        }
+    // function onMapClick(e: any): void {
+    //     if (typeof snapPoint !== "undefined") {
+    //         return;
+    //     }
 
-        if (
-            typeof map.getLayer("route") !== "undefined" &&
-            typeof map.getLayer("route-alternate") !== "undefined"
-        ) {
-            const boxSize = 10;
-            const features = map.queryRenderedFeatures(
-                [
-                    [e.point.x - boxSize, e.point.y - boxSize],
-                    [e.point.x + boxSize, e.point.y + boxSize],
-                ],
-                {
-                    layers: ["route-alternate", "route"],
-                }
-            );
+    //     if (
+    //         typeof map.getLayer("route") !== "undefined" &&
+    //         typeof map.getLayer("route-alternate") !== "undefined"
+    //     ) {
+    //         const boxSize = 10;
+    //         const features = map.queryRenderedFeatures(
+    //             [
+    //                 [e.point.x - boxSize, e.point.y - boxSize],
+    //                 [e.point.x + boxSize, e.point.y + boxSize],
+    //             ],
+    //             {
+    //                 layers: ["route-alternate", "route"],
+    //             }
+    //         );
 
-            if (features.length > 0) {
-                let route = -1;
-                features.forEach((f) => {
-                    if (f.geometry.type == "LineString") {
-                        if (
-                            f.properties &&
-                            typeof f.properties["_route-index"] != "undefined"
-                        ) {
-                            route = Number(f.properties["_route-index"]);
-                        }
-                    }
-                });
-                if (route >= 0) {
-                    if (selected != route) {
-                        selected = route;
-                        if (typeof onSelectRoute !== "undefined") {
-                            onSelectRoute({
-                                route: route,
-                            });
-                        }
-                    }
-                }
-                return;
-            }
-        }
+    //         if (features.length > 0) {
+    //             let route = -1;
+    //             features.forEach((f) => {
+    //                 if (f.geometry.type == "LineString") {
+    //                     if (
+    //                         f.properties &&
+    //                         typeof f.properties["_route-index"] != "undefined"
+    //                     ) {
+    //                         route = Number(f.properties["_route-index"]);
+    //                     }
+    //                 }
+    //             });
+    //             if (route >= 0) {
+    //                 if (selected != route) {
+    //                     selected = route;
+    //                     if (typeof onSelectRoute !== "undefined") {
+    //                         onSelectRoute({
+    //                             route: route,
+    //                         });
+    //                     }
+    //                 }
+    //             }
+    //             return;
+    //         }
+    //     }
 
-        if (typeof onClick !== "undefined") {
-            onClick(e);
-        }
-    }
+    //     if (typeof onClick !== "undefined") {
+    //         onClick(e);
+    //     }
+    // }
 
     let dragging: boolean = false;
 
@@ -465,7 +446,7 @@
                         [e.point.x + boxSize, e.point.y + boxSize],
                     ],
                     {
-                        layers: ["route"],
+                        layers: ["route", "route-alternate"],
                     }
                 );
 
@@ -486,6 +467,12 @@
                                     snapped = s;
                                     snapped.properties["_route-segment-index"] =
                                         f.properties["_route-segment-index"];
+                                    snapped.properties[
+                                            "_route-index"
+                                        ] =
+                                            f.properties[
+                                                "_route-index"
+                                            ];
                                 } else {
                                     if (snapped.properties.dist) return;
                                     if (
@@ -498,6 +485,12 @@
                                         ] =
                                             f.properties[
                                                 "_route-segment-index"
+                                            ];
+                                        snapped.properties[
+                                            "_route-index"
+                                        ] =
+                                            f.properties[
+                                                "_route-index"
                                             ];
                                     }
                                 }
@@ -519,6 +512,11 @@
             }
             snapSource.setData(snapped);
             snapPoint = snapped;
+
+            const route = Number(snapped.properties["_route-index"]);
+            if (route !== selected) {
+                onSelectRoute(route);
+            }
 
             map.dragPan.disable();
         } else {

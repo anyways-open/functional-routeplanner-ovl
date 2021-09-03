@@ -1,12 +1,15 @@
 <script lang="ts">
+import { createEventDispatcher } from "svelte";
+
     import type { Route } from "../Route";
     import RouteRow from "./RouteRow.svelte";
 
     export let routes: Route[] = [];
+    export let selected: number = -1;
 
-    // const dispatch = createEventDispatcher<{ select: SearchResult }>();
-    function onSelect(e: CustomEvent<any>): void {
-        // dispatch("select", e.detail);
+    const dispatch = createEventDispatcher<{ select: number }>();
+    function onSelect(i: number): void {
+        dispatch("select", i);
     }
 </script>
 
@@ -17,11 +20,11 @@
                 Routes
             </div>
             <div class="route-results-list">
-                {#each routes as route}
+                {#each routes as route, i}
                 {#if typeof route !== "undefined" && 
                     typeof route.segments !== "undefined" &&
                     route.segments.length > 0}
-                    <RouteRow {route} on:select={onSelect} />
+                    <RouteRow {route} selected={selected == i} on:select={() => onSelect(i)} />
                 {/if}
                 {/each}
             </div>

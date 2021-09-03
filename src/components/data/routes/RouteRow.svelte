@@ -5,6 +5,7 @@
     import togpx from "../../../../public/npm/togpx/index";
 
     export let route: {description: string, segments: any[] };
+    export let selected: boolean = false;
     let routeDetail = { distance: 0, time: 0 };
 
     function formatDistance(distance: number) {
@@ -102,14 +103,14 @@
         }
     }
 
-    const dispatch = createEventDispatcher<{ select: any }>();
+    const dispatch = createEventDispatcher();
     function onClick(): void {
-        dispatch("select", route);
+        dispatch("select");
     }
 </script>
 
 {#if typeof route !== "undefined" && routeDetail.distance > 0}
-    <div class="route-detail route-detail-selected row my-1" on:click="{onClick}">
+    <div class="route-detail route-detail-selected row my-1 {selected ? "active" : ""}" on:click="{onClick}">
         <div class="col-6 py-3">{route.description}</div>
         <div class="col-4 py-3">
             <div><strong>{formatDistance(routeDetail.distance)}</strong></div>
@@ -124,8 +125,17 @@
         height: 20px;
     }
 
+    .active {
+        background-color: #e7f5fd;
+    }
+
     .row {
         margin: 0;
+        border-radius: 3px;
+    }
+
+    .row:hover {
+        background-color: #87ccf7;
     }
 
     .row:not(:last-child) {

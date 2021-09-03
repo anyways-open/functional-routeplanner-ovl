@@ -23,6 +23,7 @@ export class RoutingManager {
     private userLocationRequested: boolean; // the user location is requested.
     private userLocationAvailable: boolean = true; // the user location is available.
     private ignoreNextMapClick: boolean = false; // ignore next map click.
+    private selectedAlternative: number = 0; // the selected alternative.
     private readonly isMobile;
 
     private readonly pushState: (state: any) => void; // callback used to push state.
@@ -223,6 +224,7 @@ export class RoutingManager {
         }
         this.profile = profile;
         this.routes = [];
+        this.selectedAlternative = 0;
 
         // trigger actions.
         this.actionRoute.go = true;
@@ -230,7 +232,8 @@ export class RoutingManager {
         // push state.
         this.pushState({
             profile: this.profile,
-            routes: this.routes
+            routes: this.routes,
+            selectedAlternative: this.selectedAlternative
         });
     }
 
@@ -337,12 +340,14 @@ export class RoutingManager {
 
         // take actions.
         this.actionRoute.go = true;
+        this.selectedAlternative = 0;
 
         // push state.
         this.pushState({
             routes: this.routes,
             locations: this.locations,
-            view: this.view
+            view: this.view,
+            selectedAlternative: this.selectedAlternative
         });
     }
 
@@ -480,6 +485,7 @@ export class RoutingManager {
 
         // update state.
         this.ignoreNextMapClick = true;
+        this.selectedAlternative = 0;
         let nextLocationId = -1;
         this.locations.forEach(l => {
             if (l.id + 1 > nextLocationId) nextLocationId = l.id + 1;
@@ -510,7 +516,8 @@ export class RoutingManager {
         // push state.
         this.pushState({
             locations: this.locations,
-            view: this.view
+            view: this.view,
+            selectedAlternative: this.selectedAlternative
         });
     }
 
@@ -648,11 +655,13 @@ export class RoutingManager {
 
         // take action.
         this.actionRoute.go = true;
+        this.selectedAlternative = 0;
 
         // push state.
         this.pushState({
             locations: this.locations,
-            routes: this.routes
+            routes: this.routes,
+            selectedAlternative: this.selectedAlternative
         });
     }
 
@@ -830,6 +839,7 @@ export class RoutingManager {
 
         // take action.
         this.actionRoute.go = true;
+        this.selectedAlternative = 0;
 
         // push state.
         this.pushState({
@@ -837,7 +847,8 @@ export class RoutingManager {
             view: this.view,
             focusLocation: this.focusLocation,
             searchLocation: this.searchLocation,
-            searchResults: this.searchResults
+            searchResults: this.searchResults,
+            selectedAlternative: this.selectedAlternative
         });
     }
 
@@ -977,6 +988,7 @@ export class RoutingManager {
                 break;
             }
         }
+        this.selectedAlternative = 0;
 
         // take action.
         if (this.view == RoutingManager.VIEW_ROUTES) this.actionRoute.go = true;
@@ -986,7 +998,40 @@ export class RoutingManager {
         this.pushState({
             locations: this.locations,
             view: this.view,
-            searchLocation: this.searchLocation
+            searchLocation: this.searchLocation,
+            selectedAlternative: this.selectedAlternative
+        });
+    }
+
+    /**
+     * Called when the user selects an alternative.
+     */
+    public onSelectAlternative(index: number): void {
+        // preconditions: 
+        //  view= SEARCH|ROUTES
+        // event: onSelectAlternative
+        // internal state:
+        //  set alternative selected
+        //  set view to ROUTES
+        // actions: 
+        //  none
+        // push:
+        // - alternative selected
+        // - view
+        
+        // take action.
+        if (this.view == RoutingManager.VIEW_START) {
+            console.error("alternative route selected but no routes");
+            return;
+        }
+
+        // update state.
+        this.selectedAlternative = index;
+
+        // push state
+        this.pushState({
+            view: this.view,
+            selectedAlternative: this.selectedAlternative
         });
     }
 
@@ -1141,7 +1186,7 @@ export class RoutingManager {
 
         // update state.
         this.pushState({
-            locations: this.locations;
+            locations: this.locations
         });
     }
 

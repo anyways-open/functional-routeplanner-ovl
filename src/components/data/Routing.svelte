@@ -19,7 +19,7 @@
     import { RoutingApi } from "@anyways-open/routing-api";
     import { createEventDispatcher, onMount } from "svelte";
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
-import BackButton from "./BackButton.svelte";
+    import BackButton from "./BackButton.svelte";
 
     // exports.
     export let mapHook: MapHook; // interface to communicate with the map.
@@ -58,6 +58,7 @@ import BackButton from "./BackButton.svelte";
     let userLocationAvailable: boolean = true; // the user location is available.
     let routingManager: RoutingManager;
     let isMobile = false;
+    let selectedAlternative: number = 0;
 
     // TODO: move this to general settings files.
     // instantiate the routing api.
@@ -296,6 +297,9 @@ import BackButton from "./BackButton.svelte";
                 case "userLocationAvailable":
                     userLocationAvailable = state.userLocationAvailable;
                     break;
+                case "selectedAlternative":
+                    selectedAlternative = state.selectedAlternative;
+                    break;
             }
         });
     }
@@ -339,13 +343,16 @@ import BackButton from "./BackButton.svelte";
         userLocationLayerHook.trigger();
     }
 
+    $: if (typeof routeLayerHook !== "undefined" && 
+        selectedAlternative !== -1) {
+        console.log(selectedAlternative);
+        routeLayerHook.setSelectedAlternative(selectedAlternative);
+    }
+
     // hook up route layer interactions.
     $: if (typeof routeLayerHook !== "undefined") {
-        routeLayerHook.on("click", (e) => {
-            console.log("route layer click:" + e);
-        });
         routeLayerHook.on("selectroute", (e) => {
-            console.log("route layer selectroute:" + e);
+            routingManager.onSelectAlternative(e);
         });
         routeLayerHook.on("draggedroute", (e) => {
             routingManager.onInsertLocation(e.index, e.location);
@@ -445,7 +452,11 @@ import BackButton from "./BackButton.svelte";
 
     {#if view === RoutingManager.VIEW_ROUTES}
         <div class="row">
-            <RouteList {routes} />
+            <RouteList
+                {routes}
+                selected={selectedAlternative}
+                on:select={(e) => routingManager.onSelectAlternative(e.detail)}
+            />
         </div>
     {/if}
 </div>
