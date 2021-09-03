@@ -1,0 +1,22 @@
+name: Docker Image - Website (Production)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login to Dock Hub
+      run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysbot --password-stdin
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag anywaysopen/ovl-frontend:prod --tag anywaysopen/ovl-frontend:prod-0.$GITHUB_RUN_NUMBER
+    - name: Push Docker image.
+      run: docker push anywaysopen/ovl-frontend:prod
+    - name: Push Docker image.
+      run: docker push anywaysopen/ovl-frontend:prod-0.$GITHUB_RUN_NUMBER
