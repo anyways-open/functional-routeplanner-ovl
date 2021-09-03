@@ -19,6 +19,7 @@
     import { RoutingApi } from "@anyways-open/routing-api";
     import { createEventDispatcher, onMount } from "svelte";
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
+import BackButton from "./BackButton.svelte";
 
     // exports.
     export let mapHook: MapHook; // interface to communicate with the map.
@@ -430,6 +431,7 @@
     </div>
 
     {#if view === RoutingManager.VIEW_SEARCH}
+        <BackButton on:click={() => routingManager.onCancelSearch()} />
         <div class="row">
             <LocationSearchResultsTable
                 {searchResults}

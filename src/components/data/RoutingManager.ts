@@ -714,6 +714,50 @@ export class RoutingManager {
     }
 
     /**
+     * Called when the user want to cancel the search and go back.
+     */
+    public onCancelSearch() {
+        // preconditions: 
+        //  view=SEARCH
+        //  searchLocation!=-1
+        // event: onCancelSearch
+        // internal state:
+        // - restore location backup.
+        // - set view to routes or start depending on routes.
+        // actions: 
+        // - none
+        // push:
+        // - locations after update.
+        // - view
+
+        if (this.view !== RoutingManager.VIEW_SEARCH) {
+            console.error("search cancelled but not in search view");
+            return;
+        }
+
+        // update state.
+        this.locations[this.searchLocation] = this.locations[this.searchLocation].backup;
+        this.view = RoutingManager.VIEW_ROUTES;
+        for (let s = 0; s < this.locations.length - 1; s++) {
+            const from = this.locations[s];
+            const to = this.locations[s + 1];
+            if (typeof from === "undefined" ||
+                typeof from.location === "undefined" ||
+                typeof to === "undefined" ||
+                typeof to.location === "undefined") {
+                this.view = RoutingManager.VIEW_START;
+                break;
+            }
+        }
+
+        // push state.
+        this.pushState({
+            locations: this.locations,
+            view: this.view
+        });
+    }
+
+    /**
      * Called when the user selects a search result.
      * @param r The index of the search result.
      */
