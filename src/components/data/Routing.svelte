@@ -130,7 +130,7 @@
     );
     const geocoder = new Geocoder(geocoderProvider, {
         forwardPreprocessor: (q) => {
-            if (q && q.string && q.string.toLowerCase().startsWith("station")) {
+            if (q && q.string && q.string.toLowerCase().startsWith("station ")) {
                 q = {
                     string: q.string.substring(7),
                     location: q.location,
