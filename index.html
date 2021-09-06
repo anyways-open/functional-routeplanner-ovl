@@ -5,10 +5,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 
+    <style>
+
+        iframe {
+            height: 640px;
+            width: 360px;
+        }
+
+        .only-on-small {
+            display: none;
+        }
+
+        @media (max-width: 576px) {
+            .not-on-small {
+                display: none;
+            }
+
+            .only-on-small {
+                display: block;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <iframe allow="geolocation" src="https://www.fietsrouteplanner.org/"></iframe>
+    <p>Dit is text rond de iframe!</p>
+    <div class="not-on-small">
+        <iframe allow="geolocation" src="https://www.fietsrouteplanner.org/"></iframe>
+    </div>
+
+    <div class="only-on-small">
+        Je kan de routeplanner hier vinden:
+
+        <a href="https://www.fietsrouteplanner.org/">Fietsrouteplanner Hier</a>
+    </div>
+
+    <p>Hier nog wat text rond de iframe.</p>
 </body>
 
 </html>
