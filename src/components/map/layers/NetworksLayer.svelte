@@ -122,17 +122,18 @@
                     ),
                     paint: {
                         "line-color": "#fff",
-                        "line-width": [
+                        "line-gap-width": [
                             "interpolate",
                             ["linear"],
                             ["zoom"],
                             10,
-                            2,
+                            3,
                             12,
                             3,
                             16,
                             3,
                         ],
+                        "line-width": 2,
                     },
                     filter: [
                         "any",
@@ -475,11 +476,11 @@
                                 ["linear"],
                                 ["zoom"],
                                 10,
-                                1,
+                                3,
                                 12,
-                                2,
+                                3,
                                 16,
-                                2,
+                                3,
                             ]
                         },
                         filter: [

@@ -105,18 +105,18 @@
                     </a>
                 </ul>
                 <ul class="list-group mx-2">
-                    <a href="email:eGovgis@oost-vlaanderen.be">
-                        <li class="list-group-item d-flex align-items-start">
-                            <img src="assets/icons/email.svg" alt="Email" />
-                            <div class="ps-2">Meld een probleem</div>
-                        </li>
-                    </a>
-                </ul>
-                <ul class="list-group mx-2">
                     <a href="https://www.oost-vlaanderen.be/">
                         <li class="list-group-item d-flex align-items-start">
                             <img src="assets/icons/link.svg" alt="Email" />
                             <div class="ps-2">Website</div>
+                        </li>
+                    </a>
+                </ul>
+                <ul class="list-group mx-2">
+                    <a href="email:eGovgis@oost-vlaanderen.be">
+                        <li class="list-group-item d-flex align-items-start">
+                            <img src="assets/icons/email.svg" alt="Email" />
+                            <div class="ps-2">Meld een probleem</div>
                         </li>
                     </a>
                 </ul>
