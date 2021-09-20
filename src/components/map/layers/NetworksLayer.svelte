@@ -546,7 +546,7 @@
                     type: "symbol",
                     source: "cyclenetworks-tiles",
                     "source-layer": "cyclenetwork",
-                    minzoom: 12.5,
+                    minzoom: 9,
                     layout: Object.assign(
                         mapHook.defaultLayerState[
                             "cycle-highways-labels-shields"
