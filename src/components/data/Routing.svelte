@@ -20,6 +20,7 @@
     import { createEventDispatcher, onMount } from "svelte";
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
     import BackButton from "./BackButton.svelte";
+    import { GeoPuntPoiProvider } from "../../apis/geocoder/Providers/GeoPuntPoiProvider";
 
     // exports.
     export let mapHook: MapHook; // interface to communicate with the map.
@@ -111,6 +112,9 @@
                     }
                     return { next: next, results: current };
                 },
+            },
+            {
+                provider: new GeoPuntPoiProvider()
             },
             {
                 provider: new OpenCageDataProvider(
@@ -345,7 +349,6 @@
 
     $: if (typeof routeLayerHook !== "undefined" && 
         selectedAlternative !== -1) {
-        console.log(selectedAlternative);
         routeLayerHook.setSelectedAlternative(selectedAlternative);
     }
 
