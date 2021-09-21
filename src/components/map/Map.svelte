@@ -39,7 +39,8 @@
             );
         const styleJson = await styleResponse.json();
         // styleJson.sources.openmaptiles.url = "https://staging.anyways.eu/openmaptiles/data/v3.json";
-        styleJson.sources.openmaptiles.url = "https://tiles.anyways.eu/data/v3.json";
+        //styleJson.sources.openmaptiles.url = "https://tiles.anyways.eu/data/v3.json";
+        styleJson.sources.openmaptiles.url = "https://api.anyways.eu/tiles/openmaptiles/mvt.json";
 
         map = new Map({
             container: "mapbox-gl-container",
