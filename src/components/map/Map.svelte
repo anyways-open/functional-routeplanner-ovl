@@ -43,21 +43,6 @@
         );
         const styleJson = await styleResponse.json();
 
-        // styleJson.layers.push({
-        //     id: "bicycle-oneway",
-        //     source: "openmaptiles",
-        //     "source-layer": "transportation",
-        //     type: "line",
-        //     paint: {
-        //         "line-color": "#f00",
-        //         "line-width": 1,
-        //     },
-        //     layout: {
-        //         "line-cap": "round",
-        //         "line-join": "round",
-        //     },
-        //     filter: ["all", ["==", "oneway:bicycle", "no"]],
-        // });
         // styleJson.sources.openmaptiles.url = "https://staging.anyways.eu/openmaptiles/data/v3.json";
         //styleJson.sources.openmaptiles.url = "https://tiles.anyways.eu/data/v3.json";
         styleJson.sources.openmaptiles.url =
@@ -96,11 +81,11 @@
 
                 map.addImage("double-arrow", i);
                 map.addLayer({
-                    id: "bicycle-oneway-arrows",
+                    id: "bicycle-oneway-no",
                     type: "symbol",
                     source: "openmaptiles",
                     "source-layer": "transportation",
-                    minzoom: 9,
+                    minzoom: 15,
                     paint: { "icon-opacity": 0.3 },
                     layout: {
                         "icon-image": "double-arrow",
@@ -114,6 +99,30 @@
                     filter: ["all", ["==", "oneway:bicycle", "no"]],
                 });
             });
+
+            map.loadImage("assets/img/icons/arrow-8.png", (e, i) => {
+                if (e) throw e;
+                map.addImage("arrow", i);
+
+                map.addLayer({
+                    id: "bicycle-oneway-yes",
+                    type: "symbol",
+                    source: "openmaptiles",
+                    "source-layer": "transportation",
+                    minzoom: 15,
+                    paint: { "icon-opacity": 0.3 },
+                    layout: {
+                        "icon-image": "arrow",
+                        "icon-rotate": 0,
+                        "icon-padding": 10,
+                        "icon-size": 0.75,
+                        "symbol-spacing": 150,
+                        "symbol-placement": "line",
+                        "icon-rotation-alignment": "map",
+                    },
+                    filter: ["all", ["==", "oneway", 1], ["!=", "oneway:bicycle", "no"]],
+                });
+            })
         });
 
         hook.resize = () => {
