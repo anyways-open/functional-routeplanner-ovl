@@ -17,25 +17,22 @@
                     sourceLayer: "cyclenetwork",
                 });
 
-                // data.forEach((d) => {
-                //     const name = d.properties.name;
-                //     if (
-                //         typeof name !== "undefined" &&
-                //         name.indexOf("wenslijn") !== -1
-                //     ) {
-                //         map.setFeatureState(
-                //             {
-                //                 source: "cyclenetworks-tiles",
-                //                 sourceLayer: "cyclenetwork",
-                //                 id: d.id,
-                //             },
-                //             { wenslijn: true }
-                //         );
-                //         console.log(name);
-                //         console.log(d);
-                //     }
-                // });
-                //console.log(data);
+                data.forEach((d) => {
+                    const name = d.properties.name;
+                    if (
+                        typeof name !== "undefined" &&
+                        name.indexOf("wenslijn") !== -1
+                    ) {
+                        map.setFeatureState(
+                            {
+                                source: "cyclenetworks-tiles",
+                                sourceLayer: "cyclenetwork",
+                                id: d.id,
+                            },
+                            { wenslijn: true }
+                        );
+                    }
+                });
             }
         });
 
@@ -75,8 +72,7 @@
                 "all",
                 ["!=", "highway", "construction"],
                 ["!=", "highway", "proposed"],
-                ["!=", "highway", "no"],
-                ["!=", "note:state", "has_highway_no"],
+                ["!=", "highway", "no"]
             ];
 
             const cycleHighwaysFilter = [
@@ -164,6 +160,12 @@
                             3,
                         ],
                         "line-width": 2,
+                        "line-opacity": [
+                            "case",
+                            ["boolean", ["feature-state", "wenslijn"], false],
+                            0,
+                            1,
+                        ],
                     },
                     filter: [
                         "all",
@@ -530,6 +532,16 @@
                                 3,
                                 16,
                                 3,
+                            ],
+                            "line-opacity": [
+                                "case",
+                                [
+                                    "boolean",
+                                    ["feature-state", "wenslijn"],
+                                    false,
+                                ],
+                                0,
+                                1,
                             ],
                         },
                         filter: [
