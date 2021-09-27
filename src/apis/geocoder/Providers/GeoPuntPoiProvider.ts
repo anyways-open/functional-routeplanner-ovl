@@ -1,13 +1,19 @@
 import type { IForwardQuery } from "../IForwardQuery";
 import type { IForwardResult } from "../IForwardResult";
+import type { GeoPuntProviderSettings } from "./GeoPuntPoiProviderSettings";
 import type { IProvider } from "./IProvider";
 import type { IReverseResult } from "./IReverseResult";
 
 export class GeoPuntPoiProvider implements IProvider {
     private apiRoot: string = "https://poi.api.geopunt.be/v1/core";
+    private settings: GeoPuntProviderSettings;
 
-    constructor() {
-        
+    constructor(settings?: GeoPuntProviderSettings) {
+        this.settings = settings ?? {
+            maxCount: 2
+        };
+
+        console.log(this.settings);
     }
 
     name: string = "crab";
@@ -24,15 +30,10 @@ export class GeoPuntPoiProvider implements IProvider {
                     //
 
                     response.pois.forEach(l => {
+                        if (results.length >= this.settings.maxCount) return;
+
                         const location = l.location.points[0].Point.coordinates;
-
                         const description = `${l.labels[0].value}, ${l.location.address.street} ${l.location.address.streetnumber} ${l.location.address.postalcode} ${l.location.address.municipality}`;
-
-                        // console.log(results);
-                        // const i = results.indexOf((r: { description: string; }) => 
-                        //     r.description === description);
-                        // console.log(i);
-                        // if (i !== -1) return;
 
                         results.push({
                             description: description,
