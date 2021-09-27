@@ -76,6 +76,63 @@
         map.on("load", () => {
             map.resize(); // on more resize, refresh on chrome broken.
 
+            map.addLayer({
+                id: "road_cycleway",
+                type: "line",
+                paint: {
+                    "line-color": "#0000ff",
+                    "line-width": {
+                        base: 1.55,
+                        stops: [
+                            [4, 1],
+                            [20, 6],
+                        ],
+                    },
+                    "line-dasharray": [1, 1],
+                },
+                filter: [
+                    "all",
+                    ["==", "$type", "LineString"],
+                    ["in", "subclass", "cycleway"],
+                ],
+                layout: {
+                    "line-cap": "square",
+                    "line-join": "bevel",
+                },
+                source: "openmaptiles",
+                "source-layer": "transportation",
+            },
+                "bridge_major");
+            map.addLayer(
+                {
+                    id: "bicycle-cycleway-lane",
+                    type: "line",
+                    source: "openmaptiles",
+                    "source-layer": "transportation",
+                    minzoom: 14,
+                    paint: {
+                        "line-color": "#0000ff",
+                        "line-width": {
+                            base: 1.55,
+                            stops: [
+                                [4, 1],
+                                [20, 6],
+                            ],
+                        },
+                        "line-gap-width": {
+                            base: 1.4,
+                            stops: [
+                                [6, 0.5],
+                                [20, 20],
+                            ],
+                        },
+                        "line-dasharray": [1, 1],
+                    },
+                    filter: ["all", ["==", "cycleway", "lane"], ["!=", "subclass", "cycleway"]],
+                },
+                "bridge_major"
+            );
+
             map.loadImage("assets/img/icons/double-arrow-8.png", (e, i) => {
                 if (e) throw e;
 
@@ -120,9 +177,13 @@
                         "symbol-placement": "line",
                         "icon-rotation-alignment": "map",
                     },
-                    filter: ["all", ["==", "oneway", 1], ["!=", "oneway:bicycle", "no"]],
+                    filter: [
+                        "all",
+                        ["==", "oneway", 1],
+                        ["!=", "oneway:bicycle", "no"],
+                    ],
                 });
-            })
+            });
         });
 
         hook.resize = () => {
