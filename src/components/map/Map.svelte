@@ -43,10 +43,10 @@
         );
         const styleJson = await styleResponse.json();
 
-        // styleJson.sources.openmaptiles.url = "https://staging.anyways.eu/openmaptiles/data/v3.json";
-        //styleJson.sources.openmaptiles.url = "https://tiles.anyways.eu/data/v3.json";
         styleJson.sources.openmaptiles.url =
             "https://api.anyways.eu/tiles/openmaptiles/mvt.json";
+        styleJson.sources.openmaptiles.url =
+            "https://staging.anyways.eu/api/vector-tiles/openmaptiles/mvt.json";
 
         map = new Map({
             container: "mapbox-gl-container",
@@ -116,7 +116,7 @@
                             base: 1.55,
                             stops: [
                                 [4, 1],
-                                [20, 6],
+                                [20, 2],
                             ],
                         },
                         "line-gap-width": {
@@ -126,9 +126,39 @@
                                 [20, 20],
                             ],
                         },
-                        "line-dasharray": [1, 1],
+                        //"line-dasharray": [1, 1],
                     },
                     filter: ["all", ["==", "cycleway", "lane"], ["!=", "subclass", "cycleway"]],
+                },
+                "bridge_major"
+            );
+
+            map.addLayer(
+                {
+                    id: "bicycle-cycleway-lane-right",
+                    type: "line",
+                    source: "openmaptiles",
+                    "source-layer": "transportation",
+                    minzoom: 14,
+                    paint: {
+                        "line-color": "#0000ff",
+                        "line-width": {
+                            base: 1.55,
+                            stops: [
+                                [4, 1],
+                                [20, 2],
+                            ],
+                        },
+                        "line-offset": {
+                            base: 1.4,
+                            stops: [
+                                [6, 0.25],
+                                [20, 10],
+                            ],
+                        },
+                        //"line-dasharray": [1, 1],
+                    },
+                    filter: ["all", ["==", "cycleway:right", "lane"], ["!=", "subclass", "cycleway"]],
                 },
                 "bridge_major"
             );
