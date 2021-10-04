@@ -110,7 +110,7 @@
                     [
                         "all",
                         ["==", "$type", "LineString"],
-                        ["in", "bicycle", "designated"],
+                        ["in", "bicycle", "designated", "yes"],
                         ["in", "class", "path"],
                     ]
                 ],
