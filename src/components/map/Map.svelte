@@ -132,6 +132,29 @@
                 },
                 "bridge_major"
             );
+            map.addLayer(
+                {
+                    id: "bicycle-cyclestreet",
+                    type: "line",
+                    source: "openmaptiles",
+                    "source-layer": "transportation",
+                    minzoom: 14,
+                    paint: {
+                        "line-color": "#0000ff",
+                        "line-opacity": 0.5,
+                        "line-width": {
+                            base: 1.55,
+                            stops: [
+                                [4, 3],
+                                [20, 10],
+                            ],
+                        }
+                        //"line-dasharray": [1, 1],
+                    },
+                    filter: ["all", ["==", "cyclestreet", "yes"]],
+                },
+                "bridge_major"
+            );
 
             map.addLayer(
                 {
