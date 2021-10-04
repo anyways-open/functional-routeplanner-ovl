@@ -231,7 +231,7 @@
                     source: "openmaptiles",
                     "source-layer": "transportation",
                     minzoom: 15,
-                    paint: { "icon-opacity": 0.3 },
+                    paint: { "icon-opacity": 0.5 },
                     layout: {
                         "icon-image": "double-arrow",
                         "icon-rotate": 0,
