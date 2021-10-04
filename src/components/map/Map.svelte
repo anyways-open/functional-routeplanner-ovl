@@ -48,15 +48,21 @@
         styleJson.sources.openmaptiles.url =
             "https://staging.anyways.eu/api/vector-tiles/openmaptiles/mvt.json";
 
-        styleJson.layers.forEach(layer => {
+        styleJson.layers.forEach((layer) => {
             if (layer.id !== "railway-transit") return;
-            
+
             layer.filter = [
                 "all",
                 ["==", "class", "tram"],
-                ["!=", "brunnel", "tunnel"]
-            ]
+                ["!=", "brunnel", "tunnel"],
+            ];
         });
+
+        const bicycleAccess = [
+            "all",
+            ["!in", "class", "motorway"],
+            ["!in", "bicycle", "use_sidepath", "no"]
+        ];
 
         map = new Map({
             container: "mapbox-gl-container",
@@ -86,42 +92,44 @@
         map.on("load", () => {
             map.resize(); // on more resize, refresh on chrome broken.
 
-            map.addLayer({
-                id: "road_cycleway",
-                type: "line",
-                paint: {
-                    "line-color": "#0000ff",
-                    "line-width": {
-                        base: 1.55,
-                        stops: [
-                            [4, 1],
-                            [20, 6],
-                        ],
+            map.addLayer(
+                {
+                    id: "road_cycleway",
+                    type: "line",
+                    paint: {
+                        "line-color": "#0000ff",
+                        "line-width": {
+                            base: 1.55,
+                            stops: [
+                                [4, 1],
+                                [20, 6],
+                            ],
+                        },
+                        "line-dasharray": [1, 1],
                     },
-                    "line-dasharray": [1, 1],
-                },
-                filter: [
-                    "any", 
-                    [
-                        "all",
-                        ["==", "$type", "LineString"],
-                        ["in", "subclass", "cycleway"],
+                    filter: [
+                        "any",
+                        [
+                            "all",
+                            ["==", "$type", "LineString"],
+                            ["in", "subclass", "cycleway"],
+                        ],
+                        [
+                            "all",
+                            ["==", "$type", "LineString"],
+                            ["in", "bicycle", "designated", "yes"],
+                            ["in", "class", "path"],
+                        ],
                     ],
-                    [
-                        "all",
-                        ["==", "$type", "LineString"],
-                        ["in", "bicycle", "designated", "yes"],
-                        ["in", "class", "path"],
-                    ]
-                ],
-                layout: {
-                    "line-cap": "square",
-                    "line-join": "bevel",
+                    layout: {
+                        "line-cap": "square",
+                        "line-join": "bevel",
+                    },
+                    source: "openmaptiles",
+                    "source-layer": "transportation",
                 },
-                source: "openmaptiles",
-                "source-layer": "transportation",
-            },
-                "bridge_major");
+                "bridge_major"
+            );
             map.addLayer(
                 {
                     id: "bicycle-cycleway-lane",
@@ -147,7 +155,11 @@
                         },
                         //"line-dasharray": [1, 1],
                     },
-                    filter: ["all", ["==", "cycleway", "lane"], ["!=", "subclass", "cycleway"]],
+                    filter: [
+                        "all",
+                        ["==", "cycleway", "lane"],
+                        ["!=", "subclass", "cycleway"],
+                    ],
                 },
                 "bridge_major"
             );
@@ -167,7 +179,7 @@
                                 [4, 3],
                                 [20, 10],
                             ],
-                        }
+                        },
                         //"line-dasharray": [1, 1],
                     },
                     filter: ["all", ["==", "cyclestreet", "yes"]],
@@ -200,7 +212,11 @@
                         },
                         //"line-dasharray": [1, 1],
                     },
-                    filter: ["all", ["==", "cycleway:right", "lane"], ["!=", "subclass", "cycleway"]],
+                    filter: [
+                        "all",
+                        ["==", "cycleway:right", "lane"],
+                        ["!=", "subclass", "cycleway"],
+                    ],
                 },
                 "bridge_major"
             );
@@ -225,7 +241,11 @@
                         "symbol-placement": "line",
                         "icon-rotation-alignment": "map",
                     },
-                    filter: ["all", ["==", "oneway:bicycle", "no"]],
+                    filter: [
+                        "all",
+                        ["==", "oneway:bicycle", "no"],
+                        bicycleAccess
+                    ],
                 });
             });
 
@@ -253,6 +273,7 @@
                         "all",
                         ["==", "oneway", 1],
                         ["!=", "oneway:bicycle", "no"],
+                        bicycleAccess
                     ],
                 });
             });
