@@ -48,6 +48,16 @@
         styleJson.sources.openmaptiles.url =
             "https://staging.anyways.eu/api/vector-tiles/openmaptiles/mvt.json";
 
+        styleJson.layers.forEach(layer => {
+            if (layer.id !== "railway-transit") return;
+            
+            layer.filter = [
+                "all",
+                ["==", "class", "tram"],
+                ["!=", "brunnel", "tunnel"]
+            ]
+        });
+
         map = new Map({
             container: "mapbox-gl-container",
             style: styleJson,
