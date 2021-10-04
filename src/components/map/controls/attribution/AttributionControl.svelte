@@ -18,3 +18,9 @@
         map.addControl(control, "bottom-right");
     });
 </script>
+
+<style>
+    :global(.mapboxgl-ctrl-attrib-inner img) {
+        height: 10px;
+    }
+</style>
