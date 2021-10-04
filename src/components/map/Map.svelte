@@ -91,9 +91,18 @@
                     "line-dasharray": [1, 1],
                 },
                 filter: [
-                    "all",
-                    ["==", "$type", "LineString"],
-                    ["in", "subclass", "cycleway"],
+                    "any", 
+                    [
+                        "all",
+                        ["==", "$type", "LineString"],
+                        ["in", "subclass", "cycleway"],
+                    ],
+                    [
+                        "all",
+                        ["==", "$type", "LineString"],
+                        ["in", "bicycle", "designated"],
+                        ["in", "class", "path"],
+                    ]
                 ],
                 layout: {
                     "line-cap": "square",
