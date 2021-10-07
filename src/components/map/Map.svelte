@@ -98,14 +98,14 @@
                     type: "line",
                     paint: {
                         "line-color": "#0000ff",
+                        "line-opacity": 0.5,
                         "line-width": {
                             base: 1.55,
                             stops: [
                                 [4, 1],
                                 [20, 6],
                             ],
-                        },
-                        "line-dasharray": [1, 1],
+                        }
                     },
                     filter: [
                         "any",
@@ -139,11 +139,12 @@
                     minzoom: 14,
                     paint: {
                         "line-color": "#0000ff",
+                        "line-opacity": 0.5,
                         "line-width": {
                             base: 1.55,
                             stops: [
                                 [4, 1],
-                                [20, 2],
+                                [20, 6],
                             ],
                         },
                         "line-gap-width": {
@@ -153,11 +154,11 @@
                                 [20, 20],
                             ],
                         },
-                        //"line-dasharray": [1, 1],
+                        "line-dasharray": [1, 1],
                     },
                     filter: [
                         "all",
-                        ["==", "cycleway", "lane"],
+                        ["in", "cycleway", "lane", "track"],
                         ["!=", "subclass", "cycleway"],
                     ],
                 },
@@ -196,11 +197,12 @@
                     minzoom: 14,
                     paint: {
                         "line-color": "#0000ff",
+                        "line-opacity": 0.5,
                         "line-width": {
                             base: 1.55,
                             stops: [
                                 [4, 1],
-                                [20, 2],
+                                [20, 6],
                             ],
                         },
                         "line-offset": {
@@ -210,11 +212,11 @@
                                 [20, 10],
                             ],
                         },
-                        //"line-dasharray": [1, 1],
+                        "line-dasharray": [1, 1],
                     },
                     filter: [
                         "all",
-                        ["==", "cycleway:right", "lane"],
+                        ["in", "cycleway:right", "lane", "track"],
                         ["!=", "subclass", "cycleway"],
                     ],
                 },
