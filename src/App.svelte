@@ -48,7 +48,7 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 	let userLocationLayerHook: UserLocationLayerHook;
 
 	let attributionOptions: AttributionControlOptions = {
-        customAttribution: "<a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a> <a href=\"email:eGovgis@oost-vlaanderen.be\"><img src=\"assets/icons/email.svg\" alt=\"Email\" /></a>" +
+        customAttribution: "<a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a> <a href=\"mailto:eGovgis@oost-vlaanderen.be\"><img src=\"assets/icons/email.svg\" alt=\"Email\" /></a>" +
 			" | <a href=\"https://www.anyways.eu/\">ANYWAYS BV</a>"
 	};
 	let baseLayerOptions: BaseLayerControlOptions = {
