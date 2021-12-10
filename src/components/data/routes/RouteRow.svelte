@@ -7,6 +7,7 @@
     export let route: {description: string, segments: any[] };
     export let selected: boolean = false;
     let routeDetail = { distance: 0, time: 0 };
+    let isFerry = false;
 
     function formatDistance(distance: number) {
         if (distance < 1000) {
@@ -49,6 +50,10 @@
                         }
                         if (f.properties.time) {
                             routeTime = parseFloat(f.properties.time);
+                        }
+
+                        if (f.properties.route == "ferry") {
+                            isFerry = true;
                         }
                     }
                 });
@@ -111,11 +116,16 @@
 
 {#if typeof route !== "undefined" && routeDetail.distance > 0}
     <div class="route-detail route-detail-selected row my-1 {selected ? "active" : ""}" on:click="{onClick}">
-        <div class="col-6 py-3">{route.description}</div>
-        <div class="col-4 py-3">
+        <div class="col-5 py-3">{route.description}</div>
+        <div class="col-3 py-3">
             <div><strong>{formatDistance(routeDetail.distance)}</strong></div>
             <div><strong>{formatTime(routeDetail.time)}</strong></div>
         </div>
+        {#if isFerry}
+        <div class="col-2 py-3"><img src="assets/icons/ferry.svg" alt="Ferry"></div>
+        {:else}
+        <div class="col-2 py-3"></div>
+        {/if}
         <div class="col-2 py-3"><img src="assets/icons/download.svg" alt="Download" on:click="{exportGpx}"></div>
     </div>
 {/if}
