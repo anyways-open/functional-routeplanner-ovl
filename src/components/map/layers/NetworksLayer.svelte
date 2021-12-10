@@ -10,6 +10,32 @@
     const mapHook: MapHook = mapAndHook.hook;
 
     onMount(async () => {
+        map.on("data", (e) => {
+            if (e.sourceId !== "cyclenetworks-tiles") return;
+            if (e.isSourceLoaded) {
+                const data = map.querySourceFeatures("cyclenetworks-tiles", {
+                    sourceLayer: "cyclenetwork",
+                });
+
+                data.forEach((d) => {
+                    const name = d.properties.name;
+                    if (
+                        typeof name !== "undefined" &&
+                        name.indexOf("wenslijn") !== -1
+                    ) {
+                        map.setFeatureState(
+                            {
+                                source: "cyclenetworks-tiles",
+                                sourceLayer: "cyclenetwork",
+                                id: d.id,
+                            },
+                            { wenslijn: true }
+                        );
+                    }
+                });
+            }
+        });
+
         map.on("load", () => {
             // get the best before layer.
             const style = map.getStyle();
@@ -46,7 +72,7 @@
                 "all",
                 ["!=", "highway", "construction"],
                 ["!=", "highway", "proposed"],
-                ["!=", "highway", "no"],
+                ["!=", "highway", "no"]
             ];
 
             const cycleHighwaysFilter = [
@@ -122,22 +148,33 @@
                     ),
                     paint: {
                         "line-color": "#fff",
-                        "line-width": [
+                        "line-gap-width": [
                             "interpolate",
                             ["linear"],
                             ["zoom"],
                             10,
-                            2,
+                            3,
                             12,
                             3,
                             16,
                             3,
                         ],
+                        "line-width": 2,
+                        "line-opacity": [
+                            "case",
+                            ["boolean", ["feature-state", "wenslijn"], false],
+                            0,
+                            1,
+                        ],
                     },
                     filter: [
-                        "any",
-                        cycleHighwaysFilterProposed,
-                        cycleHighwaysFilterTemporary,
+                        "all",
+                        [
+                            "any",
+                            cycleHighwaysFilterProposed,
+                            cycleHighwaysFilterTemporary,
+                        ],
+                        ["!has", "wenslijn"],
                     ],
                 },
                 before
@@ -183,11 +220,14 @@
                     type: "line",
                     source: "cyclenetworks-tiles",
                     "source-layer": "cyclenetwork",
-                    layout: Object.assign(mapHook.defaultLayerState["cyclenetworks-genk"]
-                                ?.layout ?? {},{
-                        "line-join": "round",
-                        "line-cap": "round",
-                    }),
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["cyclenetworks-genk"]
+                            ?.layout ?? {},
+                        {
+                            "line-join": "round",
+                            "line-cap": "round",
+                        }
+                    ),
                     paint: {
                         "line-color": ["get", "colour"],
                         "line-width": [
@@ -219,24 +259,27 @@
                 "source-layer": "cyclenetwork",
                 minzoom: 14,
                 maxzoom: 24,
-                layout: Object.assign(mapHook.defaultLayerState["cyclenetworks-genk-shields"]
-                                ?.layout ?? {}, {
-                    "icon-image": "network-{ref}-shield",
-                    "icon-rotation-alignment": "viewport",
-                    "icon-size": [
-                        "interpolate",
-                        ["linear"],
-                        ["zoom"],
-                        15,
-                        0.5,
-                        18,
-                        1,
-                    ],
-                    "icon-padding": 25,
-                    "symbol-placement": "line",
-                    "symbol-sort-key": ["-", 10, ["get", "ref"]], // { "type": "identity", "property": "ref" },
-                    "symbol-spacing": 10000,
-                }),
+                layout: Object.assign(
+                    mapHook.defaultLayerState["cyclenetworks-genk-shields"]
+                        ?.layout ?? {},
+                    {
+                        "icon-image": "network-{ref}-shield",
+                        "icon-rotation-alignment": "viewport",
+                        "icon-size": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            15,
+                            0.5,
+                            18,
+                            1,
+                        ],
+                        "icon-padding": 25,
+                        "symbol-placement": "line",
+                        "symbol-sort-key": ["-", 10, ["get", "ref"]], // { "type": "identity", "property": "ref" },
+                        "symbol-spacing": 10000,
+                    }
+                ),
                 filter: [
                     "all",
                     ["==", "$type", "LineString"],
@@ -250,11 +293,14 @@
                     type: "line",
                     source: "cyclenetworks-tiles",
                     "source-layer": "cyclenetwork",
-                    layout: Object.assign(mapHook.defaultLayerState["cyclenetworks-brussels"]
-                                ?.layout ?? {}, {
-                        "line-join": "round",
-                        "line-cap": "round",
-                    }),
+                    layout: Object.assign(
+                        mapHook.defaultLayerState["cyclenetworks-brussels"]
+                            ?.layout ?? {},
+                        {
+                            "line-join": "round",
+                            "line-cap": "round",
+                        }
+                    ),
                     paint: {
                         "line-color": ["get", "colour"],
                         "line-width": [
@@ -282,24 +328,27 @@
                 "source-layer": "cyclenetwork",
                 minzoom: 10,
                 maxzoom: 24,
-                layout: Object.assign(mapHook.defaultLayerState["cyclenetworks-brussels-shields"]
-                                ?.layout ?? {}, {
-                    "icon-image": "us-state_{ref_length}",
-                    "icon-rotation-alignment": "viewport",
-                    "icon-size": 1,
-                    "symbol-placement": {
-                        base: 1,
-                        stops: [
-                            [10, "point"],
-                            [11, "line"],
-                        ],
-                    },
-                    "symbol-spacing": 200,
-                    "text-field": "{ref}",
-                    "text-font": ["Noto Sans Regular"],
-                    "text-rotation-alignment": "viewport",
-                    "text-size": 10,
-                }),
+                layout: Object.assign(
+                    mapHook.defaultLayerState["cyclenetworks-brussels-shields"]
+                        ?.layout ?? {},
+                    {
+                        "icon-image": "us-state_{ref_length}",
+                        "icon-rotation-alignment": "viewport",
+                        "icon-size": 1,
+                        "symbol-placement": {
+                            base: 1,
+                            stops: [
+                                [10, "point"],
+                                [11, "line"],
+                            ],
+                        },
+                        "symbol-spacing": 200,
+                        "text-field": "{ref}",
+                        "text-font": ["Noto Sans Regular"],
+                        "text-rotation-alignment": "viewport",
+                        "text-size": 10,
+                    }
+                ),
                 filter: ["all", ["==", "operator", "Brussels Mobility"]],
             });
 
@@ -311,7 +360,10 @@
                 for (let l = 0; l < style.layers.length; l++) {
                     const layer = style.layers[l];
 
-                    if (layer && layer["source-layer"] === "transportation_name") {
+                    if (
+                        layer &&
+                        layer["source-layer"] === "transportation_name"
+                    ) {
                         if (!before) {
                             before = layer.id;
                         }
@@ -475,12 +527,22 @@
                                 ["linear"],
                                 ["zoom"],
                                 10,
-                                1,
+                                3,
                                 12,
-                                2,
+                                3,
                                 16,
-                                2,
-                            ]
+                                3,
+                            ],
+                            "line-opacity": [
+                                "case",
+                                [
+                                    "boolean",
+                                    ["feature-state", "wenslijn"],
+                                    false,
+                                ],
+                                0,
+                                1,
+                            ],
                         },
                         filter: [
                             "any",
@@ -496,7 +558,7 @@
                     type: "symbol",
                     source: "cyclenetworks-tiles",
                     "source-layer": "cyclenetwork",
-                    minzoom: 12.5,
+                    minzoom: 9,
                     layout: Object.assign(
                         mapHook.defaultLayerState[
                             "cycle-highways-labels-shields"

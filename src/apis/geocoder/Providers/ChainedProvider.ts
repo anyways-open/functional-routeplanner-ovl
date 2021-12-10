@@ -30,7 +30,7 @@ export class ChainedProvider implements IProvider {
         if (!chain) {
             chain = (previousResults: IForwardResult[], results: IForwardResult[]) => {
                 if (results.length == 0) {
-                    return { next: true, results: [] }
+                    return { next: true, results: previousResults }
                 }
 
                 let chained =  previousResults.concat(results);
@@ -38,7 +38,7 @@ export class ChainedProvider implements IProvider {
                     if (x.score > y.score) return -1;
                     return 1;
                 });
-                return { next: false, results: chained};
+                return { next: true, results: chained};
             }
         }
 

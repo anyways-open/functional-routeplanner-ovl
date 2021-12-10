@@ -14,6 +14,13 @@ export class CrabGeolocationProvider implements IProvider {
     name: string = "crab";
 
     forward(query: IForwardQuery, callback: (results: IForwardResult[]) => void): void {
+        if (typeof query.string === "undefined") return;
+
+        // REMARK; this is weird right, but CRAB returns communes when searching for kerk instead of streets.
+        if (query.string.toLowerCase() === "kerk") {
+            query.string = "kerkstraat";
+        }
+
         const xhr = new XMLHttpRequest(); 
         xhr.open("GET", `${this,this.apiRoot}/Location?q=${query.string}&c=5`);
         xhr.onload = () => {

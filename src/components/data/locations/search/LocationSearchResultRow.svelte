@@ -1,11 +1,11 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import type { SearchResult } from "../locations/search/LocationSearchResult";
+    import type { LocationSearchResult } from "./LocationSearchResult";
 
-    export let searchResult: SearchResult;
+    export let searchResult: LocationSearchResult;
 
     let icon: string = "marker-grey";
-    switch (searchResult.type) {
+    $: switch (searchResult.type) {
         case "address":
             icon = "house";
             break;
@@ -22,6 +22,9 @@
         case "bus_stop":
             icon = "bus";
             break;
+        case "school":
+            icon = "school";
+            break;
         case "road":
         case "street":
             icon = "road";
@@ -31,9 +34,11 @@
         case "neighbourhood":
             icon = "city";
             break;
+        default:
+            icon = "";
     }
 
-    const dispatch = createEventDispatcher<{ select: SearchResult }>();
+    const dispatch = createEventDispatcher<{ select: LocationSearchResult }>();
     function onClick(): void {
         dispatch("select", searchResult);
     }

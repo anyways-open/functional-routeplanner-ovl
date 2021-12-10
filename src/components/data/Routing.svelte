@@ -20,6 +20,7 @@
     import { createEventDispatcher, onMount } from "svelte";
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
     import BackButton from "./BackButton.svelte";
+    import { GeoPuntPoiProvider } from "../../apis/geocoder/Providers/GeoPuntPoiProvider";
 
     // exports.
     export let mapHook: MapHook; // interface to communicate with the map.
@@ -62,7 +63,8 @@
 
     // TODO: move this to general settings files.
     // instantiate the routing api.
-    const routingEndpoint = "https://staging.anyways.eu/routing-api2/";
+    //const routingEndpoint = "https://staging.anyways.eu/routing-api2/";
+    const routingEndpoint = "https://api.anyways.eu/routing/";
     const routingApi = new RoutingApi(
         routingEndpoint,
         "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz"
@@ -111,6 +113,9 @@
                     }
                     return { next: next, results: current };
                 },
+            },
+            {
+                provider: new GeoPuntPoiProvider()
             },
             {
                 provider: new OpenCageDataProvider(
@@ -345,7 +350,6 @@
 
     $: if (typeof routeLayerHook !== "undefined" && 
         selectedAlternative !== -1) {
-        console.log(selectedAlternative);
         routeLayerHook.setSelectedAlternative(selectedAlternative);
     }
 
