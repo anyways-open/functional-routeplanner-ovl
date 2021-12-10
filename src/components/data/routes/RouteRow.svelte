@@ -25,7 +25,7 @@
         }
         const h = Math.floor(time / 3600);
         const m = Math.floor((time % 3600) / 60);
-        return `${h} uur, ${m}`;
+        return `${h} uur, ${m} min`;
     }
 
     $: if (typeof route !== "undefined") {
@@ -116,8 +116,8 @@
 
 {#if typeof route !== "undefined" && routeDetail.distance > 0}
     <div class="route-detail route-detail-selected row my-1 {selected ? "active" : ""}" on:click="{onClick}">
-        <div class="col-5 py-3">{route.description}</div>
-        <div class="col-3 py-3">
+        <div class="col-4 py-3">{route.description}</div>
+        <div class="col-4 py-3">
             <div><strong>{formatDistance(routeDetail.distance)}</strong></div>
             <div><strong>{formatTime(routeDetail.time)}</strong></div>
         </div>
