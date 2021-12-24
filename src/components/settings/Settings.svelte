@@ -105,7 +105,7 @@
                     </a>
                 </ul>
                 <ul class="list-group mx-2">
-                    <a href="https://www.oost-vlaanderen.be/">
+                    <a href="https://oost-vlaanderen.be/wonen-en-leven/mobiliteit/fietsinfrastructuur/fietsrouteplanner.html">
                         <li class="list-group-item d-flex align-items-start">
                             <img src="assets/icons/link.svg" alt="Email" />
                             <div class="ps-2">Website</div>
