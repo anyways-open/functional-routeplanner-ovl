@@ -22,7 +22,7 @@
 
     let snapPoint: NearestPointOnLine;
     let mapLoaded: boolean = false;
-    let locations: { lng: number, lat: number}[] = [];
+    let locations: { lng: number; lat: number }[] = [];
     let selected: number = 0; // the selected alternative.
 
     // hook up events.
@@ -117,7 +117,9 @@
                     const routeColorLight = "#1da1f2";
                     const routeColorDark = "#0d8bd9";
                     const routeColor = routeColorLight;
+                    const routeAlternateColor = "#94b8b8";
                     const routeColorCasing = "#000";
+
                     map.addLayer(
                         {
                             id: "route-case",
@@ -164,10 +166,57 @@
                                 "line-cap": "round",
                             },
                             paint: {
-                                "line-color": "#94b8b8",
+                                "line-color": routeAlternateColor,
                                 "line-width": 7,
                             },
-                            filter: ["all", ["!=", "_route-selected", true]],
+                            filter: [
+                                "all",
+                                ["!=", "_route-selected", true],
+                                ["!=", "route", "ferry"],
+                            ],
+                        },
+                        lowestLabel
+                    );
+                    map.addLayer(
+                        {
+                            id: "route-alternate-ferry-back",
+                            type: "line",
+                            source: "route",
+                            layout: {
+                                "line-join": "round",
+                                "line-cap": "round",
+                            },
+                            paint: {
+                                "line-color": "#fff",
+                                "line-width": 7,
+                            },
+                            filter: [
+                                "all",
+                                ["!=", "_route-selected", true],
+                                ["==", "route", "ferry"],
+                            ],
+                        },
+                        lowestLabel
+                    );
+                    map.addLayer(
+                        {
+                            id: "route-alternate-ferry",
+                            type: "line",
+                            source: "route",
+                            layout: {
+                                "line-join": "round",
+                                "line-cap": "round",
+                            },
+                            paint: {
+                                "line-color": routeAlternateColor,
+                                "line-width": 3,
+                                "line-dasharray": [0.5, 3],
+                            },
+                            filter: [
+                                "all",
+                                ["!=", "_route-selected", true],
+                                ["==", "route", "ferry"],
+                            ],
                         },
                         lowestLabel
                     );
@@ -184,7 +233,54 @@
                                 "line-color": routeColor,
                                 "line-width": 7,
                             },
-                            filter: ["all", ["==", "_route-selected", true]],
+                            filter: [
+                                "all",
+                                ["==", "_route-selected", true],
+                                ["!=", "route", "ferry"],
+                            ],
+                        },
+                        lowestLabel
+                    );
+                    map.addLayer(
+                        {
+                            id: "route-ferry-back",
+                            type: "line",
+                            source: "route",
+                            layout: {
+                                "line-join": "round",
+                                "line-cap": "round",
+                            },
+                            paint: {
+                                "line-color": "#fff",
+                                "line-width": 7,
+                            },
+                            filter: [
+                                "all",
+                                ["==", "_route-selected", true],
+                                ["==", "route", "ferry"],
+                            ],
+                        },
+                        lowestLabel
+                    );
+                    map.addLayer(
+                        {
+                            id: "route-ferry",
+                            type: "line",
+                            source: "route",
+                            layout: {
+                                "line-join": "round",
+                                "line-cap": "round",
+                            },
+                            paint: {
+                                "line-color": routeColor,
+                                "line-width": 3,
+                                "line-dasharray": [0.5, 3],
+                            },
+                            filter: [
+                                "all",
+                                ["==", "_route-selected", true],
+                                ["==", "route", "ferry"],
+                            ],
                         },
                         lowestLabel
                     );
@@ -259,7 +355,7 @@
                                         if (f.geometry.type == "Point") {
                                             locations.push({
                                                 lng: f.geometry.coordinates[0],
-                                                lat: f.geometry.coordinates[1]
+                                                lat: f.geometry.coordinates[1],
                                             });
                                         }
                                     });
@@ -389,15 +485,18 @@
                 throw Error("Snappoint not set but dragging.");
             }
 
-            const routeIndex: number = snapPoint.properties["_route-segment-index"];
+            const routeIndex: number =
+                snapPoint.properties["_route-segment-index"];
             onDraggedRoute({
                 index: routeIndex + 1,
-                location: e.lngLat
+                location: e.lngLat,
             });
-            const snapSource: GeoJSONSource = map.getSource("route-snap") as GeoJSONSource;
+            const snapSource: GeoJSONSource = map.getSource(
+                "route-snap"
+            ) as GeoJSONSource;
             const empty: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
                 type: "FeatureCollection",
-                features: []
+                features: [],
             };
             snapSource.setData(empty);
             snapPoint = undefined;
@@ -467,12 +566,8 @@
                                     snapped = s;
                                     snapped.properties["_route-segment-index"] =
                                         f.properties["_route-segment-index"];
-                                    snapped.properties[
-                                            "_route-index"
-                                        ] =
-                                            f.properties[
-                                                "_route-index"
-                                            ];
+                                    snapped.properties["_route-index"] =
+                                        f.properties["_route-index"];
                                 } else {
                                     if (snapped.properties.dist) return;
                                     if (
@@ -486,12 +581,8 @@
                                             f.properties[
                                                 "_route-segment-index"
                                             ];
-                                        snapped.properties[
-                                            "_route-index"
-                                        ] =
-                                            f.properties[
-                                                "_route-index"
-                                            ];
+                                        snapped.properties["_route-index"] =
+                                            f.properties["_route-index"];
                                     }
                                 }
                             }
