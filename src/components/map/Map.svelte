@@ -45,8 +45,8 @@
 
         styleJson.sources.openmaptiles.url =
             "https://api.anyways.eu/tiles/openmaptiles/mvt.json";
-        styleJson.sources.openmaptiles.url =
-            "https://staging.anyways.eu/api/vector-tiles/openmaptiles/mvt.json";
+        //styleJson.sources.openmaptiles.url =
+        //    "https://staging.anyways.eu/api/vector-tiles/openmaptiles/mvt.json";
 
         styleJson.layers.forEach((layer) => {
             if (layer.id !== "railway-transit") return;
