@@ -113,7 +113,7 @@
                     </a>
                 </ul>
                 <ul class="list-group mx-2">
-                    <a href="mailto:eGovgis@oost-vlaanderen.be">
+                    <a href="mailto:gis.polis@oost-vlaanderen.be">
                         <li class="list-group-item d-flex align-items-start">
                             <img src="assets/icons/email.svg" alt="Email" />
                             <div class="ps-2">Meld een probleem</div>
