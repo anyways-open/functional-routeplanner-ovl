@@ -71,7 +71,7 @@
         Deze fietsrouteplanner is ontwikkeld om jouw route te plannen. Wil je hiermee navigeren, dan kan je een gpx downloaden en gebruiken in een eigen navigatietoepassing.
     </p>
     <p>
-        Meer informatie is <a href="#">hier</a> beschikbaar.
+        Meer informatie is <a href="https://oost-vlaanderen.be/wonen-en-leven/mobiliteit/fietsinfrastructuur/fietsrouteplanner.html">hier</a> beschikbaar.
     </p>
 </div>
 

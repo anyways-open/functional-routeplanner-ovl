@@ -58,9 +58,9 @@
 
             map.addSource("cyclenetworks-tiles", {
                 type: "vector",
-                url: "https://staging.anyways.eu/api/vector-tiles/cyclenetworks/mvt.json",
+                //url: "https://staging.anyways.eu/api/vector-tiles/cyclenetworks/mvt.json",
                 //url: "https://staging.anyways.eu/prod/tiles/cyclenetworks/mvt.json",
-                //url: "https://api.anyways.eu/tiles/cyclenetworks/mvt.json",
+                url: "https://api.anyways.eu/tiles/cyclenetworks/mvt.json",
             });
 
             const nodesColor = "#ccad00";
