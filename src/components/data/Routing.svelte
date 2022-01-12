@@ -141,6 +141,12 @@
                     location: q.location,
                 };
             }
+            if (q && q.string && q.string.toLowerCase().indexOf("puyenbroek") !== -1) {
+                q = {
+                    string: q.string.toLowerCase().replace("puyenbroek", "puyenbroeck"),
+                    location: q.location,
+                };
+            }
             return q;
         },
     });
