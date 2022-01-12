@@ -105,7 +105,9 @@
                     </a>
                 </ul>
                 <ul class="list-group mx-2">
-                    <a href="https://oost-vlaanderen.be/wonen-en-leven/mobiliteit/fietsinfrastructuur/fietsrouteplanner.html">
+                    <a
+                        href="https://oost-vlaanderen.be/wonen-en-leven/mobiliteit/fietsinfrastructuur/fietsrouteplanner.html"
+                        target="_blank">
                         <li class="list-group-item d-flex align-items-start">
                             <img src="assets/icons/link.svg" alt="Email" />
                             <div class="ps-2">Website</div>
@@ -126,11 +128,14 @@
                 <p class="disclaimer fs-6">
                     Dit project is <a
                         href="https://github.com/anyways-open/functional-routeplanner-ovl"
-                        >open source</a
+                        target="_blank">open source</a
                     >, ©
-                    <a href="https://www.oost-vlaanderen.be/"
+                    <a href="https://www.oost-vlaanderen.be/" target="_blank"
                         >Provincie Oost-Vlaanderen</a
-                    >, <a href="https://www.anyways.eu/">ANYWAYS BV</a><br />
+                    >,
+                    <a href="https://www.anyways.eu/" target="_blank"
+                        >ANYWAYS BV</a
+                    ><br />
                 </p>
             </div>
         {:else if view == "PROFILES"}
