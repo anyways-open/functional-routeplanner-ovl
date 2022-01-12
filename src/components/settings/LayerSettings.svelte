@@ -85,6 +85,39 @@
 
 <h2 class="mt-3 text-center">Kaartlagen</h2>
 
+<h3 class="pt-2">Lagen</h3>
+
+<div class="row m-2 p-2">De volgende lagen zijn beschikbaar:</div>
+
+<div class="card p-2 m-2">
+    {#each layers as layer, i}
+        {#if layer.enabled}
+            <div class="row align-items-center px-0">
+                <div class="col-5 pe-0">
+                    <button
+                        class="btn {layer.visible ? 'active' : ''} border-0"
+                        type="button"
+                        on:click={() => onLayerToggle(i)}>
+                        <div class="button-content">
+                            <span>
+                                <div class="img-container">
+                                    <img src={layer.logo} alt={layer.name} />
+                                </div>
+                            </span>
+                            <span>
+                                {layer.name}
+                            </span>
+                        </div>
+                    </button>
+                </div>
+                <div class="col">
+                    {layer.description}
+                </div>
+            </div>
+        {/if}
+    {/each}
+</div>
+
 <h3 class="pt-2">Basiskaart</h3>
 
 <p class="pb-2">
@@ -163,39 +196,6 @@
         </div>
         <div class="col">Een fietswinkel.</div>
     </div>
-</div>
-
-<h3 class="pt-2">Lagen</h3>
-
-<div class="row m-2 p-2">De volgende lagen zijn beschikbaar:</div>
-
-<div class="card p-2 m-2">
-    {#each layers as layer, i}
-        {#if layer.enabled}
-            <div class="row align-items-center px-0">
-                <div class="col-5 pe-0">
-                    <button
-                        class="btn {layer.visible ? 'active' : ''} border-0"
-                        type="button"
-                        on:click={() => onLayerToggle(i)}>
-                        <div class="button-content">
-                            <span>
-                                <div class="img-container">
-                                    <img src={layer.logo} alt={layer.name} />
-                                </div>
-                            </span>
-                            <span>
-                                {layer.name}
-                            </span>
-                        </div>
-                    </button>
-                </div>
-                <div class="col">
-                    {layer.description}
-                </div>
-            </div>
-        {/if}
-    {/each}
 </div>
 
 <style>
