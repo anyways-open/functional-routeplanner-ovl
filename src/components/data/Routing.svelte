@@ -77,7 +77,7 @@
                 provider: new CrabGeolocationProvider(),
                 chainForward: (_, current) => {
                     const results = [];
-                    let next = current.length == 0;
+                    let next = true;
                     current.forEach((x) => {
                         if (x.type == "commune") {
                             next = true;
