@@ -19,9 +19,17 @@
         focus("focus");
     }
 
+    let latestInputString = "";
+    let latestSearchedString = "";
+    const inputDelay = setInterval(() => {
+        if (latestInputString !== latestSearchedString) {
+            latestSearchedString = latestInputString;
+            input("input", latestSearchedString);
+        }
+    }, 1000)
     const input = createEventDispatcher<{ input: string }>();
     function onInput(e: any): void {
-        input("input", e.target.value);
+        latestInputString = e.target.value;
     }
 
     const close = createEventDispatcher();
