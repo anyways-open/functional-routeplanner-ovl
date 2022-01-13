@@ -22,7 +22,8 @@ export class OpenCageDataProvider implements IProvider {
     name: string = "opencage";
     requestId: number = 1;
 
-    forward(query: IForwardQuery, callback: (results: IForwardResult[]) => void): void {
+    forward(query: IForwardQuery, callback: (results: IForwardResult[]) => void): void {\
+        try {
         const opencageQuery: opencage.GeocodeRequest = { q: query.string, key: this.apiKey };
 
         if (query.location) {
@@ -106,6 +107,9 @@ export class OpenCageDataProvider implements IProvider {
             .catch((error) => {
               console.error(error);
             });
+        } catch (error) {
+            callback([]);
+        }
     }
 
     reverse(l: { lng: number; lat: number; }, callback: (results: IReverseResult[]) => void): void {
