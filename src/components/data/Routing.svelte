@@ -63,8 +63,8 @@
 
     // TODO: move this to general settings files.
     // instantiate the routing api.
-    //const routingEndpoint = "https://staging.anyways.eu/routing-api2/";
-    const routingEndpoint = "https://api.anyways.eu/routing/";
+    const routingEndpoint = "https://staging.anyways.eu/api/routing/";
+    //const routingEndpoint = "https://api.anyways.eu/routing/";
     const routingApi = new RoutingApi(
         routingEndpoint,
         "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz"
