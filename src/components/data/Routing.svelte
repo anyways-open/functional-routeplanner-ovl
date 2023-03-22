@@ -21,6 +21,9 @@
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
     import BackButton from "./BackButton.svelte";
     import { GeoPuntPoiProvider } from "../../apis/geocoder/Providers/GeoPuntPoiProvider";
+    import { AppGlobal } from "../../AppGlobal";
+    import MapSelectedLocation from "./locations/map-select/MapSelectedLocation.svelte";
+    import { get } from "svelte/store";
 
     // exports.
     export let mapHook: MapHook; // interface to communicate with the map.
@@ -33,6 +36,7 @@
         icon: string;
         longDescription: string;
     }[] = [];
+    export let routingManager: RoutingManager;
 
     // events.
     const dispatch = createEventDispatcher<{ expand: boolean }>();
@@ -53,18 +57,21 @@
     export let profile: string; // the profile.
     let searchLocation: number = -1; // the location being searched, the location the user is working with/has selected.
     let focusLocation: number = -1; // the location being shown.
-    let view = RoutingManager.VIEW_START; // the default view is in routes view.
+    let view: "START" | "SEARCH" | "ROUTES" | "LOCATION" = RoutingManager.VIEW_START; // the default view is in routes view.
     let searchResults: LocationSearchResult[]; // the current search results.
     let userLocationRequested: boolean; // the user location is requested.
     let userLocationAvailable: boolean = true; // the user location is available.
-    let routingManager: RoutingManager;
-    let isMobile = false;
     let selectedAlternative: number = 0;
+    let location: {
+        lng: number,
+        lat: number,
+        description?: string
+    } = undefined;
 
     // TODO: move this to general settings files.
     // instantiate the routing api.
-    const routingEndpoint = "https://staging.anyways.eu/api/routing/";
-    //const routingEndpoint = "https://api.anyways.eu/routing/";
+    //const routingEndpoint = "https://staging.anyways.eu/api/routing/";
+    const routingEndpoint = "https://api.anyways.eu/routing/";
     const routingApi = new RoutingApi(
         routingEndpoint,
         "Vc32GLKD1wjxyiloWhlcFReFor7aAAOz"
@@ -115,7 +122,7 @@
                 },
             },
             {
-                provider: new GeoPuntPoiProvider()
+                provider: new GeoPuntPoiProvider(),
             },
             {
                 provider: new OpenCageDataProvider(
@@ -135,15 +142,25 @@
     );
     const geocoder = new Geocoder(geocoderProvider, {
         forwardPreprocessor: (q) => {
-            if (q && q.string && q.string.toLowerCase().startsWith("station ")) {
+            if (
+                q &&
+                q.string &&
+                q.string.toLowerCase().startsWith("station ")
+            ) {
                 q = {
                     string: q.string.substring(7),
                     location: q.location,
                 };
             }
-            if (q && q.string && q.string.toLowerCase().indexOf("puyenbroek") !== -1) {
+            if (
+                q &&
+                q.string &&
+                q.string.toLowerCase().indexOf("puyenbroek") !== -1
+            ) {
                 q = {
-                    string: q.string.toLowerCase().replace("puyenbroek", "puyenbroeck"),
+                    string: q.string
+                        .toLowerCase()
+                        .replace("puyenbroek", "puyenbroeck"),
                     location: q.location,
                 };
             }
@@ -155,8 +172,10 @@
     let urlHashParsed = false;
     onMount(async () => {
         if (document.body.clientWidth < 576) {
-            isMobile = true;
-        }
+			AppGlobal.isSmall.set(true);
+        } else {
+			AppGlobal.isSmall.set(false);
+		}
 
         // state is as follows:
         // an array of locations comma seperate
@@ -209,7 +228,7 @@
                 }
             }
         } else {
-            if (isMobile) {
+            if (get(AppGlobal.isSmall)) {
                 locations[0].isUserLocation = true;
             }
         }
@@ -220,8 +239,6 @@
             view,
             profile,
             locations,
-            isMobile,
-            onStateUpdate,
             (query, callback) => {
                 geocoder.geocode({ string: query }, callback);
             },
@@ -239,6 +256,7 @@
                 );
             }
         );
+        routingManager.listenToState((s) => onStateUpdate(s));
     });
     $: if (
         typeof profile !== "undefined" &&
@@ -316,7 +334,7 @@
     }
 
     // expand/collapse depending on view.
-    let previousView = view;
+    let previousView:"START" | "SEARCH" | "ROUTES" | "LOCATION" = view;
     $: if (view !== previousView) {
         previousView = view;
         switch (view) {
@@ -354,8 +372,10 @@
         userLocationLayerHook.trigger();
     }
 
-    $: if (typeof routeLayerHook !== "undefined" && 
-        selectedAlternative !== -1) {
+    $: if (
+        typeof routeLayerHook !== "undefined" &&
+        selectedAlternative !== -1
+    ) {
         routeLayerHook.setSelectedAlternative(selectedAlternative);
     }
 
@@ -397,10 +417,15 @@
             lastMarkerBox = undefined;
 
             // a location was added.
+            // ignore this when there was not a mouse used, on touch devices we do things differently.
+            if (AppGlobal.assumeTouch()) return;
             routingManager.onMapClick(e.lngLat);
         });
         mapHook.on("load", () => {
             routingManager.onMapLoaded();
+        });
+        mapHook.on("touchlong", (e) => {
+            routingManager.onMapLongTouch(e.lngLat);
         });
         mapHookHooked = true;
     }
@@ -424,49 +449,54 @@
 </script>
 
 <div class="outer">
-    <div class="row">
-        <Locations
-            bind:locations
-            selected={view == RoutingManager.VIEW_SEARCH ? searchLocation : -1}
-            on:focus={(e) => routingManager.onSearch(e.detail)}
-            on:input={(e) => routingManager.onSearchInput(e.detail.value)}
-            on:close={(e) => routingManager.onRemoveOrClear(e.detail)}
-            on:add={() => routingManager.onAdd()}
-            on:switch={() => routingManager.onSwitch()}
-        />
-    </div>
-    <div
-        class="row {view == RoutingManager.VIEW_SEARCH
-            ? 'd-none d-sm-block'
-            : ''}"
-    >
-        <Profiles
-            {profiles}
-            {profile}
-            on:profile={(p) => routingManager.onSelectProfile(p.detail)}
-        />
-    </div>
-
-    {#if view === RoutingManager.VIEW_SEARCH}
-        <BackButton on:click={() => routingManager.onCancelSearch()} />
+    {#if view !== RoutingManager.VIEW_LOCATION}
         <div class="row">
-            <LocationSearchResultsTable
-                {searchResults}
-                {userLocationAvailable}
-                on:select={(e) => routingManager.onSelectResult(e.detail)}
-                on:usecurrentlocation={() =>
-                    routingManager.onSelectUserLocation()}
-            />
+            <Locations
+                bind:locations
+                selected={view == RoutingManager.VIEW_SEARCH
+                    ? searchLocation
+                    : -1}
+                on:focus={(e) => routingManager.onSearch(e.detail)}
+                on:input={(e) => routingManager.onSearchInput(e.detail.value)}
+                on:close={(e) => routingManager.onRemoveOrClear(e.detail)}
+                on:add={() => routingManager.onAdd()}
+                on:switch={() => routingManager.onSwitch()} />
         </div>
-    {/if}
+        <div
+            class="row {view == RoutingManager.VIEW_SEARCH
+                ? 'd-none d-sm-block'
+                : ''}">
+            <Profiles
+                {profiles}
+                {profile}
+                on:profile={(p) => routingManager.onSelectProfile(p.detail)} />
+        </div>
 
-    {#if view === RoutingManager.VIEW_ROUTES}
+        {#if view === RoutingManager.VIEW_SEARCH}
+            <BackButton on:click={() => routingManager.onCancelSearch()} />
+            <div class="row">
+                <LocationSearchResultsTable
+                    {searchResults}
+                    {userLocationAvailable}
+                    on:select={(e) => routingManager.onSelectResult(e.detail)}
+                    on:usecurrentlocation={() =>
+                        routingManager.onSelectUserLocation()} />
+            </div>
+        {/if}
+
+        {#if view === RoutingManager.VIEW_ROUTES}
+            <div class="row">
+                <RouteList
+                    {routes}
+                    selected={selectedAlternative}
+                    on:select={(e) =>
+                        routingManager.onSelectAlternative(e.detail)} />
+            </div>
+        {/if}
+    {:else}
+        <BackButton on:click={() => routingManager.onCancelLocation()} />
         <div class="row">
-            <RouteList
-                {routes}
-                selected={selectedAlternative}
-                on:select={(e) => routingManager.onSelectAlternative(e.detail)}
-            />
+            <MapSelectedLocation {routingManager} />
         </div>
     {/if}
 </div>

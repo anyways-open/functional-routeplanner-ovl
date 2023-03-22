@@ -1,15 +1,18 @@
 <script lang="ts">
     import { onMount, setContext } from "svelte";
     import {
+    EventData,
         FullscreenControl,
         LngLatLike,
         Map,
+        MapTouchEvent,
         NavigationControl,
     } from "mapbox-gl";
     import "../../../node_modules/mapbox-gl/dist/mapbox-gl.css";
     import { key } from "./map";
     import { MapHook } from "./MapHook";
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
+    import { LongPushInteractionHandler } from "./interactions/LongPushInteractionHandler";
 
     // exports.
     export let hook: MapHook = new MapHook();
@@ -281,6 +284,14 @@
             });
         });
 
+        let onLongPushHandler: (ev: MapTouchEvent & EventData) => void = undefined;
+        const longPushInteraction = new LongPushInteractionHandler(map);
+        longPushInteraction.enable(ev => {
+            if (typeof onLongPushHandler === "undefined") return;
+
+            onLongPushHandler(ev);
+        });
+
         hook.resize = () => {
             map.resize();
         };
@@ -291,6 +302,10 @@
             });
         };
         hook.on = (name, handler) => {
+            if (name === "touchlong") {
+                onLongPushHandler = handler;
+                return;
+            }
             map.on(name, (e) => handler(e));
         };
     });

@@ -7,14 +7,30 @@
     import type { MapHook } from "../MapHook";
     import { RoutesLayerHook } from "./RoutesLayerHook";
     import type { Route } from "../../data/Route";
+    import { AppGlobal } from "../../../AppGlobal";
+    import type { RoutingManager } from "../../data/RoutingManager";
 
     export let routes: Route[] = []; // the routes.
     export let routeLayerHook: RoutesLayerHook = new RoutesLayerHook(); // interface to communicate with this component.
+    export let routingManager: RoutingManager;
 
     const { getMap } = getContext(key);
     const mapAndHook = getMap();
     const map: Map = mapAndHook.map;
     const mapHook: MapHook = mapAndHook.hook;
+
+    const onStateChanged = (state: any) => {
+        const keys = Object.keys(state);
+
+        keys.forEach((k) => {
+            switch (k) {
+                case "view":
+                    view = state.view;
+                    break;
+            }
+        });
+    };
+    routingManager.listenToState(onStateChanged);
 
     map.on("load", () => {
         mapLoaded = true;
@@ -24,6 +40,7 @@
     let mapLoaded: boolean = false;
     let locations: { lng: number; lat: number }[] = [];
     let selected: number = 0; // the selected alternative.
+    let view: string = "";
 
     // hook up events.
     let onClick: (e: any) => void;
@@ -57,7 +74,7 @@
     }
 
     $: if (typeof routes !== "undefined" && mapLoaded) {
-        if (routes.length == 0) {
+        if (routes.length == 0 || view === "LOCATION") {
             let source: GeoJSONSource = map.getSource("route") as GeoJSONSource;
             if (typeof source !== "undefined") {
                 source.setData({
@@ -470,6 +487,7 @@
 
     function onMapMouseDown(e): void {
         if (typeof onDraggedRoute === "undefined") return;
+        if (AppGlobal.assumeTouch()) return;
 
         dragging = false;
         if (typeof snapPoint !== "undefined") {
@@ -479,6 +497,7 @@
 
     function onMapMouseUp(e): void {
         if (typeof onDraggedRoute === "undefined") return;
+        if (AppGlobal.assumeTouch()) return;
 
         if (dragging) {
             if (typeof snapPoint === "undefined") {
@@ -508,6 +527,7 @@
 
     function onMapMouseMove(e): void {
         if (typeof onDraggedRoute === "undefined") return;
+        if (AppGlobal.assumeTouch()) return;
 
         const routeLayer = map.getLayer("route");
         if (typeof routeLayer === "undefined") return;
