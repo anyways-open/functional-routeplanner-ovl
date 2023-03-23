@@ -5,6 +5,7 @@
     import SettingsButton from "./SettingsButton.svelte";
     import BackButton from "./BackButton.svelte";
     import type { LayerConfig } from "../map/controls/layers/LayerConfig";
+    import type { RoutingManager } from "../data/RoutingManager";
 
     export let open: boolean = true;
     export let view: string = "NONE";
@@ -16,6 +17,23 @@
         icon: string;
         longDescription: string;
     }[] = [];
+    export let routingManager: RoutingManager;
+
+    let routingView: string = "";
+    $: if (typeof routingManager !== "undefined") {
+        const onStateChanged = (state: any) => {
+            const keys = Object.keys(state);
+
+            keys.forEach((k) => {
+                switch (k) {
+                    case "view":
+                        routingView = state.view;
+                        break;
+                }
+            });
+        };
+        routingManager.listenToState(onStateChanged);
+    }
 
     function onOpen(): void {
         open = true;
@@ -146,7 +164,7 @@
             <LayerSettings bind:layers />
         {/if}
     </div>
-{:else}
+{:else if routingView !== "SEARCH"}
     <SettingsButton on:click={onOpen} />
 {/if}
 

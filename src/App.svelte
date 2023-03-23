@@ -251,6 +251,8 @@
 		</Map>
 	</div>
 
+	<Settings {profiles} bind:profile bind:layers bind:open={settingsOpen} {routingManager} />
+
 	<div
 		id="data"
 		class="data {settingsOpen ? 'd-none' : ''}"
@@ -270,8 +272,6 @@
 			bind:userLocationLayerHook
 			on:expand={(e) => onExpand(e.detail)} />
 	</div>
-
-	<Settings {profiles} bind:profile bind:layers bind:open={settingsOpen} />
 </div>
 
 <style>

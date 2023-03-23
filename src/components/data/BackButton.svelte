@@ -16,8 +16,8 @@
         border-radius: 50%;
         background-color: white;
         position: fixed;
-        width: 30px;
-        height: 30px;
+        width: 35px;
+        height: 35px;
         top: 15px;
         left: 15px;
         box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.1);
@@ -25,10 +25,10 @@
 
     img {
         position: relative;
-        top: 1px;
+        top: 3px;
         left: 5px;
-        width: 20px;
-        height: 20px;
+        width: 25px;
+        height: 25px;
     }
 
     @media (min-width: 576px) {
