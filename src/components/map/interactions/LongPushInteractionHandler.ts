@@ -24,7 +24,7 @@ export class LongPushInteractionHandler {
             this.timeout = undefined;
         }
         this.ev = ev;
-        this.timeout = setTimeout(() => this.onLongTouch(), 1000);
+        this.timeout = setTimeout(() => this.onLongTouch(), 500);
     }
 
     private onTouchMove(ev: MapTouchEvent & EventData) {
