@@ -24,12 +24,12 @@ export class LongPushInteractionHandler {
             this.timeout = undefined;
         }
         this.ev = ev;
-        this.timeout = setTimeout(() => this.onLongTouch(), 500);
+        this.timeout = setTimeout(() => this.onLongTouch(), 250);
     }
 
     private onTouchMove(ev: MapTouchEvent & EventData) {
-        if (Math.abs(ev.point.x - this.ev.point.x) < 2 &&
-            Math.abs(ev.point.y - this.ev.point.y) < 2) {
+        if (Math.abs(ev.point.x - this.ev.point.x) < 5 &&
+            Math.abs(ev.point.y - this.ev.point.y) < 5) {
             return;
         }
 
