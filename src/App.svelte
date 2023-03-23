@@ -24,19 +24,25 @@
 	import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
 	import type { AttributionControlOptions } from "./components/map/controls/attribution/AttributionControlOptions";
 	import AttributionControl from "./components/map/controls/attribution/AttributionControl.svelte";
-    import { AppGlobal } from "./AppGlobal";
-    import type { RoutingManager } from "./components/data/RoutingManager";
-    import SelectedLocationsLayer from "./components/map/layers/SelectedLocationsLayer.svelte";
+	import { AppGlobal } from "./AppGlobal";
+	import type { RoutingManager } from "./components/data/RoutingManager";
+	import SelectedLocationsLayer from "./components/map/layers/SelectedLocationsLayer.svelte";
+	import type { LocationSearchResult } from "./components/data/locations/search/LocationSearchResult";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
-	let heights: {
-		data: string;
-		map: string;
-	} = {
-		data: "25%",
-		map: "calc(75% + 6px)",
-	};
+	let dataHeight: number = 195;
+	let minHeight: number = 195;
+	let maxHeight: number = 420;
+	// let heights: {
+	// 	data: string;
+	// 	map: string;
+	// 	minHeight: string,
+	// 	maxHeight: string
+	// } = {
+	// 	data: "25%",
+	// 	map: "calc(75% + 6px)",
+	// };
 
 	onMount(async () => {
 		dataElement = document.getElementById("data");
@@ -52,8 +58,9 @@
 	let userLocationLayerHook: UserLocationLayerHook;
 
 	let attributionOptions: AttributionControlOptions = {
-        customAttribution: "<a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a> <a href=\"mailto:gis.polis@oost-vlaanderen.be\"><img src=\"assets/icons/email.svg\" alt=\"Email\" /></a>" +
-			" | <a href=\"https://www.anyways.eu/\">ANYWAYS BV</a>"
+		customAttribution:
+			'<a href="https://www.oost-vlaanderen.be/">Prov. Oost-Vlaanderen</a> <a href="mailto:gis.polis@oost-vlaanderen.be"><img src="assets/icons/email.svg" alt="Email" /></a>' +
+			' | <a href="https://www.anyways.eu/">ANYWAYS BV</a>',
 	};
 	let baseLayerOptions: BaseLayerControlOptions = {
 		source: "aiv",
@@ -96,7 +103,7 @@
 				"cyclenetworks-brussels",
 				"cyclenetworks-brussels-shields",
 				"cyclenetworks-genk",
-				"cyclenetworks-genk-shields"
+				"cyclenetworks-genk-shields",
 			],
 			logo: "assets/icons/network.svg",
 			description: "Lokale netwerken van steden en gemeentes",
@@ -111,7 +118,7 @@
 				"cycle-highways",
 				"cycle-highways-labels-shields",
 				"cycle-highways-case-proposed",
-				"cycle-highways-proposed"
+				"cycle-highways-proposed",
 			],
 			logo: "assets/icons/cyclehighways.svg",
 			description: "De Vlaamse fietssnelwegen",
@@ -153,15 +160,9 @@
 
 	function onExpand(expand: boolean) {
 		if (expand) {
-			heights = {
-				data: "420px",
-				map: "calc(100% - 420px)",
-			};
+			dataHeight = 420;
 		} else {
-			heights = {
-				data: "calc(100% - 420px)",
-				map: "420px",
-			};
+			dataHeight = 195;
 		}
 	}
 
@@ -184,21 +185,49 @@
 		};
 	} = {};
 
+	let view: "START" | "SEARCH" | "ROUTES" | "LOCATION" = "START";
+	let searchResults: LocationSearchResult[] = [];
 	const onStateUpdate = (state: any) => {
-        const keys = Object.keys(state);
+		const keys = Object.keys(state);
 
-        keys.forEach((k) => {
-            switch (k) {
-                case "view":
-                    if (state.view === "LOCATION") {
-						heights = {
-							data: "25%",
-							map: "calc(75% + 6px)",
-						};
-					}
-                    break;
-            }
-        });
+		keys.forEach((k) => {
+			switch (k) {
+				case "view":
+					view = state.view;
+					break;
+				case "searchResults":
+					searchResults = state.searchResults;
+					break;
+			}
+		});
+
+		if (view === "LOCATION") {
+			dataHeight = 195;
+		}
+
+		if (view === "SEARCH") {
+			if (searchResults.length === 0) {
+				dataHeight = 195;
+				minHeight = 195;
+				maxHeight = 195;
+			} else if (searchResults.length == 1) {
+				dataHeight = 306;
+				minHeight = 195;
+				maxHeight = 306;
+			} else {
+				dataHeight = 420;
+				minHeight = 195;
+				maxHeight = 420;
+			}
+		}
+
+		if (view === "ROUTES") {
+			minHeight = 195;
+			maxHeight = 420;
+				
+			if (dataHeight > maxHeight) dataHeight = maxHeight;
+			if (dataHeight < minHeight) dataHeight = minHeight;
+		}
 	};
 	$: if (typeof routingManager !== "undefined") {
 		routingManager.listenToState(onStateUpdate);
@@ -217,10 +246,15 @@
 			dragState.dragging.startHeight -
 			(e.touches[0].clientY - dragState.dragging.startTouch);
 
-		heights.data = dragState.height + "px";
-		heights.map = "calc(100% - " + dragState.height + "px + 6px)";
-		dataElement.style.height = heights.data;
-		mapElement.style.height = heights.map;
+		if (dragState.height > maxHeight) {
+			dataHeight = maxHeight;
+		} else if (dragState.height < minHeight) {
+			dataHeight = minHeight;
+		} else{
+			dataHeight = dragState.height;
+		}
+
+		console.log(dataHeight);
 		mapHook.resize();
 	}
 
@@ -232,10 +266,16 @@
 </script>
 
 <div id="full" class="full">
-	<div id="map" class="map" style="height: {heights.map};">
+	<div id="map" class="map" style="height: calc(100% - {dataHeight}px + 6px);">
 		<Map bind:hook={mapHook}>
-			<RoutesLayer {routes} bind:routeLayerHook={routingLayerHook} {routingManager} />
-			<LocationsLayer {locations} bind:locationsLayerHook {routingManager}/>
+			<RoutesLayer
+				{routes}
+				bind:routeLayerHook={routingLayerHook}
+				{routingManager} />
+			<LocationsLayer
+				{locations}
+				bind:locationsLayerHook
+				{routingManager} />
 			<GipodLayer />
 			<NetworksLayer />
 			<ImageryLayer />
@@ -251,12 +291,17 @@
 		</Map>
 	</div>
 
-	<Settings {profiles} bind:profile bind:layers bind:open={settingsOpen} {routingManager} />
+	<Settings
+		{profiles}
+		bind:profile
+		bind:layers
+		bind:open={settingsOpen}
+		{routingManager} />
 
 	<div
 		id="data"
 		class="data {settingsOpen ? 'd-none' : ''}"
-		style="height: {heights.data};"
+		style="top: calc(100% - {dataHeight}px);"
 		on:touchstart={onTouchStart}
 		on:touchmove={onTouchMove}
 		on:touchend={onTouchEnd}>
@@ -269,8 +314,7 @@
 			bind:locations
 			bind:profile
 			bind:locationsLayerHook
-			bind:userLocationLayerHook
-			on:expand={(e) => onExpand(e.detail)} />
+			bind:userLocationLayerHook on:expand={onExpand}/>
 	</div>
 </div>
 
@@ -286,6 +330,7 @@
 			Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
 		font-weight: 400;
 		line-height: 1.5;
+		height: 100%;
 	}
 
 	.map {
@@ -293,8 +338,6 @@
 		top: 0;
 		bottom: 0;
 		width: 100%;
-		min-height: calc(100% - 420px + 6px);
-		max-height: calc(100% - 195px + 6px);
 	}
 
 	.data {
@@ -304,8 +347,6 @@
 		right: 0px;
 		border-top-left-radius: 10px;
 		border-top-right-radius: 10px;
-		min-height: 195px;
-		max-height: 420px;
 	}
 
 	@media (min-width: 576px) {
