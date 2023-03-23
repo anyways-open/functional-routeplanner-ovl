@@ -574,23 +574,80 @@ export class RoutingManager {
         // preconditions: view=ROUTES|START|SEARCH|LOCATION
         // event: onMapLongTouch
         // internal state:
-        // - change the view to LOCATION
-        // - do a reverse geocoding to get location info.
+        // - if view==SEARCH
+        //  - set the location being searched.
+        // - if view==OTHER
+        //  - change the view to LOCATION
+        //  - do a reverse geocoding to get location info.
         // actions: 
         // {none}
         // push:
         // - view
         // - location.
 
-        this.view = RoutingManager.VIEW_LOCATION;
+        if (this.view === "SEARCH") {
+            if (this.searchLocation == -1) {
+                console.error("result selected but there is no active location");
+                return;
+            }
+    
+            // update state.
+            const l = this.searchLocation;
+            this.routes.forEach((route) => {
+                if (typeof route === "undefined") return;
+    
+                if (l > 0 && l < route.segments.length + 1) {
+                    route.segments[l - 1] = undefined;
+                }
+                if (l < route.segments.length) {
+                    route.segments[l] = undefined;
+                }
+                route.segments.splice(l, 1);
+            });
+            this.locations[this.searchLocation] = {
+                id: this.locations[this.searchLocation].id,
+                isUserLocation: false,
+                description: undefined,
+                location: location
+            };
+            this.view = RoutingManager.VIEW_ROUTES;
+            for (let s = 0; s < this.locations.length - 1; s++) {
+                const from = this.locations[s];
+                const to = this.locations[s + 1];
+                if (typeof from === "undefined" ||
+                    typeof from.location === "undefined" ||
+                    typeof to === "undefined" ||
+                    typeof to.location === "undefined") {
+                    this.view = RoutingManager.VIEW_START;
+                    break;
+                }
+            }
+    
+            this.searchResults = [];
+            this.focusLocation = this.searchLocation;
+            this.searchLocation = -1;
+    
+            // take action.
+            this.actionRoute.go = true;
+            this.selectedAlternative = 0;
+            if (this.actionReverseGeocode.queue.findIndex(x => l == x) == -1) this.actionReverseGeocode.queue.push(l);
+            
+        } else {
+            this.view = RoutingManager.VIEW_LOCATION;
 
-        this.actionReverseGeocodeLocation.queue = location;
-        this.location = location;
+            this.actionReverseGeocodeLocation.queue = location;
+            this.location = location;
+        }
 
         // push state.
         this.pushState({
             location: this.location,
-            view: this.view
+            view: this.view,
+            locations: this.locations,
+            focusLocation: this.focusLocation,
+            searchLocation: this.searchLocation,
+            searchResults: this.searchResults,
+            selectedAlternative: this.selectedAlternative
         });
     }
 
