@@ -301,7 +301,7 @@
 	<div
 		id="data"
 		class="data {settingsOpen ? 'd-none' : ''}"
-		style="top: calc(100% - {dataHeight}px);"
+		style={AppGlobal.assumeTouch() ? "top: calc(100% - {dataHeight}px);" : ""}
 		on:touchstart={onTouchStart}
 		on:touchmove={onTouchMove}
 		on:touchend={onTouchEnd}>
