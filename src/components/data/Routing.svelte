@@ -171,6 +171,7 @@
     let urlHash = new UrlHashHandler("route");
     let urlHashParsed = false;
     onMount(async () => {
+        console.log(document.body.clientWidth);
         if (document.body.clientWidth < 576) {
 			AppGlobal.isSmall.set(true);
         } else {
@@ -418,7 +419,7 @@
 
             // a location was added.
             // ignore this when there was not a mouse used, on touch devices we do things differently.
-            if (AppGlobal.assumeTouch()) return;
+            if (get(AppGlobal.assumeTouch)) return;
             routingManager.onMapClick(e.lngLat);
         });
         mapHook.on("load", () => {

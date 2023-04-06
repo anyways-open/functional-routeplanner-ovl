@@ -1,4 +1,4 @@
-import { get, writable, Writable } from "svelte/store";
+import { get, Readable, writable, Writable } from "svelte/store";
 
 export class AppGlobal {
     /**
@@ -11,11 +11,23 @@ export class AppGlobal {
     public static isSmall: Writable<boolean> = writable(true);
 
     /**
-     * Checks if we need to assume touch interactions are the main method of interaction.
-     * 
-     * @returns True if touch, false otherwise.
+     * True when we have to assume touch.
      */
-    public static assumeTouch(): boolean {
-        return get(AppGlobal.hasTouch) && get(AppGlobal.isSmall);
+    public static assumeTouch: Readable<boolean> = AppGlobal.createAssumeTouchStore();
+
+    private static createAssumeTouchStore(): Writable<boolean> {
+        console.log("createAssumeTouchStore");
+
+        var assumeTouchStore: Writable<boolean> = writable(true);
+
+        this.hasTouch.subscribe(v => {
+            assumeTouchStore.set(v && get(AppGlobal.isSmall));
+        });
+        
+        this.isSmall.subscribe(v => {
+            assumeTouchStore.set(get(AppGlobal.hasTouch) && v);
+        });
+
+        return assumeTouchStore;
     }
 }

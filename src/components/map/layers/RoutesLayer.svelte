@@ -9,6 +9,7 @@
     import type { Route } from "../../data/Route";
     import { AppGlobal } from "../../../AppGlobal";
     import type { RoutingManager } from "../../data/RoutingManager";
+    import { get } from "svelte/store";
 
     export let routes: Route[] = []; // the routes.
     export let routeLayerHook: RoutesLayerHook = new RoutesLayerHook(); // interface to communicate with this component.
@@ -487,7 +488,7 @@
 
     function onMapMouseDown(e): void {
         if (typeof onDraggedRoute === "undefined") return;
-        if (AppGlobal.assumeTouch()) return;
+        if (get(AppGlobal.assumeTouch)) return;
 
         dragging = false;
         if (typeof snapPoint !== "undefined") {
@@ -497,7 +498,7 @@
 
     function onMapMouseUp(e): void {
         if (typeof onDraggedRoute === "undefined") return;
-        if (AppGlobal.assumeTouch()) return;
+        if (get(AppGlobal.assumeTouch)) return;
 
         if (dragging) {
             if (typeof snapPoint === "undefined") {
@@ -527,7 +528,7 @@
 
     function onMapMouseMove(e): void {
         if (typeof onDraggedRoute === "undefined") return;
-        if (AppGlobal.assumeTouch()) return;
+        if (get(AppGlobal.assumeTouch)) return;
 
         const routeLayer = map.getLayer("route");
         if (typeof routeLayer === "undefined") return;

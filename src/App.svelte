@@ -34,6 +34,7 @@
 	let dataHeight: number = 195;
 	let minHeight: number = 195;
 	let maxHeight: number = 420;
+
 	// let heights: {
 	// 	data: string;
 	// 	map: string;
@@ -263,6 +264,14 @@
 	afterUpdate(() => {
 		mapHook.resize();
 	});
+
+	const assumeTouch = AppGlobal.assumeTouch;
+	let dataStyle = "";
+	$: if ($assumeTouch) {
+		dataStyle = `top: calc(100% - ${dataHeight}px);`;
+	} else {
+		dataStyle = "";
+	}
 </script>
 
 <div id="full" class="full">
@@ -301,7 +310,7 @@
 	<div
 		id="data"
 		class="data {settingsOpen ? 'd-none' : ''}"
-		style={AppGlobal.assumeTouch() ? "top: calc(100% - {dataHeight}px);" : ""}
+		style={dataStyle}
 		on:touchstart={onTouchStart}
 		on:touchmove={onTouchMove}
 		on:touchend={onTouchEnd}>

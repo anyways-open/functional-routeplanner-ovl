@@ -7,6 +7,7 @@
     import { LocationsLayerHook } from "./LocationsLayerHook";
     import { AppGlobal } from "../../../../AppGlobal";
     import type { RoutingManager } from "../../../data/RoutingManager";
+    import { get } from "svelte/store";
 
     export let locations: Location[] = [];
     export let locationsLayerHook: LocationsLayerHook =
@@ -72,7 +73,7 @@
                 }
 
                 const marker = new Marker(element, {
-                    draggable: !AppGlobal.assumeTouch(),
+                    draggable: get(AppGlobal.assumeTouch),
                     offset: [0, -4],
                 })
                     .setLngLat(location.location)
@@ -83,7 +84,7 @@
                 };
 
                 // hook drag event.
-                if (!AppGlobal.assumeTouch()) {
+                if (!get(AppGlobal.assumeTouch)) {
                     marker.on("dragend", (e) => {
                         if (typeof onLocationUpdate !== "undefined") {
                             // calculate box of marker.
