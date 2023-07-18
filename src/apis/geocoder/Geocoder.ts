@@ -16,6 +16,8 @@ export class Geocoder {
         this.forwardPreprocessor = settings?.forwardPreprocessor;
     }
 
+    requestId: number = 1;
+
     reverseGeocode(l: { lng: number; lat: number}, callback: (results: IReverseResult[]) => void): void {
         this.provider.reverse(l, callback);
     }
@@ -28,11 +30,22 @@ export class Geocoder {
         query.string = query.string ?? "";
         query.string = query.string.trim();
 
+        this.requestId++;
+        const requestId = this.requestId;
+
         if (query.string.length == 0) {
             callback([]);
             return;
         }
 
-        this.provider.forward(query, callback);
+        this.provider.forward(query, rs => {
+            if (this.requestId != requestId) {
+                console.log(`result not latest: ${this.requestId} vs ${requestId}`);
+                return;
+            }
+            console.log(`result latest: ${this.requestId}`);
+
+            callback(rs);
+        });
     }
 }
