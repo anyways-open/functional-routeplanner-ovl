@@ -31,9 +31,10 @@
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
+	const maxHeightConst = 327;
 	let dataHeight: number = 195;
 	let minHeight: number = 195;
-	let maxHeight: number = 420;
+	let maxHeight: number = maxHeightConst;
 
 	// let heights: {
 	// 	data: string;
@@ -161,7 +162,7 @@
 
 	function onExpand(expand: boolean) {
 		if (expand) {
-			dataHeight = 420;
+			dataHeight = maxHeightConst;
 		} else {
 			dataHeight = 195;
 		}
@@ -216,15 +217,15 @@
 				minHeight = 195;
 				maxHeight = 306;
 			} else {
-				dataHeight = 420;
+				dataHeight = maxHeightConst;
 				minHeight = 195;
-				maxHeight = 420;
+				maxHeight = maxHeightConst;
 			}
 		}
 
 		if (view === "ROUTES") {
 			minHeight = 195;
-			maxHeight = 420;
+			maxHeight = maxHeightConst;
 				
 			if (dataHeight > maxHeight) dataHeight = maxHeight;
 			if (dataHeight < minHeight) dataHeight = minHeight;
