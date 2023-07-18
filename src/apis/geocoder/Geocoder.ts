@@ -14,7 +14,7 @@ export class Geocoder {
         this.provider = provider;
 
         this.forwardPreprocessor = settings?.forwardPreprocessor;
-    }x
+    }
 
     reverseGeocode(l: { lng: number; lat: number}, callback: (results: IReverseResult[]) => void): void {
         this.provider.reverse(l, callback);
