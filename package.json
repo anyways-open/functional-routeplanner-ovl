@@ -11,6 +11,8 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
+    "@rollup/plugin-typescript": "^8.0.0",
+    "@tsconfig/svelte": "^2.0.0",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
@@ -19,20 +21,18 @@
     "svelte": "^3.0.0",
     "svelte-check": "^2.0.0",
     "svelte-preprocess": "^4.0.0",
-    "@rollup/plugin-typescript": "^8.0.0",
-    "typescript": "^4.0.0",
     "tslib": "^2.0.0",
-    "@tsconfig/svelte": "^2.0.0"
+    "typescript": "^4.0.0"
   },
   "dependencies": {
-    "@anyways-open/routing-api": "0.0.12",
+    "@anyways-open/routing-api": "^0.0.14",
     "@anyways-open/url-hash": "0.0.1",
-    "@turf/turf": "^5.1.6",
     "@turf/nearest-point-on-line": "^6.3.0",
+    "@turf/turf": "^5.1.6",
     "@types/mapbox-gl": "^1.7.0",
-    "opencage-api-client": "^1.0.0",
     "bootstrap": "^5.0.2",
     "mapbox-gl": "^1.13.1",
+    "opencage-api-client": "^1.0.0",
     "sirv-cli": "^1.0.0",
     "togpx": "^0.5.4"
   }
