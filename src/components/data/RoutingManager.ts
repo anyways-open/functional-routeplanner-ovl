@@ -1246,7 +1246,8 @@ export class RoutingManager {
             locations: this.locations,
             view: this.view,
             searchLocation: this.searchLocation,
-            selectedAlternative: this.selectedAlternative
+            selectedAlternative: this.selectedAlternative,
+            userLocationRequested: this.userLocationRequested
         });
     }
 
