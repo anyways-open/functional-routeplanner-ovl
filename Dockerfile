@@ -5,7 +5,6 @@ COPY . .
 # To handle 'not get uid/gid'
 RUN npm config set unsafe-perm true
 
-RUN npm install
 RUN npm run build
 
 # production environment
