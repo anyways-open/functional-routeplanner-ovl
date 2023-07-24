@@ -1,10 +1,9 @@
-FROM mhart/alpine-node:14 AS build
+FROM mhart/alpine-node:16 AS build
 WORKDIR /app
 COPY . .
 
 # To handle 'not get uid/gid'
 RUN npm config set unsafe-perm true
-
 RUN npm ci
 RUN npm run build
 
