@@ -1,5 +1,6 @@
-import type { AnyLayer, AnySourceImpl, IControl, Map, MapDataEvent } from "mapbox-gl";
+import type { AnyLayer, AnySourceImpl, IControl, Map } from "maplibre-gl";
 import type { BaseLayerControlOptions } from "./BaseLayerControlOptions";
+import type maplibregl from "maplibre-gl";
 
 export class BaseLayerControlManager implements IControl {
     private readonly _imagerySourceName: string;
@@ -27,12 +28,12 @@ export class BaseLayerControlManager implements IControl {
         this._mapImage = options.images.map;
     }
 
-    onAdd(_: mapboxgl.Map): HTMLElement {
+    onAdd(_: maplibregl.Map): HTMLElement {
         return this._element;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-    onRemove(_: mapboxgl.Map): void {
+    onRemove(_: maplibregl.Map): void {
 
     }
 

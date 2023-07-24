@@ -1,5 +1,5 @@
-import { Map, AttributionControl, LngLatLike, MapEventType, EventData } from 'mapbox-gl';
-import type { AttributionControlOptions } from './AttributionControlOptions';
+import maplibregl, {AttributionControl, Map} from 'maplibre-gl';
+import type {AttributionControlOptions} from './AttributionControlOptions';
 
 export class OsmAttributionControl extends AttributionControl {
     readonly elementId: string;
@@ -65,7 +65,7 @@ export class OsmAttributionControl extends AttributionControl {
         return superOptions;
     }
 
-    onAdd(map: mapboxgl.Map): HTMLElement {
+    onAdd(map: maplibregl.Map): HTMLElement {
         this.map = map;
 
         // register move event to update edit location.
@@ -77,7 +77,7 @@ export class OsmAttributionControl extends AttributionControl {
 
     _updateEditLocation() {
 
-        var element = document.getElementById(this.elementId);
+        const element = <HTMLLinkElement> document.getElementById(this.elementId);
         if (typeof element == "undefined") return;
 
         element.href = `${ this.path }#map=${ this.map.getZoom() + 1 }/${ this.map.getCenter().lat }/${ this.map.getCenter().lng }`;

@@ -1,11 +1,11 @@
 <script lang="ts">
-    import type { LayerConfig } from "./LayerConfig";
-    import type { Map } from "mapbox-gl";
-    import { onMount, getContext } from "svelte";
-    import { key } from "../../../map/map";
-    import { LayerControlManager } from "./LayerControlManager";
-    import { UrlHashHandler } from "../../../../shared/UrlHashHandler";
-    import type { MapHook } from "../../MapHook";
+    import type {LayerConfig} from "./LayerConfig";
+    import type {Map} from "maplibre-gl";
+    import {getContext, onMount} from "svelte";
+    import {key} from "../../../map/map";
+    import {LayerControlManager} from "./LayerControlManager";
+    import {UrlHashHandler} from "../../../../shared/UrlHashHandler";
+    import type {MapHook} from "../../MapHook";
 
     // exports.
     export let layers: LayerConfig[] = [];

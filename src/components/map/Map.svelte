@@ -7,7 +7,7 @@
         Map,
         MapTouchEvent,
         NavigationControl,
-    } from "mapbox-gl";
+    } from "maplibre-gl";
     import "../../../node_modules/mapbox-gl/dist/mapbox-gl.css";
     import { key } from "./map";
     import { MapHook } from "./MapHook";

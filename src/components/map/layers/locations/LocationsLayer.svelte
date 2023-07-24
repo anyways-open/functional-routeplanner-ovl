@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Map, Marker, Point, PointLike } from "mapbox-gl";
+    import { Map, Marker, Point, PointLike } from "maplibre-gl";
     import { getContext } from "svelte";
     import type { Location } from "./Location";
     import { key } from "../../../map/map";
@@ -89,7 +89,7 @@
                         if (typeof onLocationUpdate !== "undefined") {
                             // calculate box of marker.
                             const anchor = map.project(marker.getLngLat());
-                            const offsets: Point = marker.getOffset();
+                            const offsets: Point = <any> marker.getOffset();
                             const computedStyle = getComputedStyle(element);
                             const elementHeight = parseInt(
                                 computedStyle.height

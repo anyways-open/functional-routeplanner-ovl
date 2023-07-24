@@ -1,4 +1,4 @@
-import type { EventData, Map, MapTouchEvent } from "mapbox-gl";
+import type { EventData, Map, MapTouchEvent } from "maplibre-gl";
 
 export class LongPushInteractionHandler {
     private readonly map: Map;

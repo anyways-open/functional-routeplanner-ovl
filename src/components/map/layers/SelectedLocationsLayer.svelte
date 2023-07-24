@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { LngLatLike, Map, Marker, Point, PointLike } from "mapbox-gl";
-    import { getContext } from "svelte";
-    import type { RoutingManager } from "../../data/RoutingManager";
+    import {LngLatLike, Map, Marker} from "maplibre-gl";
+    import {getContext} from "svelte";
+    import type {RoutingManager} from "../../data/RoutingManager";
     import * as svgs from "../../svg";
-    import { key } from "../../map/map";
+    import {key} from "../../map/map";
 
     export let routingManager: RoutingManager;
 
