@@ -1,4 +1,4 @@
-import { get, Readable, writable, Writable } from "svelte/store";
+import {derived, Readable, writable, Writable} from "svelte/store";
 
 export class AppGlobal {
     /**
@@ -15,19 +15,10 @@ export class AppGlobal {
      */
     public static assumeTouch: Readable<boolean> = AppGlobal.createAssumeTouchStore();
 
-    private static createAssumeTouchStore(): Writable<boolean> {
+    private static createAssumeTouchStore(): Readable<boolean> {
         console.log("createAssumeTouchStore");
+        return derived([this.hasTouch, this.isSmall], 
+            ([$hasTouch, $isSmall]) => $hasTouch && $isSmall);
 
-        var assumeTouchStore: Writable<boolean> = writable(true);
-
-        this.hasTouch.subscribe(v => {
-            assumeTouchStore.set(v && get(AppGlobal.isSmall));
-        });
-        
-        this.isSmall.subscribe(v => {
-            assumeTouchStore.set(get(AppGlobal.hasTouch) && v);
-        });
-
-        return assumeTouchStore;
     }
 }
