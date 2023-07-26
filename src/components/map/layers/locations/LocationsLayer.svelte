@@ -73,7 +73,7 @@
                 }
 
                 console.log("Do we have touch?", get(AppGlobal.assumeTouch))
-                const draggable = true // get(AppGlobal.assumeTouch)
+                const draggable = !get(AppGlobal.assumeTouch)
                 const marker = new Marker(element, {
                     draggable,
                     offset: [0, -4],
