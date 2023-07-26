@@ -36,7 +36,7 @@
     }
 </script>
 
-<div class="mapboxgl-ctrl mapboxgl-ctrl-group" bind:this={controlRoot}>
+<div class="maplibregl-ctrl maplibregl-ctrl-group" bind:this={controlRoot}>
     <nav class="base-layers">
         {#if mapVisible}
             <img src="{options.images.imagery}" alt="Luchtfotos" on:click={onActivateImagery}>

@@ -30,7 +30,7 @@
     "@turf/nearest-point-on-line": "^6.3.0",
     "@turf/turf": "^5.1.6",
     "bootstrap": "^5.0.2",
-    "maplibre-gl": "^1.15.3",
+    "maplibre-gl": "^3.2.1",
     "opencage-api-client": "^1.0.0",
     "sirv-cli": "^1.0.0",
     "togpx": "^0.5.4"

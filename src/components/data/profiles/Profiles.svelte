@@ -26,7 +26,7 @@
 <div class="profiles-container">
     <div class="profile-btn-group btn-group">
         {#each profiles as p}
-        <div type="button" class="btn btn-profile {profile == p.id ? "active" : ""} border-0" on:click={() => onSelect(p.id)}>
+        <div type="button" class="btn btn-profile {profile == p.id ? 'active' : ''} border-0" on:click={() => onSelect(p.id)}>
             <div class="button-content">
                 <span>
                     <img src="{p.icon}" alt="Snelste Route" />
@@ -123,7 +123,7 @@
 
         .btn:last-child {
             border-top-right-radius: 4px;
-            border-bottom-right-radius: px;
+            border-bottom-right-radius: 4px;
         }
 	}
 </style>

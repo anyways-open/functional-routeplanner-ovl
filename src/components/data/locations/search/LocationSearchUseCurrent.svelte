@@ -9,7 +9,7 @@
     }
 </script>
 
-    <div class="search-result row my-1 mx-0 {active ? "" : "disabled"}" on:click="{onClick}">
+    <div class="search-result row my-1 mx-0 {active ? '' : 'disabled'}" on:click="{onClick}">
         <div class="col-2 py-2">
             <div class="marker-user-location">
                 <div class="user-location-dot mapboxgl-marker" >

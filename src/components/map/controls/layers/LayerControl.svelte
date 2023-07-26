@@ -144,7 +144,7 @@
     }
 </script>
 
-<div class="mapboxgl-ctrl mapboxgl-ctrl-group" bind:this={controlRoot}>
+<div class="maplibregl-ctrl maplibregl-ctrl-group" bind:this={controlRoot}>
     <nav class="layer-control">
         {#each layers as layer, i}
             {#if layer.enabled}

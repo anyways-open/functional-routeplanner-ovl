@@ -1,14 +1,13 @@
 <script lang="ts">
     import { onMount, setContext } from "svelte";
     import {
-    EventData,
-        FullscreenControl,
+        FullscreenControl, LayerSpecification,
         LngLatLike,
         Map,
         MapTouchEvent,
         NavigationControl,
     } from "maplibre-gl";
-    import "../../../node_modules/mapbox-gl/dist/mapbox-gl.css";
+    import "../../../node_modules/maplibre-gl/dist/maplibre-gl.css";
     import { key } from "./map";
     import { MapHook } from "./MapHook";
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
@@ -68,7 +67,7 @@
         ];
 
         map = new Map({
-            container: "mapbox-gl-container",
+            container: "maplibre-gl-container",
             style: styleJson,
             center: center,
             zoom: zoom,
@@ -96,7 +95,7 @@
             map.resize(); // on more resize, refresh on chrome broken.
 
             map.addLayer(
-                {
+               <LayerSpecification> {
                     id: "road_cycleway",
                     type: "line",
                     paint: {
@@ -134,7 +133,7 @@
                 "bridge_major"
             );
             map.addLayer(
-                {
+               <LayerSpecification> {
                     id: "bicycle-cycleway-lane",
                     type: "line",
                     source: "openmaptiles",
@@ -168,7 +167,7 @@
                 "bridge_major"
             );
             map.addLayer(
-                {
+          <LayerSpecification>      {
                     id: "bicycle-cyclestreet",
                     type: "line",
                     source: "openmaptiles",
@@ -192,7 +191,7 @@
             );
 
             map.addLayer(
-                {
+            <LayerSpecification>    {
                     id: "bicycle-cycleway-lane-right",
                     type: "line",
                     source: "openmaptiles",
@@ -284,7 +283,7 @@
             });
         });
 
-        let onLongPushHandler: (ev: MapTouchEvent & EventData) => void = undefined;
+        let onLongPushHandler: (ev: MapTouchEvent) => void = undefined;
         const longPushInteraction = new LongPushInteractionHandler(map);
         longPushInteraction.enable(ev => {
             if (typeof onLongPushHandler === "undefined") return;
@@ -311,7 +310,7 @@
     });
 </script>
 
-<div id="mapbox-gl-container" class="h-100 map">
+<div id="maplibre-gl-container" class="h-100 map">
     {#if map}
         <slot />
     {/if}
