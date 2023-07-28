@@ -5,7 +5,7 @@ import type { IReverseResult } from "./IReverseResult";
 import * as turf from "@turf/turf";
 
 export class CrabGeolocationProvider implements IProvider {
-    private apiRoot: string = "https://loc.geopunt.be/geolocation/";
+    private apiRoot: string = "https://geo.api.vlaanderen.be/geolocation/v4/";
 
     constructor() {
         
