@@ -12,6 +12,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 16
+        registry-url: https://npm.pkg.github.com/
+        scope: "@anyways-open"
+    - name: npmrcgen
+      run: |
+        echo "registry=https://registry.npmjs.org/" > .npmrc
+        echo "@{anyways-open}:registry=https://npm.pkg.github.com/" >> .npmrc
+        echo "anyways-open/url-hash:registry=https://registry.npmjs.org/" >> .npmrc
+        echo "//npm.pkg.github.com/:_authToken=${{ secrets.PACKAGES_SECRET }}" >> .npmrc
+    - name: install packages
+      run: npm ci
     - name: Login to Dock Hub
       run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysbot --password-stdin
     - name: Build the Docker image
@@ -20,3 +33,4 @@ jobs:
       run: docker push anywaysopen/ovl-frontend:prod
     - name: Push Docker image.
       run: docker push anywaysopen/ovl-frontend:prod-0.$GITHUB_RUN_NUMBER
+
