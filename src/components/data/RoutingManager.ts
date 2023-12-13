@@ -153,7 +153,7 @@ export class RoutingManager {
             if (typeof to === "undefined" || typeof to.location === "undefined") continue;
 
             this.route(from, to, profile, alternatives, (segment) => {
-                if (segment[profile + "0"]) {
+                if (segment[profile + "1"]) {
                     // route with alternative, we have only one segment here with a possible altenerative.
                     this.onRouteSegmentResult(0, 0, segment[profile + "0"]);
 
