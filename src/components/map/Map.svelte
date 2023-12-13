@@ -40,15 +40,20 @@
         }
 
         const styleResponse = await fetch(
-            "https://api.maptiler.com/maps/152a1435-6dc1-441e-be13-3647c1ccb483/style.json?key=OZUCIh4RNx38vXF8gF4H"
+            //"https://api.maptiler.com/maps/152a1435-6dc1-441e-be13-3647c1ccb483/style.json?key=OZUCIh4RNx38vXF8gF4H"
+            "https://api.maptiler.com/maps/67ea3b5b-d4ac-48f3-ad92-6574c2dc9734/style.json?key=OZUCIh4RNx38vXF8gF4H"
             //"https://api.maptiler.com/maps/5ee3edf5-df11-4b36-88c9-f660f7afded9/style.json?key=OZUCIh4RNx38vXF8gF4H"
         );
         const styleJson = await styleResponse.json();
 
-        styleJson.sources.openmaptiles.url =
-            "https://api.anyways.eu/tiles/openmaptiles/mvt.json";
-        //styleJson.sources.openmaptiles.url =
-        //    "https://staging.anyways.eu/api/vector-tiles/openmaptiles/mvt.json";
+        // styleJson.sources.openmaptiles.url =
+        //     "https://api.anyways.eu/tiles/openmaptiles/mvt.json";
+        // //styleJson.sources.openmaptiles.url =
+        // //    "https://staging.anyways.eu/api/vector-tiles/openmaptiles/mvt.json";
+        styleJson.sources.anyways = {
+            url: "https://api.anyways.eu/publish/tiles/snapshot/d9258560-474e-48f7-b12a-e09326ae27b0/tiles/mvt.json",
+            type: "vector"
+        };
 
         styleJson.layers.forEach((layer) => {
             if (layer.id !== "railway-transit") return;
@@ -127,7 +132,7 @@
                         "line-cap": "square",
                         "line-join": "bevel",
                     },
-                    source: "openmaptiles",
+                    source: "anyways",
                     "source-layer": "transportation",
                 },
                 "bridge_major"
@@ -136,7 +141,7 @@
                <LayerSpecification> {
                     id: "bicycle-cycleway-lane",
                     type: "line",
-                    source: "openmaptiles",
+                    source: "anyways",
                     "source-layer": "transportation",
                     minzoom: 14,
                     paint: {
@@ -194,7 +199,7 @@
             <LayerSpecification>    {
                     id: "bicycle-cycleway-lane-right",
                     type: "line",
-                    source: "openmaptiles",
+                    source: "anyways",
                     "source-layer": "transportation",
                     minzoom: 14,
                     paint: {
@@ -232,7 +237,7 @@
                 map.addLayer({
                     id: "bicycle-oneway-no",
                     type: "symbol",
-                    source: "openmaptiles",
+                    source: "anyways",
                     "source-layer": "transportation",
                     minzoom: 15,
                     paint: { "icon-opacity": 0.5 },
@@ -260,7 +265,7 @@
                 map.addLayer({
                     id: "bicycle-oneway-yes",
                     type: "symbol",
-                    source: "openmaptiles",
+                    source: "anyways",
                     "source-layer": "transportation",
                     minzoom: 15,
                     paint: { "icon-opacity": 0.3 },

@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@anyways-open/routing-api": "^0.0.14",
+    "@anyways-open/maplibre-common": "0.3.3",
     "@anyways-open/url-hash": "0.0.1",
     "@turf/nearest-point-on-line": "^6.3.0",
     "@turf/turf": "^5.1.6",
