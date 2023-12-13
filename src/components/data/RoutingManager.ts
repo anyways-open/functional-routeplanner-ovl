@@ -169,7 +169,7 @@ export class RoutingManager {
                     }
                 } else {
                     // a route that is a missing segment.
-                    this.onRouteSegmentResult(0, s, segment);
+                    this.onRouteSegmentResult(0, s, segment[profile + "0"]);
                 }
             });
         }
