@@ -27,7 +27,7 @@ export class OpenCageDataProvider implements IProvider {
         const opencageQuery: opencage.GeocodeRequest = { q: query.string, key: this.apiKey };
 
         if (query.location) {
-            opencageQuery.bounds = `${query.location.lon-2},${query.location.lat-1},${query.location.lon+2},${query.location.lat+1}`;
+            opencageQuery.proximity = `${query.location.lat},${query.location.lon}`;
         }
         if (typeof this.settings.bounds !== "undefined") {
             const bounds = this.settings.bounds;
@@ -67,6 +67,11 @@ export class OpenCageDataProvider implements IProvider {
                         score: 20,
                         type: r.components._type
                     };
+
+                    // filter out addresses.
+                    if (typeof r.components.house_number !== undefined) {
+                        return;
+                    }
 
                     // filter out irrelevant results.
                     if (result.type == "parking" ||

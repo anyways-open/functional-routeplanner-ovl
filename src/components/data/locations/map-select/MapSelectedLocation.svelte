@@ -1,46 +1,69 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
-    export let profile: string = "bicycle.commute";
+    import FromIcon from "../../../../svg/icons/FromIcon.svelte";
+    import ToIcon from "../../../../svg/icons/ToIcon.svelte";
+    import type { RoutingManager } from "../../RoutingManager";
 
-    export let profiles: { id: string, description: string, icon: string}[] = [
-        {
-            id: "bicycle.commute",
-            description: "Fietsen",
-            icon:"assets/icons/bicycle.svg"
-        },
-        {
-            id: "bicycle.functional_network",
-            description: "Fietsen langs netwerken",
-            icon: "assets/icons/network.svg"
-        }
-    ];
+    export let routingManager: RoutingManager;
+    routingManager.listenToState(s => onStateUpdate(s));
 
-    const dispatch = createEventDispatcher<{ profile: string }>();
-    function onSelect(id: string): void {
-        profile = id;
-        dispatch("profile", id);
-    }
+    let location: {
+        lng: number,
+        lat: number,
+        description?: string
+    };
+    let description = "";
 
+    const onStateUpdate = (state: any) => {
+        const keys = Object.keys(state);
+
+        keys.forEach((k) => {
+            switch (k) {
+                case "location":
+                    location = state.location;
+
+                    description = location?.description ?? "";
+                    break;
+            }
+        });
+    };
 </script>
+<div class="poi-info">
+<h3 class="text">{description}</h3>
+</div>
 
-<div class="profiles-container">
-    <div class="profile-btn-group btn-group">
-        {#each profiles as p}
-        <div type="button" class="btn btn-profile {profile == p.id ? 'active' : ''} border-0" on:click={() => onSelect(p.id)}>
-            <div class="button-content">
-                <span>
-                    <img src="{p.icon}" alt="Snelste Route" />
-                </span>
-                <span class="description">
-                    {p.description}
-                </span>
-            </div>
+<div class="profile-btn-group btn-group">
+    <div class="btn btn-profile border-0" on:click={() => routingManager.onUseAs("START")}>
+        <div class="button-content">
+            <span>
+                <FromIcon class="location-icon"/>
+            </span>
+            <span class="description">
+                Neem als vertrekpunt
+            </span>
         </div>
-        {/each}
+    </div>
+    <div class="btn btn-profile border-0" on:click={() => routingManager.onUseAs("END")}>
+        <div class="button-content">
+            <span>
+                <ToIcon class="location-icon"/>
+            </span>
+            <span class="description">
+                Neem als bestemming
+            </span>
+        </div>
     </div>
 </div>
 
+
 <style>
+    .text {
+        color: #fff;
+    }
+
+    .poi-info {
+        height: 50px;
+    }
+
     .profile-btn-group {
         display: flex;
         background: #0d8bd9;
@@ -92,6 +115,7 @@
     }
 
 	@media (min-width: 576px) { 
+        
 		.profiles-container {
             padding: unset;
 		    bottom: unset;

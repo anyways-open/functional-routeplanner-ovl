@@ -1,20 +1,37 @@
 <script lang="ts">
-    import type { GeoJSONSource, Map } from "mapbox-gl";
-    import { getContext } from "svelte";
-    import { key } from "../../map/map";
+    import type {GeoJSONSource, Map, Point} from "maplibre-gl";
+    import {getContext} from "svelte";
+    import {key} from "../../map/map";
     import * as turf from "@turf/turf";
-    import type { NearestPointOnLine } from "@turf/nearest-point-on-line";
-    import type { MapHook } from "../MapHook";
-    import { RoutesLayerHook } from "./RoutesLayerHook";
-    import type { Route } from "../../data/Route";
+    import type {NearestPointOnLine} from "@turf/nearest-point-on-line";
+    import type {MapHook} from "../MapHook";
+    import {RoutesLayerHook} from "./RoutesLayerHook";
+    import type {Route} from "../../data/Route";
+    import {AppGlobal} from "../../../AppGlobal";
+    import type {RoutingManager} from "../../data/RoutingManager";
+    import {get} from "svelte/store";
 
     export let routes: Route[] = []; // the routes.
     export let routeLayerHook: RoutesLayerHook = new RoutesLayerHook(); // interface to communicate with this component.
+    export let routingManager: RoutingManager;
 
-    const { getMap } = getContext(key);
+    const {getMap} = getContext(key);
     const mapAndHook = getMap();
     const map: Map = mapAndHook.map;
     const mapHook: MapHook = mapAndHook.hook;
+
+    const onStateChanged = (state: any) => {
+        const keys = Object.keys(state);
+
+        keys.forEach((k) => {
+            switch (k) {
+                case "view":
+                    view = state.view;
+                    break;
+            }
+        });
+    };
+    routingManager.listenToState(onStateChanged);
 
     map.on("load", () => {
         mapLoaded = true;
@@ -24,6 +41,7 @@
     let mapLoaded: boolean = false;
     let locations: { lng: number; lat: number }[] = [];
     let selected: number = 0; // the selected alternative.
+    let view: string = "";
 
     // hook up events.
     let onClick: (e: any) => void;
@@ -57,7 +75,7 @@
     }
 
     $: if (typeof routes !== "undefined" && mapLoaded) {
-        if (routes.length == 0) {
+        if (routes.length == 0 || view === "LOCATION") {
             let source: GeoJSONSource = map.getSource("route") as GeoJSONSource;
             if (typeof source !== "undefined") {
                 source.setData({
@@ -346,17 +364,15 @@
                                         if (f && f.properties) {
                                             f.properties[
                                                 "_route-segment-index"
-                                            ] = s;
+                                                ] = s;
                                             f.properties["_route-index"] = a;
                                             f.properties["_route-selected"] =
                                                 a == routeToSelect;
                                         }
 
                                         if (f.geometry.type == "Point") {
-                                            locations.push({
-                                                lng: f.geometry.coordinates[0],
-                                                lat: f.geometry.coordinates[1],
-                                            });
+                                            const [lng, lat] = (<GeoJSON.Point>f.geometry).coordinates
+                                            locations.push({lng, lat});
                                         }
                                     });
 
@@ -372,7 +388,7 @@
                     source.setData(routesFeatures);
 
                     if (routesFeatures.features.length > 0) {
-                        const box = turf.bbox(routesFeatures);
+                        const box = turf.bbox(<any>routesFeatures);
 
                         const bounds = map.getBounds();
 
@@ -470,6 +486,7 @@
 
     function onMapMouseDown(e): void {
         if (typeof onDraggedRoute === "undefined") return;
+        if (get(AppGlobal.assumeTouch)) return;
 
         dragging = false;
         if (typeof snapPoint !== "undefined") {
@@ -479,6 +496,7 @@
 
     function onMapMouseUp(e): void {
         if (typeof onDraggedRoute === "undefined") return;
+        if (get(AppGlobal.assumeTouch)) return;
 
         if (dragging) {
             if (typeof snapPoint === "undefined") {
@@ -508,6 +526,7 @@
 
     function onMapMouseMove(e): void {
         if (typeof onDraggedRoute === "undefined") return;
+        if (get(AppGlobal.assumeTouch)) return;
 
         const routeLayer = map.getLayer("route");
         if (typeof routeLayer === "undefined") return;
@@ -554,7 +573,7 @@
                         if (
                             f.properties &&
                             typeof f.properties["_route-segment-index"] !=
-                                "undefined"
+                            "undefined"
                         ) {
                             const s = turf.nearestPointOnLine(f.geometry, [
                                 e.lngLat.lng,
@@ -577,10 +596,10 @@
                                         snapped = s;
                                         snapped.properties[
                                             "_route-segment-index"
-                                        ] =
+                                            ] =
                                             f.properties[
                                                 "_route-segment-index"
-                                            ];
+                                                ];
                                         snapped.properties["_route-index"] =
                                             f.properties["_route-index"];
                                     }

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Map } from "mapbox-gl";
+    import type { Map } from "maplibre-gl";
     import { onMount, getContext } from "svelte";
     import { key } from "../../../map/map";
     import type { AttributionControlOptions } from "./AttributionControlOptions";
@@ -20,7 +20,7 @@
 </script>
 
 <style>
-    :global(.mapboxgl-ctrl-attrib-inner img) {
+    :global(.maplibregl-ctrl-attrib-inner img) {
         height: 10px;
     }
 </style>

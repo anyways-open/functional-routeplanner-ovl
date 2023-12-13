@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { Map, GeolocateControl } from "mapbox-gl";
-    import { getContext, onMount } from "svelte";
-    import { key } from "../../map/map";
-    import { UserLocationLayerHook } from "./UserLocationLayerHook";
+    import {GeolocateControl, Map} from "maplibre-gl";
+    import {getContext} from "svelte";
+    import {key} from "../../map/map";
+    import {UserLocationLayerHook} from "./UserLocationLayerHook";
 
     const { getMap } = getContext(key);
     const map: Map = getMap().map;

@@ -1,9 +1,9 @@
 <script lang="ts">
-    import type { Map } from "mapbox-gl";
-    import { onMount, getContext } from "svelte";
-    import { key } from "../../map/map";
+    import type {Map} from "maplibre-gl";
+    import {getContext, onMount} from "svelte";
+    import {key} from "../../map/map";
 
-    const { getMap } = getContext(key);
+    const {getMap} = getContext(key);
     const map: Map = getMap().map;
 
     onMount(async () => {

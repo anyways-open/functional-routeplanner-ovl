@@ -115,18 +115,18 @@
 </script>
 
 {#if typeof route !== "undefined" && routeDetail.distance > 0}
-    <div class="route-detail route-detail-selected row my-1 {selected ? "active" : ""}" on:click="{onClick}">
-        <div class="col-4 py-3">{route.description}</div>
-        <div class="col-4 py-3">
+    <div class="route-detail route-detail-selected row {selected ? "active" : ""}" on:click="{onClick}">
+        <div class="col-4 py-1">{route.description}</div>
+        <div class="col-4 py-1">
             <div><strong>{formatDistance(routeDetail.distance)}</strong></div>
             <div><strong>{formatTime(routeDetail.time)}</strong></div>
         </div>
         {#if isFerry}
-        <div class="col-2 py-3"><img src="assets/icons/ferry.svg" alt="Ferry"></div>
+        <div class="col-2 py-1"><img src="assets/icons/ferry.svg" alt="Ferry"></div>
         {:else}
-        <div class="col-2 py-3"></div>
+        <div class="col-2 py-1"></div>
         {/if}
-        <div class="col-2 py-3"><img src="assets/icons/download.svg" alt="Download" on:click="{exportGpx}"></div>
+        <div class="col-2 py-1"><img src="assets/icons/download.svg" alt="Download" on:click="{exportGpx}"></div>
     </div>
 {/if}
 

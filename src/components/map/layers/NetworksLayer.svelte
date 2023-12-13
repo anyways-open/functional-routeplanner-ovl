@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Map } from "mapbox-gl";
+    import type { Map } from "maplibre-gl";
     import { onMount, getContext } from "svelte";
     import { key } from "../../map/map";
     import type { MapHook } from "../MapHook";

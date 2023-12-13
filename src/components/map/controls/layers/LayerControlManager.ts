@@ -1,5 +1,6 @@
-import type { IControl, Map, MapDataEvent } from "mapbox-gl";
+import type { IControl, Map, MapDataEvent } from "maplibre-gl";
 import type { LayerConfig } from "./LayerConfig";
+import type maplibregl from "maplibre-gl";
 
 export class LayerControlManager implements IControl {
     map: Map;
@@ -10,14 +11,14 @@ export class LayerControlManager implements IControl {
         this.map = map;
     }
 
-    onAdd(map: mapboxgl.Map): HTMLElement {
+    onAdd(map: maplibregl.Map): HTMLElement {
         this.map = map;
 
         return this.element;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-    onRemove(map: mapboxgl.Map): void {
+    onRemove(map: maplibregl.Map): void {
 
     }
 }

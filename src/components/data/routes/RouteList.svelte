@@ -25,9 +25,7 @@
 </script>
 
 {#if routes.length > 0 && routes.findIndex((r) => typeof r !== "undefined" && typeof r.segments !== "undefined" && r.segments.length > 0) >= 0}
-    <div>
         <div class="route-results">
-            <div class="d-block d-sm-none">Routes</div>
             <div class="route-results-list">
                 {#each routes as route, i}
                     {#if typeof route !== "undefined" && typeof route.segments !== "undefined" && route.segments.length > 0 && i < maxAlternatives}
@@ -40,7 +38,6 @@
                 {/each}
             </div>
         </div>
-    </div>
 {/if}
 
 <style>
@@ -50,7 +47,6 @@
     }
 
     .route-results-list {
-        margin-top: 8px;
         background: white;
         border-radius: 10px;
         padding: 4px;

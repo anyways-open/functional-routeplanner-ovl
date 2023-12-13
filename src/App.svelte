@@ -22,18 +22,29 @@
 	import UserLocationLayer from "./components/map/layers/UserLocationLayer.svelte";
 	import Settings from "./components/settings/Settings.svelte";
 	import BicyclePoiLayer from "./components/map/layers/BicyclePoiLayer.svelte";
-import type { AttributionControlOptions } from "./components/map/controls/attribution/AttributionControlOptions";
-import AttributionControl from "./components/map/controls/attribution/AttributionControl.svelte";
+	import type { AttributionControlOptions } from "./components/map/controls/attribution/AttributionControlOptions";
+	import AttributionControl from "./components/map/controls/attribution/AttributionControl.svelte";
+	import { AppGlobal } from "./AppGlobal";
+	import type { RoutingManager } from "./components/data/RoutingManager";
+	import SelectedLocationsLayer from "./components/map/layers/SelectedLocationsLayer.svelte";
+	import type { LocationSearchResult } from "./components/data/locations/search/LocationSearchResult";
 
 	let dataElement: HTMLElement;
 	let mapElement: HTMLElement;
-	let heights: {
-		data: string;
-		map: string;
-	} = {
-		data: "25%",
-		map: "calc(75% + 6px)",
-	};
+	const maxHeightConst = 327;
+	let dataHeight: number = 195;
+	let minHeight: number = 195;
+	let maxHeight: number = maxHeightConst;
+
+	// let heights: {
+	// 	data: string;
+	// 	map: string;
+	// 	minHeight: string,
+	// 	maxHeight: string
+	// } = {
+	// 	data: "25%",
+	// 	map: "calc(75% + 6px)",
+	// };
 
 	onMount(async () => {
 		dataElement = document.getElementById("data");
@@ -43,13 +54,15 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 	let settingsOpen: boolean = false;
 
 	let mapHook: MapHook;
+	let routingManager: RoutingManager;
 	let routingLayerHook: RoutesLayerHook;
 	let locationsLayerHook: LocationsLayerHook;
 	let userLocationLayerHook: UserLocationLayerHook;
 
 	let attributionOptions: AttributionControlOptions = {
-        customAttribution: "<a href=\"https://www.oost-vlaanderen.be/\">Prov. Oost-Vlaanderen</a> <a href=\"mailto:gis.polis@oost-vlaanderen.be\"><img src=\"assets/icons/email.svg\" alt=\"Email\" /></a>" +
-			" | <a href=\"https://www.anyways.eu/\">ANYWAYS BV</a>"
+		customAttribution:
+			'<a href="https://www.oost-vlaanderen.be/">Prov. Oost-Vlaanderen</a> <a href="mailto:gis.polis@oost-vlaanderen.be"><img src="assets/icons/email.svg" alt="Email" /></a>' +
+			' | <a href="https://www.anyways.eu/">ANYWAYS BV</a>',
 	};
 	let baseLayerOptions: BaseLayerControlOptions = {
 		source: "aiv",
@@ -92,7 +105,7 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 				"cyclenetworks-brussels",
 				"cyclenetworks-brussels-shields",
 				"cyclenetworks-genk",
-				"cyclenetworks-genk-shields"
+				"cyclenetworks-genk-shields",
 			],
 			logo: "assets/icons/network.svg",
 			description: "Lokale netwerken van steden en gemeentes",
@@ -107,7 +120,7 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 				"cycle-highways",
 				"cycle-highways-labels-shields",
 				"cycle-highways-case-proposed",
-				"cycle-highways-proposed"
+				"cycle-highways-proposed",
 			],
 			logo: "assets/icons/cyclehighways.svg",
 			description: "De Vlaamse fietssnelwegen",
@@ -149,15 +162,9 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 
 	function onExpand(expand: boolean) {
 		if (expand) {
-			heights = {
-				data: "calc(75% + 6px)",
-				map: "25%",
-			};
+			dataHeight = maxHeightConst;
 		} else {
-			heights = {
-				data: "25%",
-				map: "calc(75% + 6px)",
-			};
+			dataHeight = 195;
 		}
 	}
 
@@ -180,6 +187,54 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 		};
 	} = {};
 
+	let view: "START" | "SEARCH" | "ROUTES" | "LOCATION" = "START";
+	let searchResults: LocationSearchResult[] = [];
+	const onStateUpdate = (state: any) => {
+		const keys = Object.keys(state);
+
+		keys.forEach((k) => {
+			switch (k) {
+				case "view":
+					view = state.view;
+					break;
+				case "searchResults":
+					searchResults = state.searchResults;
+					break;
+			}
+		});
+
+		if (view === "LOCATION") {
+			dataHeight = 195;
+		}
+
+		if (view === "SEARCH") {
+			if (searchResults.length === 0) {
+				dataHeight = 195;
+				minHeight = 195;
+				maxHeight = 195;
+			} else if (searchResults.length == 1) {
+				dataHeight = 306;
+				minHeight = 195;
+				maxHeight = 306;
+			} else {
+				dataHeight = maxHeightConst;
+				minHeight = 195;
+				maxHeight = maxHeightConst;
+			}
+		}
+
+		if (view === "ROUTES") {
+			minHeight = 195;
+			maxHeight = maxHeightConst;
+				
+			if (dataHeight > maxHeight) dataHeight = maxHeight;
+			if (dataHeight < minHeight) dataHeight = minHeight;
+		}
+	};
+	$: if (typeof routingManager !== "undefined") {
+		routingManager.listenToState(onStateUpdate);
+	}
+
 	function onTouchStart(e: any) {
 		dragState.height = dataElement.clientHeight;
 		dragState.dragging = {
@@ -193,10 +248,15 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 			dragState.dragging.startHeight -
 			(e.touches[0].clientY - dragState.dragging.startTouch);
 
-		heights.data = dragState.height + "px";
-		heights.map = "calc(100% - " + dragState.height + "px + 6px)";
-		dataElement.style.height = heights.data;
-		mapElement.style.height = heights.map;
+		if (dragState.height > maxHeight) {
+			dataHeight = maxHeight;
+		} else if (dragState.height < minHeight) {
+			dataHeight = minHeight;
+		} else{
+			dataHeight = dragState.height;
+		}
+
+		console.log(dataHeight);
 		mapHook.resize();
 	}
 
@@ -205,13 +265,27 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 	afterUpdate(() => {
 		mapHook.resize();
 	});
+
+	const assumeTouch = AppGlobal.assumeTouch;
+	let dataStyle = "";
+	$: if ($assumeTouch) {
+		dataStyle = `top: calc(100% - ${dataHeight}px);`;
+	} else {
+		dataStyle = "";
+	}
 </script>
 
 <div id="full" class="full">
-	<div id="map" class="map" style="height: {heights.map};">
+	<div id="map" class="map" style="height: calc(100% - {dataHeight}px + 6px);">
 		<Map bind:hook={mapHook}>
-			<RoutesLayer {routes} bind:routeLayerHook={routingLayerHook} />
-			<LocationsLayer {locations} bind:locationsLayerHook />
+			<RoutesLayer
+				{routes}
+				bind:routeLayerHook={routingLayerHook}
+				{routingManager} />
+			<LocationsLayer
+				{locations}
+				bind:locationsLayerHook
+				{routingManager} />
 			<GipodLayer />
 			<NetworksLayer />
 			<ImageryLayer />
@@ -223,19 +297,26 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 			<AttributionControl options={attributionOptions} />
 			<BaseLayerControl bind:options={baseLayerOptions} />
 			<LayerControl bind:layers />
-
+			<SelectedLocationsLayer {routingManager} />
 		</Map>
 	</div>
+
+	<Settings
+		{profiles}
+		bind:profile
+		bind:layers
+		bind:open={settingsOpen}
+		{routingManager} />
 
 	<div
 		id="data"
 		class="data {settingsOpen ? 'd-none' : ''}"
-		style="height: {heights.data};"
+		style={dataStyle}
 		on:touchstart={onTouchStart}
 		on:touchmove={onTouchMove}
-		on:touchend={onTouchEnd}
-	>
+		on:touchend={onTouchEnd}>
 		<Routing
+			bind:routingManager
 			bind:routeLayerHook={routingLayerHook}
 			{profiles}
 			bind:mapHook
@@ -243,12 +324,8 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 			bind:locations
 			bind:profile
 			bind:locationsLayerHook
-			bind:userLocationLayerHook
-			on:expand={(e) => onExpand(e.detail)}
-		/>
+			bind:userLocationLayerHook on:expand={onExpand}/>
 	</div>
-
-	<Settings {profiles} bind:profile bind:layers bind:open={settingsOpen} />
 </div>
 
 <style>
@@ -263,6 +340,7 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 			Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
 		font-weight: 400;
 		line-height: 1.5;
+		height: 100%;
 	}
 
 	.map {
@@ -270,8 +348,6 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 		top: 0;
 		bottom: 0;
 		width: 100%;
-		min-height: calc(25% + 6px);
-		max-height: calc(100% - 195px + 6px);
 	}
 
 	.data {
@@ -281,8 +357,6 @@ import AttributionControl from "./components/map/controls/attribution/Attributio
 		right: 0px;
 		border-top-left-radius: 10px;
 		border-top-right-radius: 10px;
-		min-height: 195px;
-		max-height: 75%;
 	}
 
 	@media (min-width: 576px) {

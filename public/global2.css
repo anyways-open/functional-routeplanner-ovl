@@ -70,3 +70,8 @@
 button.mapboxgl-ctrl-geolocate {
     display: none;
 }
+
+.location-icon {
+    padding: 5px;
+    width: 50px;
+}

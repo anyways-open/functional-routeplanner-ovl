@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Map } from "mapbox-gl";
+    import type { Map } from "maplibre-gl";
     import { onMount, getContext } from "svelte";
     import { key } from "../../../map/map";
     import { BaseLayerControlManager } from "./BaseLayerControlManager";
@@ -36,7 +36,7 @@
     }
 </script>
 
-<div class="mapboxgl-ctrl mapboxgl-ctrl-group" bind:this={controlRoot}>
+<div class="maplibregl-ctrl maplibregl-ctrl-group" bind:this={controlRoot}>
     <nav class="base-layers">
         {#if mapVisible}
             <img src="{options.images.imagery}" alt="Luchtfotos" on:click={onActivateImagery}>
