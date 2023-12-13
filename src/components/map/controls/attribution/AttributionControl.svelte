@@ -20,7 +20,7 @@
 </script>
 
 <style>
-    :global(.mapboxgl-ctrl-attrib-inner img) {
+    :global(.maplibregl-ctrl-attrib-inner img) {
         height: 10px;
     }
 </style>

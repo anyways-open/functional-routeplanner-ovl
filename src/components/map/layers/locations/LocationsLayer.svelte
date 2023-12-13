@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Map, Marker, Point } from "maplibre-gl";
+    import { Map, Marker } from "maplibre-gl";
     import { getContext } from "svelte";
     import type { Location } from "./Location";
     import { key } from "../../../map/map";
@@ -74,7 +74,8 @@
 
                 console.log("Do we have touch?", get(AppGlobal.assumeTouch))
                 const draggable = !get(AppGlobal.assumeTouch)
-                const marker = new Marker(element, {
+                const marker = new Marker({
+                    element,
                     draggable,
                     offset: [0, -4],
                 })
@@ -91,7 +92,7 @@
                         if (typeof onLocationUpdate !== "undefined") {
                             // calculate box of marker.
                             const anchor = map.project(marker.getLngLat());
-                            const offsets: Point = <any> marker.getOffset();
+                            const offsets: {x:number, y:number} = <any> marker.getOffset();
                             const computedStyle = getComputedStyle(element);
                             const elementHeight = parseInt(
                                 computedStyle.height
