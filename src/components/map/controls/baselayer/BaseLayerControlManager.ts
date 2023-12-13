@@ -107,6 +107,7 @@ export class BaseLayerControlManager implements IControl {
         const style = this._map.getStyle();
         for (let l = 0; l < style.layers.length; l++) {
             const layer = style.layers[l];
+            if (layer.id.startsWith("bicycle")) continue;
             if (layer.type === "line" &&
                 layer["source-layer"] === "transportation") {
                 if (!layer.layout) {

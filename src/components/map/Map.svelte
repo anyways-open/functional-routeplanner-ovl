@@ -1,17 +1,24 @@
 <script lang="ts">
     import { onMount, setContext } from "svelte";
     import {
-        FullscreenControl, LayerSpecification,
+        Expression,
+        FilterSpecification,
+        FullscreenControl,
+        LayerSpecification,
         LngLatLike,
         Map,
         MapTouchEvent,
         NavigationControl,
+        Style,
+        StyleSpecification,
     } from "maplibre-gl";
     import "../../../node_modules/maplibre-gl/dist/maplibre-gl.css";
     import { key } from "./map";
     import { MapHook } from "./MapHook";
     import { UrlHashHandler } from "../../shared/UrlHashHandler";
     import { LongPushInteractionHandler } from "./interactions/LongPushInteractionHandler";
+    import { StyleTools } from "./StyleTools";
+    import { MaplibreUtils } from "./MaplibreUtils";
 
     // exports.
     export let hook: MapHook = new MapHook();
@@ -40,20 +47,355 @@
         }
 
         const styleResponse = await fetch(
-            //"https://api.maptiler.com/maps/152a1435-6dc1-441e-be13-3647c1ccb483/style.json?key=OZUCIh4RNx38vXF8gF4H"
-            "https://api.maptiler.com/maps/67ea3b5b-d4ac-48f3-ad92-6574c2dc9734/style.json?key=OZUCIh4RNx38vXF8gF4H"
+            "https://api.maptiler.com/maps/152a1435-6dc1-441e-be13-3647c1ccb483/style.json?key=OZUCIh4RNx38vXF8gF4H",
+            //"https://api.maptiler.com/maps/67ea3b5b-d4ac-48f3-ad92-6574c2dc9734/style.json?key=OZUCIh4RNx38vXF8gF4H"
             //"https://api.maptiler.com/maps/5ee3edf5-df11-4b36-88c9-f660f7afded9/style.json?key=OZUCIh4RNx38vXF8gF4H"
         );
-        const styleJson = await styleResponse.json();
+        const styleJson = (await styleResponse.json()) as StyleSpecification;
 
-        // styleJson.sources.openmaptiles.url =
-        //     "https://api.anyways.eu/tiles/openmaptiles/mvt.json";
-        // //styleJson.sources.openmaptiles.url =
-        // //    "https://staging.anyways.eu/api/vector-tiles/openmaptiles/mvt.json";
         styleJson.sources.anyways = {
             url: "https://api.anyways.eu/publish/tiles/snapshot/d9258560-474e-48f7-b12a-e09326ae27b0/tiles/mvt.json",
-            type: "vector"
+            type: "vector",
         };
+
+        // duplicate all layers, one for zoom levels above 10, others below.
+        // zooms higher than 10 come from ANYWAYS, the rest maptiler.
+        const newLayers: LayerSpecification[] = [];
+        for (var l = 0; l < styleJson.layers.length; l++) {
+            var layer = styleJson.layers[l];
+
+            if (layer) {
+                var sourceLayer = layer["source-layer"];
+
+                if (sourceLayer === "transportation") {
+                    if (layer.id.includes("rail")) {
+                        newLayers.push(layer);
+                        continue;
+                    }
+                    if (
+                        typeof layer.maxzoom !== "undefined" &&
+                        layer.maxzoom <= 10
+                    ) {
+                        // no need to add ANYWAYS alternative.
+                        // zoom level too low.
+                        newLayers.push(layer);
+                        continue;
+                    }
+
+                    // use the ANYWAYS source for the cloned layer.
+                    // and use a minzoom of 10.
+                    var clonedLayer = structuredClone(
+                        layer,
+                    ) as LayerSpecification & { source: string };
+                    clonedLayer.id = clonedLayer.id + "-anyways";
+                    clonedLayer.minzoom = 10;
+                    clonedLayer.source = "anyways";
+                    newLayers.push(clonedLayer);
+
+                    // modify the original with a max zoom of 10.
+                    if (typeof layer.maxzoom === "undefined") {
+                        layer.maxzoom = 10;
+                    } else if (layer.maxzoom > 10) {
+                        layer.maxzoom = 10;
+                    }
+                    newLayers.push(layer);
+                } else {
+                    newLayers.push(layer);
+                }
+            }
+        }
+        styleJson.layers = newLayers;
+
+        StyleTools.removeLayers(styleJson, [
+            "road_oneway",
+            "road_oneway_opposite",
+        ]);
+
+        // Add cycleway and 'highway=path;bicycle=designtated' in bright blue
+        StyleTools.addLayer(
+            styleJson,
+            {
+                id: "bicycle_road_cycleway",
+                type: "line",
+                paint: {
+                    "line-color": "#0000ff",
+                    "line-opacity": 0.5,
+                    "line-width": {
+                        base: 1.55,
+                        stops: [
+                            [4, 1],
+                            [20, 6],
+                        ],
+                    },
+                },
+                filter: [
+                    "any",
+                    [
+                        "all",
+                        ["==", "$type", "LineString"],
+                        ["in", "highway", "cycleway"],
+                        ["!in", "area", "yes"],
+                    ],
+                    [
+                        "all",
+                        ["==", "$type", "LineString"],
+                        ["in", "bicycle", "designated", "yes"],
+                        ["in", "class", "path"],
+                        ["!in", "area", "yes"],
+                    ],
+                ],
+                layout: {
+                    "line-cap": "square",
+                    "line-join": "bevel",
+                },
+                source: "anyways",
+                "source-layer": "transportation",
+            },
+            "bridge_major",
+        );
+        // Add 'cycleway=track' on major roads in dotted, blue
+        StyleTools.addLayer(
+            styleJson,
+            {
+                id: "bicycle-cycleway-lane",
+                type: "line",
+                source: "anyways",
+                "source-layer": "transportation",
+                minzoom: 14,
+                paint: {
+                    "line-color": "#0000ff",
+                    "line-opacity": 0.5,
+                    "line-width": {
+                        base: 1.55,
+                        stops: [
+                            [4, 1],
+                            [20, 6],
+                        ],
+                    },
+                    "line-gap-width": {
+                        base: 1.4,
+                        stops: [
+                            [6, 0.5],
+                            [20, 20],
+                        ],
+                    },
+                    "line-dasharray": [1, 1],
+                },
+                filter: [
+                    "all",
+                    ["in", "cycleway", "lane", "track"],
+                    ["!=", "subclass", "cycleway"],
+                ],
+            },
+            "bridge_major",
+        );
+
+        // Add cyclestreets in bright blue
+        StyleTools.addLayer(
+            styleJson,
+            {
+                id: "bicycle-cyclestreet",
+                type: "line",
+                source: "anyways",
+                "source-layer": "transportation",
+                minzoom: 14,
+                paint: {
+                    "line-color": "#0000ff",
+                    "line-opacity": 0.5,
+                    "line-width": {
+                        base: 1.55,
+                        stops: [
+                            [4, 3],
+                            [20, 10],
+                        ],
+                    },
+                    //"line-dasharray": [1, 1],
+                },
+                filter: ["all", ["==", "cyclestreet", "yes"]],
+            },
+            "bridge_major",
+        );
+        // Add dotted cycleways (with offset) if they are on the right
+        StyleTools.addLayer(
+            styleJson,
+            {
+                id: "bicycle-cycleway-lane-right",
+                type: "line",
+                source: "anyways",
+                "source-layer": "transportation",
+                minzoom: 14,
+                paint: {
+                    "line-color": "#0000ff",
+                    "line-opacity": 0.5,
+                    "line-width": {
+                        base: 1.55,
+                        stops: [
+                            [4, 1],
+                            [20, 6],
+                        ],
+                    },
+                    "line-offset": {
+                        base: 1.4,
+                        stops: [
+                            [6, 0.25],
+                            [20, 10],
+                        ],
+                    },
+                    "line-dasharray": [1, 1],
+                },
+                filter: [
+                    "all",
+                    ["in", "cycleway:right", "lane", "track"],
+                    ["!=", "subclass", "cycleway"],
+                ],
+            },
+            "bridge_major",
+        );
+
+        const bicycleOneway: FilterSpecification = [
+            "any",
+            ["==", "anyways:oneway:bicycle", 1], // this tag overrrules all others.
+            [
+                "all", // if there is no anyways tag check for a regular bicycle oneway.
+                ["!has", "anyways:oneway:bicycle"],
+                ["==", "oneway:bicycle", 1],
+            ],
+            [
+                "all", // if there is no anyways or a regular bicycle oneway check for a oneway
+                ["!has", "anyways:oneway:bicycle"],
+                ["!has", "oneway:bicycle"],
+                ["==", "oneway", 1],
+            ],
+        ];
+
+        const noOnewayBicycle: FilterSpecification = [
+            "any",
+            ["==", "anyways:oneway:bicycle", 0], // this tag overrrules all others, this means no oneway
+            [
+                "all", // if there is no anyways tag check for a regular bicycle oneway.
+                ["!has", "anyways:oneway:bicycle"],
+                ["==", "oneway:bicycle", 0],
+            ],
+        ];
+
+        const onewayButNotBicycle: FilterSpecification = [
+            "all",
+            StyleTools.IsOnewayFilter(),
+            noOnewayBicycle,
+        ];
+        const onewayReverseButNoBicycle: FilterSpecification = [
+            "all",
+            StyleTools.IsOnewayReverseFilter(),
+            noOnewayBicycle,
+        ];
+
+        const bicycleOnewayReverse: FilterSpecification = [
+            "any",
+            ["==", "anyways:oneway:bicycle", -1], // this tag overrrules all others.
+            [
+                "all", // if there is no anyways tag check for a regular bicycle oneway.
+                ["!has", "anyways:oneway:bicycle"],
+                ["==", "oneway:bicycle", -1],
+            ],
+            [
+                "all", // if there is no anyways or a regular bicycle oneway check for a oneway
+                ["!has", "anyways:oneway:bicycle"],
+                ["!has", "oneway:bicycle"],
+                ["==", "oneway", -1],
+            ],
+        ];
+
+        StyleTools.addLayer(
+            styleJson,
+            {
+                id: "bicycle-oneway",
+                type: "symbol",
+                source: "anyways",
+                "source-layer": "transportation",
+                minzoom: 15,
+                paint: { "icon-opacity": 0.5 },
+                layout: {
+                    "icon-image": "single-arrow",
+                    "icon-rotate": 0,
+                    "icon-padding": 2,
+                    "icon-size": 0.75,
+                    "symbol-spacing": 75,
+                    "symbol-placement": "line",
+                    "icon-rotation-alignment": "map",
+                },
+                filter: bicycleOneway,
+            },
+            "road_major_motorway",
+        );
+
+        StyleTools.addLayer(
+            styleJson,
+            {
+                id: "bicycle-oneway-reverse",
+                type: "symbol",
+                source: "anyways",
+                "source-layer": "transportation",
+                minzoom: 15,
+                paint: { "icon-opacity": 0.5 },
+                layout: {
+                    "icon-image": "single-arrow",
+                    "icon-rotate": 180,
+                    "icon-padding": 2,
+                    "icon-size": 0.75,
+                    "symbol-spacing": 75,
+                    "symbol-placement": "line",
+                    "icon-rotation-alignment": "map",
+                },
+                filter: bicycleOnewayReverse,
+            },
+            "road_major_motorway",
+        );
+
+        StyleTools.addLayer(
+            styleJson,
+            {
+                id: "bicycle-not-oneway",
+                type: "symbol",
+                source: "anyways",
+                "source-layer": "transportation",
+                minzoom: 15,
+                paint: { "icon-opacity": 0.5 },
+                layout: {
+                    "icon-image": "double-arrow",
+                    "icon-rotate": 0,
+                    "icon-padding": 2,
+                    "icon-size": 0.75,
+                    "symbol-spacing": 75,
+                    "symbol-placement": "line",
+                    "icon-rotation-alignment": "map",
+                },
+                filter: onewayButNotBicycle,
+            },
+            "road_major_motorway",
+        );
+
+        StyleTools.addLayer(
+            styleJson,
+            {
+                id: "bicycle-not-oneway-reverse",
+                type: "symbol",
+                source: "anyways",
+                "source-layer": "transportation",
+                minzoom: 15,
+                paint: { "icon-opacity": 0.5 },
+                layout: {
+                    "icon-image": "double-arrow",
+                    "icon-rotate": 180,
+                    "icon-padding": 2,
+                    "icon-size": 0.75,
+                    "symbol-spacing": 75,
+                    "symbol-placement": "line",
+                    "icon-rotation-alignment": "map",
+                },
+                filter: onewayReverseButNoBicycle,
+            },
+            "road_major_motorway",
+        );
 
         styleJson.layers.forEach((layer) => {
             if (layer.id !== "railway-transit") return;
@@ -68,7 +410,7 @@
         const bicycleAccess = [
             "all",
             ["!in", "class", "motorway"],
-            ["!in", "bicycle", "use_sidepath", "no"]
+            ["!in", "bicycle", "use_sidepath", "no"],
         ];
 
         map = new Map({
@@ -91,206 +433,29 @@
             const center = map.getCenter();
             urlHash.update(
                 `${map.getZoom().toFixed(2)}/${center.lng.toFixed(
-                    5
-                )}/${center.lat.toFixed(5)}`
+                    5,
+                )}/${center.lat.toFixed(5)}`,
             );
         });
 
-        map.on("load", () => {
+        map.on("load", async () => {
+
+
+            // TODO: move this to the cycling layer itself.
+            // The 'cycling'-layer needs a few extra images 
+            try {
+                await MaplibreUtils.loadImage(map, "assets/img/icons/arrow-8.png", "single-arrow")
+                await MaplibreUtils.loadImage(map, "assets/img/icons/double-arrow-8.png", "double-arrow")
+            } catch (e) {
+                console.error("Could not load a needed image:", e)
+            }
+
             map.resize(); // on more resize, refresh on chrome broken.
-
-            map.addLayer(
-               <LayerSpecification> {
-                    id: "road_cycleway",
-                    type: "line",
-                    paint: {
-                        "line-color": "#0000ff",
-                        "line-opacity": 0.5,
-                        "line-width": {
-                            base: 1.55,
-                            stops: [
-                                [4, 1],
-                                [20, 6],
-                            ],
-                        }
-                    },
-                    filter: [
-                        "any",
-                        [
-                            "all",
-                            ["==", "$type", "LineString"],
-                            ["in", "subclass", "cycleway"],
-                        ],
-                        [
-                            "all",
-                            ["==", "$type", "LineString"],
-                            ["in", "bicycle", "designated", "yes"],
-                            ["in", "class", "path"],
-                        ],
-                    ],
-                    layout: {
-                        "line-cap": "square",
-                        "line-join": "bevel",
-                    },
-                    source: "anyways",
-                    "source-layer": "transportation",
-                },
-                "bridge_major"
-            );
-            map.addLayer(
-               <LayerSpecification> {
-                    id: "bicycle-cycleway-lane",
-                    type: "line",
-                    source: "anyways",
-                    "source-layer": "transportation",
-                    minzoom: 14,
-                    paint: {
-                        "line-color": "#0000ff",
-                        "line-opacity": 0.5,
-                        "line-width": {
-                            base: 1.55,
-                            stops: [
-                                [4, 1],
-                                [20, 6],
-                            ],
-                        },
-                        "line-gap-width": {
-                            base: 1.4,
-                            stops: [
-                                [6, 0.5],
-                                [20, 20],
-                            ],
-                        },
-                        "line-dasharray": [1, 1],
-                    },
-                    filter: [
-                        "all",
-                        ["in", "cycleway", "lane", "track"],
-                        ["!=", "subclass", "cycleway"],
-                    ],
-                },
-                "bridge_major"
-            );
-            map.addLayer(
-          <LayerSpecification>      {
-                    id: "bicycle-cyclestreet",
-                    type: "line",
-                    source: "openmaptiles",
-                    "source-layer": "transportation",
-                    minzoom: 14,
-                    paint: {
-                        "line-color": "#0000ff",
-                        "line-opacity": 0.5,
-                        "line-width": {
-                            base: 1.55,
-                            stops: [
-                                [4, 3],
-                                [20, 10],
-                            ],
-                        },
-                        //"line-dasharray": [1, 1],
-                    },
-                    filter: ["all", ["==", "cyclestreet", "yes"]],
-                },
-                "bridge_major"
-            );
-
-            map.addLayer(
-            <LayerSpecification>    {
-                    id: "bicycle-cycleway-lane-right",
-                    type: "line",
-                    source: "anyways",
-                    "source-layer": "transportation",
-                    minzoom: 14,
-                    paint: {
-                        "line-color": "#0000ff",
-                        "line-opacity": 0.5,
-                        "line-width": {
-                            base: 1.55,
-                            stops: [
-                                [4, 1],
-                                [20, 6],
-                            ],
-                        },
-                        "line-offset": {
-                            base: 1.4,
-                            stops: [
-                                [6, 0.25],
-                                [20, 10],
-                            ],
-                        },
-                        "line-dasharray": [1, 1],
-                    },
-                    filter: [
-                        "all",
-                        ["in", "cycleway:right", "lane", "track"],
-                        ["!=", "subclass", "cycleway"],
-                    ],
-                },
-                "bridge_major"
-            );
-
-            map.loadImage("assets/img/icons/double-arrow-8.png", (e, i) => {
-                if (e) throw e;
-
-                map.addImage("double-arrow", i);
-                map.addLayer({
-                    id: "bicycle-oneway-no",
-                    type: "symbol",
-                    source: "anyways",
-                    "source-layer": "transportation",
-                    minzoom: 15,
-                    paint: { "icon-opacity": 0.5 },
-                    layout: {
-                        "icon-image": "double-arrow",
-                        "icon-rotate": 0,
-                        "icon-padding": 10,
-                        "icon-size": 0.75,
-                        "symbol-spacing": 150,
-                        "symbol-placement": "line",
-                        "icon-rotation-alignment": "map",
-                    },
-                    filter: [
-                        "all",
-                        ["==", "oneway:bicycle", "no"],
-                        bicycleAccess
-                    ],
-                });
-            });
-
-            map.loadImage("assets/img/icons/arrow-8.png", (e, i) => {
-                if (e) throw e;
-                map.addImage("arrow", i);
-
-                map.addLayer({
-                    id: "bicycle-oneway-yes",
-                    type: "symbol",
-                    source: "anyways",
-                    "source-layer": "transportation",
-                    minzoom: 15,
-                    paint: { "icon-opacity": 0.3 },
-                    layout: {
-                        "icon-image": "arrow",
-                        "icon-rotate": 0,
-                        "icon-padding": 10,
-                        "icon-size": 0.75,
-                        "symbol-spacing": 150,
-                        "symbol-placement": "line",
-                        "icon-rotation-alignment": "map",
-                    },
-                    filter: [
-                        "all",
-                        ["==", "oneway", 1],
-                        ["!=", "oneway:bicycle", "no"],
-                        bicycleAccess
-                    ],
-                });
-            });
         });
 
         let onLongPushHandler: (ev: MapTouchEvent) => void = undefined;
         const longPushInteraction = new LongPushInteractionHandler(map);
-        longPushInteraction.enable(ev => {
+        longPushInteraction.enable((ev) => {
             if (typeof onLongPushHandler === "undefined") return;
 
             onLongPushHandler(ev);
