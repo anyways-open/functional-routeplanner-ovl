@@ -32,10 +32,10 @@ export class CrabGeolocationProvider implements IProvider {
                     response.LocationResult.forEach(l => {
                         let score = 50;
                         let type = "commune";
-                        if (l.LocationType == "crab_straat") {
+                        if (l.LocationType == "basisregisters_straat") {
                             type = "street";
                             score = 70;
-                        } else if (l.LocationType.startsWith("crab_huisnummer")) {
+                        } else if (l.LocationType.startsWith("basisregisters_huisnummer")) {
                             type = "address";
                             score = 90;
                         }

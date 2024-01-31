@@ -44,6 +44,7 @@ export class Geocoder {
                 return;
             }
             console.log(`result latest: ${this.requestId}`);
+            console.log(rs);
 
             callback(rs);
         });
