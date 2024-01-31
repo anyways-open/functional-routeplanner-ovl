@@ -6,25 +6,27 @@ import type { IReverseResult } from "./IReverseResult";
 
 export class ChainedProvider implements IProvider {
     private providers: IChangedProviderSettings[] = [];
-    private settings: { 
+    private settings: {
         maxResults: number,
         maxReverseDistance: number
     };
 
     constructor(providers: IChangedProviderSettings[], settings?: { maxResults: number, maxReverseDistance: number }) {
         this.providers = providers;
-        this.settings =  settings ?? { maxResults: 10, maxReverseDistance: 50 };
+        this.settings = settings ?? { maxResults: 10, maxReverseDistance: 50 };
     }
 
     name: string = this.providers.map(x => x.provider.name).join(",");
 
-    forward(query: IForwardQuery, callback: (results: IForwardResult[]) => void): void {
-        this.forwardWith(0, [], query, callback);
+    async forward(query: IForwardQuery, options?: { signal?: AbortSignal }): Promise<IForwardResult[]> {
+        return this.forwardWith(0, [], query, options);
     }
 
-    private forwardWith(p: number, previousResults: IForwardResult[],
-        query: IForwardQuery, callback: (results: IForwardResult[]) => void): void {
+    private async forwardWith(p: number, previousResults: IForwardResult[],
+        query: IForwardQuery, options?: { signal?: AbortSignal }): Promise<IForwardResult[]> {
         const provider = this.providers[p];
+
+        if (options?.signal?.aborted) throw new Error("aborted");
 
         let chain = provider.chainForward;
         if (!chain) {
@@ -33,32 +35,32 @@ export class ChainedProvider implements IProvider {
                     return { next: true, results: previousResults }
                 }
 
-                let chained =  previousResults.concat(results);
+                let chained = previousResults.concat(results);
                 chained.sort((x, y) => {
                     if (x.score > y.score) return -1;
                     return 1;
                 });
-                return { next: true, results: chained};
+                return { next: true, results: chained };
             }
         }
 
-        provider.provider.forward(query, results => {
-            const chained = chain(previousResults, results);
-            if (chained.next && p < this.providers.length - 1) {
-                this.forwardWith(p + 1, chained.results, query, callback);
-            } else {
-                let results = chained.results;
-                if (results.length > this.settings.maxResults) {
-                    results = results.slice(0, this.settings.maxResults);
-                }
-                    
-                results.sort((x, y) => {
-                    if (x.score > y.score) return -1;
-                    return 1;
-                });
-                callback(results);
+        const results = await provider.provider.forward(query, options);
+        const chained = chain(previousResults, results);
+        if (chained.next && p < this.providers.length - 1) {
+            return this.forwardWith(p + 1, chained.results, query, options);
+        } else {
+            let results = chained.results;
+            if (results.length > this.settings.maxResults) {
+                results = results.slice(0, this.settings.maxResults);
             }
-        });
+
+            results.sort((x, y) => {
+                if (x.score > y.score) return -1;
+                return 1;
+            });
+
+            return results;
+        }
     }
 
     reverse(l: { lng: number; lat: number; }, callback: (results: IReverseResult[]) => void): void {
@@ -93,7 +95,7 @@ export class ChainedProvider implements IProvider {
                 if (results.length > this.settings.maxResults) {
                     results = results.slice(0, this.settings.maxResults);
                 }
-                    
+
                 results.sort((x, y) => {
                     if (x.distance > y.distance) return -1;
                     return 1;

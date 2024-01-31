@@ -20,9 +20,8 @@ export class OpenCageDataProvider implements IProvider {
     }
 
     name: string = "opencage";
-    requestId: number = 1;
-
-    forward(query: IForwardQuery, callback: (results: IForwardResult[]) => void): void {
+    
+    async forward(query: IForwardQuery, options?: { signal?: AbortSignal }): Promise<IForwardResult[]> {
         const opencageQuery: opencage.GeocodeRequest = { q: query.string, key: this.apiKey };
 
         if (query.location) {
@@ -42,75 +41,64 @@ export class OpenCageDataProvider implements IProvider {
         if (this.settings.language) {
             opencageQuery.language = this.settings.language;
         }
-        this.requestId++;
-        const requestId = this.requestId;
 
         if (query.string.length < 2) {
-            callback([]);
-            return;
+            return [];
         }
 
-        opencage
-            .geocode(opencageQuery)
-            .then((data) => {
-                if (this.requestId != requestId) {
-                    return;
+        const data = await opencage.geocode(opencageQuery);
+        if (options?.signal?.aborted) throw new Error("Request cancelled");
+
+        const results = [];
+        data.results.forEach(r => {
+            const result = {
+                description: r.formatted,
+                location: r.geometry,
+                provider: this.name,
+                score: 20,
+                type: r.components._type
+            };
+
+            // filter out addresses.
+            if (typeof r.components.house_number !== undefined) {
+                return;
+            }
+
+            // filter out irrelevant results.
+            if (result.type == "parking" ||
+                result.type == "fast_food") return;
+
+            // calculate our own confidence levels.
+            if (result.type == "city") {
+                result.score = 95;
+
+                // TODO: when far away, reduce score.
+            } else if (result.type == "village") {
+                result.score = 95;
+                result.description = r.components.village;
+
+                // TODO: when far away, reduce score.
+            } else if (result.type == "road") {
+                return;
+            } else if (result.type == "railway") {
+                result.score = 96;
+                result.description = r.components.railway;
+            }
+
+            // replace results with the same description if score is better.
+            const i = results.findIndex(x => x.description == result.description);
+            if (i >= 0) {
+                const existing = results[i];
+
+                if (existing.score < result.score) {
+                    results[i] = result;
                 }
-                const results = [];
-                data.results.forEach(r => {
+            } else {
+                results.push(result);
+            }
+        });
 
-                    const result = {
-                        description: r.formatted,
-                        location: r.geometry,
-                        provider: this.name,
-                        score: 20,
-                        type: r.components._type
-                    };
-
-                    // filter out addresses.
-                    if (typeof r.components.house_number !== undefined) {
-                        return;
-                    }
-
-                    // filter out irrelevant results.
-                    if (result.type == "parking" ||
-                        result.type == "fast_food") return;
-
-                    // calculate our own confidence levels.
-                    if (result.type == "city") {
-                        result.score = 95;
-
-                        // TODO: when far away, reduce score.
-                    } else if (result.type == "village") {
-                        result.score = 95;
-                        result.description = r.components.village;
-
-                        // TODO: when far away, reduce score.
-                    } else if (result.type == "road") {
-                        return;
-                    } else if (result.type == "railway") {
-                        result.score = 96;
-                        result.description = r.components.railway;
-                    }
-
-                    // replace results with the same description if score is better.
-                    const i = results.findIndex(x => x.description == result.description);
-                    if (i >= 0) {
-                        const existing = results[i];
-
-                        if (existing.score < result.score) {
-                            results[i] = result;
-                        }
-                    } else {
-                        results.push(result);
-                    }
-                });
-                
-                callback(results);
-            })
-            .catch((error) => {
-              console.error(error);
-            });
+        return results;
     }
 
     reverse(l: { lng: number; lat: number; }, callback: (results: IReverseResult[]) => void): void {

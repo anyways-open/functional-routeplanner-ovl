@@ -11,9 +11,9 @@ export interface IProvider {
     /**
      * Does a forward geocoding query.
      * @param query The search string.
-     * @param callback The callback with the results.
+     * @param options Options with an optional abort signal.
      */
-    forward(query: IForwardQuery, callback: (results: IForwardResult[]) => void): void;
+    forward(query: IForwardQuery, options?: { signal?: AbortSignal }): Promise<IForwardResult[]>;
 
     /**
      * Does a backard geocoding query.

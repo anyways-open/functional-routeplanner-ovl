@@ -240,9 +240,7 @@
             view,
             profile,
             locations,
-            (query, callback) => {
-                geocoder.geocode({ string: query }, callback);
-            },
+            (query) => geocoder.geocode({ string: query }),
             (location, callback) => {
                 geocoder.reverseGeocode(location, callback);
             },

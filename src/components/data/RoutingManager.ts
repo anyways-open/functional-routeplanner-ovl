@@ -42,7 +42,7 @@ export class RoutingManager {
         };
 
     private geocodeTimer = setInterval(() => this.action_geocode(), 500);
-    private readonly geocode: (query: string, callback: (results: IForwardResult[]) => void) => void;
+    private readonly geocode: (query: string) => Promise<IForwardResult[]>;
     private actionGeocode: {
         go: boolean,
         query: string
@@ -65,7 +65,7 @@ export class RoutingManager {
     } = {};
 
     constructor(view: "START" | "SEARCH" | "ROUTES" | "LOCATION", profile: string, locations: Location[],
-        geocode: (query: string, callback: (results: IForwardResult[]) => void) => void,
+        geocode: (query: string) => Promise<IForwardResult[]>,
         reverseGeocode: (l: { lng: number; lat: number }, callback: (results: IReverseResult[]) => void) => void,
         route: (from: Location, to: Location, profile: string, alternatives: boolean, callback: (results: any) => void) => void) {
         this.geocode = geocode;
@@ -123,7 +123,8 @@ export class RoutingManager {
             return;
         }
 
-        this.geocode(this.actionGeocode.query, (results) => {
+        this.geocode(this.actionGeocode.query).then(results => {
+            console.log(results);
             this.onGeocoderResults(results);
         });
     }

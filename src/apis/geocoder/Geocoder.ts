@@ -16,13 +16,13 @@ export class Geocoder {
         this.forwardPreprocessor = settings?.forwardPreprocessor;
     }
 
-    requestId: number = 1;
+    private abortController?: AbortController;
 
     reverseGeocode(l: { lng: number; lat: number}, callback: (results: IReverseResult[]) => void): void {
         this.provider.reverse(l, callback);
     }
 
-    geocode(query: IForwardQuery, callback: (results: IForwardResult[]) => void) {
+    async geocode(query: IForwardQuery): Promise<IForwardResult[]> {
         if (this.forwardPreprocessor) {
             query = this.forwardPreprocessor(query);
         }
@@ -30,23 +30,19 @@ export class Geocoder {
         query.string = query.string ?? "";
         query.string = query.string.trim();
 
-        this.requestId++;
-        const requestId = this.requestId;
+
+        if (typeof this.abortController !== "undefined") {
+            this.abortController.abort();
+        }
+        this.abortController = new AbortController();
+        const signal = this.abortController.signal;
 
         if (query.string.length == 0) {
-            callback([]);
-            return;
+            return [];
         }
 
-        this.provider.forward(query, rs => {
-            if (this.requestId != requestId) {
-                console.log(`result not latest: ${this.requestId} vs ${requestId}`);
-                return;
-            }
-            console.log(`result latest: ${this.requestId}`);
-            console.log(rs);
-
-            callback(rs);
+        return await this.provider.forward(query, {
+            signal: signal
         });
     }
 }
