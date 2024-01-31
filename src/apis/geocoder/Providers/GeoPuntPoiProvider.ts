@@ -18,44 +18,37 @@ export class GeoPuntPoiProvider implements IProvider {
 
     name: string = "crab";
 
-    forward(query: IForwardQuery, callback: (results: IForwardResult[]) => void): void {
-        const xhr = new XMLHttpRequest(); 
-        xhr.open("GET", `${this,this.apiRoot}?Theme=Onderwijs&Keyword=${query.string}`);
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
-                if (response.pois) {
-                    const results = [];
+    async forward(query: IForwardQuery, options?: { signal?: AbortSignal }): Promise<IForwardResult[]> {
+        const url = `${this, this.apiRoot}?Theme=Onderwijs&Keyword=${query.string}`);
+        const r = await fetch(url, {
+            signal: options?.signal
+        });
 
-                    //
+        const response = await r.json();
+        const results = [];
 
-                    response.pois.forEach(l => {
-                        if (results.length >= this.settings.maxCount) return;
+        if (response.pois) {
+            response.pois.forEach(l => {
+                if (results.length >= this.settings.maxCount) return;
 
-                        const location = l.location.points[0].Point.coordinates;
-                        const description = `${l.labels[0].value}, ${l.location.address.street} ${l.location.address.streetnumber} ${l.location.address.postalcode} ${l.location.address.municipality}`;
+                const location = l.location.points[0].Point.coordinates;
+                const description = `${l.labels[0].value}, ${l.location.address.street} ${l.location.address.streetnumber} ${l.location.address.postalcode} ${l.location.address.municipality}`;
 
-                        results.push({
-                            description: description,
-                            location: {
-                                lng: location[0],
-                                lat: location[1]
-                            },
-                            type: "school",
-                            score: 80,
-                            provider: this.name,
-                            raw: l
-                        });
-                    });
-                    
-                    callback(results);
-                }
-            }
-            else {
-                console.log("geocode failed: " + xhr.status);
-            }
-        };
-        xhr.send();
+                results.push({
+                    description: description,
+                    location: {
+                        lng: location[0],
+                        lat: location[1]
+                    },
+                    type: "school",
+                    score: 80,
+                    provider: this.name,
+                    raw: l
+                });
+            });
+        }
+
+        return results;
     }
 
     reverse(l: { lng: number; lat: number; }, callback: (results: IReverseResult[]) => void): void {
