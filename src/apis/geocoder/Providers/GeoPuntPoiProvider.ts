@@ -19,7 +19,7 @@ export class GeoPuntPoiProvider implements IProvider {
     name: string = "crab";
 
     async forward(query: IForwardQuery, options?: { signal?: AbortSignal }): Promise<IForwardResult[]> {
-        const url = `${this, this.apiRoot}?Theme=Onderwijs&Keyword=${query.string}`);
+        const url = `${this, this.apiRoot}?Theme=Onderwijs&SrsOut=4326&Keyword=${query.string}`);
         const r = await fetch(url, {
             signal: options?.signal
         });
