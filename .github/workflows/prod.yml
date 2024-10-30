@@ -11,7 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+      with:
+        path: build
     - uses: actions/setup-node@v1
       with:
         node-version: 16
@@ -19,18 +21,36 @@ jobs:
         scope: "@anyways-open"
     - name: npmrcgen
       run: |
+        cd build
         echo "registry=https://registry.npmjs.org/" > .npmrc
         echo "@{anyways-open}:registry=https://npm.pkg.github.com/" >> .npmrc
         echo "anyways-open/url-hash:registry=https://registry.npmjs.org/" >> .npmrc
         echo "//npm.pkg.github.com/:_authToken=${{ secrets.PACKAGES_SECRET }}" >> .npmrc
-    - name: install packages
-      run: npm ci
-    - name: Login to Dock Hub
-      run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysbot --password-stdin
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag anywaysopen/ovl-frontend:prod --tag anywaysopen/ovl-frontend:prod-0.$GITHUB_RUN_NUMBER
-    - name: Push Docker image.
-      run: docker push anywaysopen/ovl-frontend:prod
-    - name: Push Docker image.
-      run: docker push anywaysopen/ovl-frontend:prod-0.$GITHUB_RUN_NUMBER
 
+    - name: checkout deployment repo
+      uses: actions/checkout@v4    
+      with:
+        repository: 'anyways-open/functional-routeplanner-ovl-deployed'
+        path: deployment
+        ref: main
+        token: ${{ secrets.ACCESS_TOKEN }}
+
+    - name: To handle 'not get uid/gid'
+      run: cd build && npm config set unsafe-perm true
+    - name: install packages
+      run: cd build && npm ci      
+    - name: Build
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
+      run: cd build && npm run build
+      
+    - run: cd ./deployment && rm -R *
+    - run: cd ./build/public/ && cp -R * ../../deployment/
+    - run: |
+        # Note: the following account information will not work on GHES
+        cd ./deployment 
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "generated"
+        git push
