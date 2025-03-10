@@ -54,7 +54,7 @@
         const styleJson = (await styleResponse.json()) as StyleSpecification;
 
         styleJson.sources.anyways = {
-            url: "https://api.anyways.eu/publish/tiles/prerelease/snapshot/2eb23b80-0469-4d0a-9d07-56f72da8a136/tiles/mvt.json",
+            url: "https://api.anyways.eu/publish/tiles/snapshot/d9258560-474e-48f7-b12a-e09326ae27b0/tiles/mvt.json",
             type: "vector",
         };
 
